@@ -7,7 +7,7 @@ const NAV_ITEMS = [{ to: ROUTES.VERIFICATION_ADMIN_DASHBOARD, label: 'Dashboard'
 export default function VerificationAdminLayout() {
   return (
     <div className="admin-shell">
-      <AdminHeader roleLabel="Verification Admin" homeRoute={ROUTES.VERIFICATION_ADMIN_DASHBOARD} navItems={NAV_ITEMS} />
+      <AdminHeader roleLabel="Verification Admin" homeRoute={ROUTES.VERIFICATION_ADMIN_DASHBOARD} navItems={NAV_ITEMS} variant="modern" />
       <main>
         <Outlet />
       </main>

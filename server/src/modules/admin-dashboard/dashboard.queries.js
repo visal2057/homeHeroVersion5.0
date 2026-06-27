@@ -31,11 +31,15 @@ export function lastSixMonthsRevenue() {
   return query(`SELECT * FROM vw_monthly_revenue ORDER BY revenue_year DESC, revenue_month DESC LIMIT 6`);
 }
 
-export function bookingDistribution() {
+// Bookings grouped by service category, so the dashboard pie/donut chart can
+// show how diverse the bookings table is across the five service categories
+// instead of just active-vs-completed status.
+export function categoryBookingDistribution() {
   return query(
-    `SELECT
-       COUNT(*) FILTER (WHERE booking_status = 'ACCEPTED') AS active_count,
-       COUNT(*) FILTER (WHERE booking_status = 'COMPLETED') AS completed_count
-     FROM bookings`,
+    `SELECT sc.service_category_id, sc.category_name, COUNT(b.booking_id) AS booking_count
+     FROM service_categories sc
+     LEFT JOIN bookings b ON b.service_category_id = sc.service_category_id
+     GROUP BY sc.service_category_id, sc.category_name
+     ORDER BY sc.service_category_id`,
   );
 }

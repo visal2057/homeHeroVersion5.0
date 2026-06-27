@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import AdminMetricCard from '../components/AdminMetricCard.jsx';
+import { RevenueIcon, BookingsIcon, ProvidersIcon, ClientsIcon } from '../components/DashboardIcons.jsx';
 import RevenueBarChart from '../components/RevenueBarChart.jsx';
 import BookingPieChart from '../components/BookingPieChart.jsx';
 import RecentActionsList from '../components/RecentActionsList.jsx';
@@ -62,25 +63,56 @@ export default function SystemAdminDashboardPage() {
       </div>
 
       <div className="stat-grid">
-        <AdminMetricCard label="Current Month Earnings" value={formatCurrency(overview.metrics.currentMonthEarnings)} />
-        <AdminMetricCard label="Active Bookings" value={overview.metrics.activeBookings} accentColor="#0ea5e9" />
-        <AdminMetricCard label="Verified Service Providers" value={overview.metrics.verifiedProviders} accentColor="#f59e0b" />
-        <AdminMetricCard label="New Clients This Month" value={overview.metrics.newClientsThisMonth} accentColor="#8b5cf6" />
+        <div className="animate-fade-in-up delay-1">
+          <AdminMetricCard
+            label="Total Revenue"
+            value={formatCurrency(overview.metrics.currentMonthEarnings)}
+            sub="Revenue for the month"
+            icon={<RevenueIcon />}
+          />
+        </div>
+        <div className="animate-fade-in-up delay-2">
+          <AdminMetricCard
+            label="Active Bookings"
+            value={overview.metrics.activeBookings}
+            sub="Currently active requests"
+            icon={<BookingsIcon />}
+          />
+        </div>
+        <div className="animate-fade-in-up delay-3">
+          <AdminMetricCard
+            label="Verified Providers"
+            value={overview.metrics.verifiedProviders}
+            sub="Active service providers"
+            icon={<ProvidersIcon />}
+          />
+        </div>
+        <div className="animate-fade-in-up delay-4">
+          <AdminMetricCard
+            label="New Clients"
+            value={overview.metrics.newClientsThisMonth}
+            sub="New clients this month"
+            icon={<ClientsIcon />}
+          />
+        </div>
       </div>
 
       <div className="dashboard-grid">
-        <div className="card chart-card">
-          <h3>Six-Month Revenue</h3>
+        <div className="card chart-card chart-card-interactive animate-fade-in-up delay-2">
+          <div className="chart-card-header">
+            <h3>Growth Trends</h3>
+            <span className="chart-tag">Membership + Commission Revenue</span>
+          </div>
           <RevenueBarChart data={overview.revenueChart} />
         </div>
-        <div className="card chart-card">
-          <h3>Booking Distribution</h3>
-          <BookingPieChart active={overview.bookingDistribution.active} completed={overview.bookingDistribution.completed} />
+        <div className="card chart-card chart-card-interactive animate-fade-in-up delay-3">
+          <h3>Booking Distribution by Category</h3>
+          <BookingPieChart categories={overview.categoryDistribution} />
         </div>
       </div>
 
-      <div className="card chart-card">
-        <h3>Recent Actions</h3>
+      <div className="card chart-card animate-fade-in-up delay-4">
+        <h3>Recent Activity</h3>
         <RecentActionsList actions={overview.recentActions} />
       </div>
     </div>

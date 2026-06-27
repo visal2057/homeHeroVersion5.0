@@ -1,49 +1,96 @@
-const SIZE = 200;
-const RADIUS = 80;
-const CENTER = SIZE / 2;
+import { useState } from 'react';
 
-function describeArc(startAngle, endAngle) {
-  const start = {
-    x: CENTER + RADIUS * Math.cos(startAngle),
-    y: CENTER + RADIUS * Math.sin(startAngle),
-  };
-  const end = {
-    x: CENTER + RADIUS * Math.cos(endAngle),
-    y: CENTER + RADIUS * Math.sin(endAngle),
-  };
-  const largeArcFlag = endAngle - startAngle <= Math.PI ? 0 : 1;
-  return `M ${CENTER} ${CENTER} L ${start.x} ${start.y} A ${RADIUS} ${RADIUS} 0 ${largeArcFlag} 1 ${end.x} ${end.y} Z`;
+const SIZE = 200;
+const RADIUS = 78;
+const BASE_STROKE = 26;
+const HOVER_STROKE = 33;
+const CENTER = SIZE / 2;
+const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
+
+// Five fixed colors for the five HomeHero service categories, matched by
+// name so the legend stays consistent regardless of category order from
+// the database. Falls back to grey for any unexpected category.
+const CATEGORY_COLORS = {
+  gardening: '#059669',
+  cleaning: '#14b8a6',
+  'pet care': '#6366f1',
+  plumbing: '#3b82f6',
+  'ac repair': '#f59e0b',
+};
+
+function colorFor(categoryName) {
+  return CATEGORY_COLORS[String(categoryName).toLowerCase()] ?? '#94a3b8';
 }
 
-export default function BookingPieChart({ active, completed }) {
-  const total = active + completed;
+export default function BookingPieChart({ categories }) {
+  const [hoveredIndex, setHoveredIndex] = useState(null);
+  const total = (categories ?? []).reduce((sum, c) => sum + c.count, 0);
 
-  if (total === 0) {
+  if (!categories || total === 0) {
     return <p className="empty-state">No bookings recorded yet.</p>;
   }
 
-  const activeAngle = (active / total) * Math.PI * 2;
-  const startAngle = -Math.PI / 2;
-
-  const slices = [
-    { label: 'Active / Accepted', value: active, color: '#10b981', path: describeArc(startAngle, startAngle + activeAngle) },
-    { label: 'Completed', value: completed, color: '#0f5132', path: describeArc(startAngle + activeAngle, startAngle + Math.PI * 2) },
-  ];
+  let offsetSoFar = 0;
+  const segments = categories.map((category) => {
+    const length = (category.count / total) * CIRCUMFERENCE;
+    const segment = {
+      label: category.categoryName,
+      value: category.count,
+      percentage: category.percentage,
+      color: colorFor(category.categoryName),
+      length,
+      offset: offsetSoFar,
+    };
+    offsetSoFar += length;
+    return segment;
+  });
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-lg)', flexWrap: 'wrap' }}>
-      <svg viewBox={`0 0 ${SIZE} ${SIZE}`} width="180" height="180" role="img" aria-label="Booking distribution chart">
-        {slices.map((slice) => (
-          <path key={slice.label} d={slice.path} fill={slice.color} stroke="#fff" strokeWidth="2" />
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--space-xl)', flexWrap: 'wrap', width: '100%' }}>
+      <svg viewBox={`0 0 ${SIZE} ${SIZE}`} width="170" height="170" role="img" aria-label="Booking distribution by service category">
+        <circle cx={CENTER} cy={CENTER} r={RADIUS} fill="none" stroke="var(--color-neutral-100)" strokeWidth={BASE_STROKE} />
+        {segments.map((segment, index) => (
+          <circle
+            key={segment.label}
+            className="donut-segment"
+            cx={CENTER}
+            cy={CENTER}
+            r={RADIUS}
+            fill="none"
+            stroke={segment.color}
+            strokeWidth={hoveredIndex === index ? HOVER_STROKE : BASE_STROKE}
+            strokeDasharray={`${segment.length} ${CIRCUMFERENCE - segment.length}`}
+            strokeDashoffset={-segment.offset}
+            transform={`rotate(-90 ${CENTER} ${CENTER})`}
+            onMouseEnter={() => setHoveredIndex(index)}
+            onMouseLeave={() => setHoveredIndex((current) => (current === index ? null : current))}
+          />
         ))}
+        <text x={CENTER} y={CENTER - 3} textAnchor="middle">
+          <tspan fontSize="26" fontWeight="800" fill="var(--color-secondary-700)">
+            {total}
+          </tspan>
+        </text>
+        <text x={CENTER} y={CENTER + 16} textAnchor="middle" fontSize="9" fontWeight="700" fill="var(--color-text-muted)" letterSpacing="0.5">
+          TOTAL BOOKINGS
+        </text>
       </svg>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-xs)' }}>
-        {slices.map((slice) => (
-          <div key={slice.label} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-xs)' }}>
-            <span style={{ width: 12, height: 12, borderRadius: '50%', backgroundColor: slice.color, display: 'inline-block' }} />
-            <span style={{ fontSize: 'var(--font-size-sm)' }}>
-              {slice.label}: <strong>{slice.value}</strong> ({Math.round((slice.value / total) * 100)}%)
+
+      <div className="donut-legend">
+        {segments.map((segment, index) => (
+          <div
+            key={segment.label}
+            className={`donut-legend-row${hoveredIndex === index ? ' is-hovered' : ''}`}
+            onMouseEnter={() => setHoveredIndex(index)}
+            onMouseLeave={() => setHoveredIndex((current) => (current === index ? null : current))}
+          >
+            <span>
+              <span className="donut-dot" style={{ backgroundColor: segment.color }} />
+              {segment.label}
             </span>
+            <strong>
+              {segment.value} ({segment.percentage}%)
+            </strong>
           </div>
         ))}
       </div>

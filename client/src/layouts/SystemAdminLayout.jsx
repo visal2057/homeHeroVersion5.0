@@ -13,7 +13,7 @@ const NAV_ITEMS = [
 export default function SystemAdminLayout() {
   return (
     <div className="admin-shell">
-      <AdminHeader roleLabel="System Admin" homeRoute={ROUTES.SYSTEM_ADMIN_DASHBOARD} navItems={NAV_ITEMS} />
+      <AdminHeader roleLabel="System Admin" homeRoute={ROUTES.SYSTEM_ADMIN_DASHBOARD} navItems={NAV_ITEMS} variant="modern" />
       <main>
         <Outlet />
       </main>
