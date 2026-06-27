@@ -7,6 +7,7 @@ import './styles/alerts.css';
 import './styles/tables.css';
 import './styles/responsive.css';
 import './styles/homepage.css';
+import './styles/admin.css';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
