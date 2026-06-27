@@ -197,6 +197,53 @@
   margin-bottom: var(--space-md);
 }
 
+/* Makes a chart card visibly "pop" off the page background on hover,
+   matching the homepage's .card-interactive treatment. */
+.chart-card-interactive {
+  transition: transform var(--transition-slow), box-shadow var(--transition-slow);
+}
+
+.chart-card-interactive:hover {
+  transform: translateY(-6px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Bar chart bars grow and brighten slightly on hover. transform-box is
+   required so SVG elements scale from their own bounding box rather than
+   the SVG viewport's origin. */
+.revenue-bar {
+  transition: filter 0.15s ease, transform 0.15s ease;
+  transform-box: fill-box;
+  transform-origin: bottom;
+}
+
+.revenue-bar-group:hover .revenue-bar {
+  filter: brightness(1.15);
+  transform: scaleY(1.04);
+}
+
+/* Donut segments thicken and brighten on hover (the stroke-width set here
+   wins over the inline attribute because CSS rules take precedence over
+   presentation attributes). */
+.donut-segment {
+  transition: filter 0.15s ease;
+  cursor: pointer;
+}
+
+.donut-segment:hover {
+  filter: brightness(1.12) drop-shadow(0 2px 4px rgba(15, 23, 42, 0.25));
+}
+
+.donut-legend-row {
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: background-color var(--transition-base);
+}
+
+.donut-legend-row.is-hovered {
+  background-color: var(--color-neutral-50);
+}
+
 .recent-actions-list {
   list-style: none;
   margin: 0;
@@ -351,4 +398,374 @@
   background-color: var(--color-primary-600);
   border-color: var(--color-primary-600);
   color: var(--color-neutral-0);
+}
+
+/* ---------------------------------------------------------------------
+   "Modern" admin header variant
+   Opt-in via <AdminHeader variant="modern">. Currently used by System
+   Admin only, so Verification Admin keeps the original header until
+   this design is approved and rolled out everywhere.
+   ------------------------------------------------------------------- */
+.admin-header-modern {
+  background: linear-gradient(135deg, var(--color-secondary-700), var(--color-primary-700));
+}
+
+/* Three-zone single-line layout: brand pinned left, nav truly centered
+   relative to the whole header (not just the leftover space), actions
+   pinned right - regardless of how wide the brand/actions zones are. */
+.admin-header-modern .admin-header-inner {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  flex-wrap: nowrap;
+  padding-top: 0;
+  padding-bottom: 0;
+  min-height: var(--header-height);
+  gap: var(--space-md);
+  /* The homepage's .container caps out at 1180px, which is too tight for
+     brand + all 5 nav links + the account dropdown to share a row. Admin
+     pages aren't a reading layout, so give this header more room. */
+  max-width: 1320px;
+}
+
+.admin-header-modern .admin-brand {
+  justify-self: start;
+}
+
+.admin-header-modern .admin-header-nav-pill {
+  justify-self: center;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+}
+
+.admin-header-modern .admin-header-actions {
+  justify-self: end;
+}
+
+.admin-header-modern .admin-bell {
+  color: var(--color-neutral-0);
+  display: inline-flex;
+  align-items: center;
+}
+
+.admin-header-divider {
+  width: 1px;
+  height: 22px;
+  background: rgba(255, 255, 255, 0.25);
+  display: inline-block;
+}
+
+.admin-header-nav-pill {
+  gap: 0.3rem;
+  background: rgba(0, 0, 0, 0.12);
+  padding: 0.3rem;
+  border-radius: var(--radius-full);
+}
+
+.admin-nav-link-pill {
+  padding: 0.4rem 0.85rem;
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+}
+
+.admin-nav-link-pill.active {
+  background: var(--color-primary-500);
+  color: var(--color-neutral-0);
+}
+
+/* Higher specificity than global.css's `a:not(.btn):not(.card):hover` rule
+   (which would otherwise win on color and turn hovered links dark-on-dark
+   and unreadable). Active link keeps its own solid-green style on hover. */
+.admin-header-modern .admin-header-nav-pill .admin-nav-link-pill:not(.active):hover {
+  background-color: var(--color-secondary-900);
+  color: var(--color-primary-200);
+}
+
+.admin-account-trigger {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  background: transparent;
+  border: none;
+  padding: 0.3rem 0.5rem;
+  border-radius: var(--radius-md);
+  color: var(--color-neutral-0);
+  transition: background-color var(--transition-base);
+}
+
+.admin-account-trigger:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.admin-avatar-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--color-neutral-0);
+  color: var(--color-secondary-700);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: var(--font-size-xs);
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  flex-shrink: 0;
+}
+
+.admin-account-name {
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: var(--color-neutral-0);
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-account-chevron {
+  font-size: 0.65rem;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.admin-account-dropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 200px;
+  background: var(--color-neutral-0);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  z-index: 250;
+}
+
+.admin-account-dropdown-header {
+  padding: var(--space-sm) var(--space-md);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.admin-account-dropdown-role {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 700;
+  color: var(--color-text-muted);
+}
+
+.admin-account-dropdown-username {
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: var(--color-secondary-700);
+  margin-top: 2px;
+}
+
+.admin-account-dropdown-logout {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem var(--space-md);
+  background: none;
+  border: none;
+  color: #dc2626;
+  font-weight: 700;
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  text-align: left;
+}
+
+.admin-account-dropdown-logout:hover {
+  background: var(--color-error-bg);
+}
+
+/* ---------------------------------------------------------------------
+   Stat cards v2 - split card with a tinted icon block, used on the
+   System Admin dashboard.
+   ------------------------------------------------------------------- */
+.stat-card-v2 {
+  display: flex;
+  align-items: stretch;
+  min-height: 100px;
+  background: var(--color-neutral-0);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition-slow), box-shadow var(--transition-slow);
+}
+
+.stat-card-v2:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+
+.stat-card-v2-text {
+  flex: 1;
+  padding: var(--space-md) var(--space-lg);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.stat-card-v2-label {
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 700;
+  color: var(--color-text-muted);
+}
+
+.stat-card-v2-value {
+  font-size: var(--font-size-2xl);
+  font-weight: 800;
+  color: var(--color-secondary-700);
+  margin: 0;
+  white-space: nowrap;
+}
+
+.stat-card-v2-sub {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.stat-card-v2-icon {
+  width: 80px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-left: 1px solid var(--color-border);
+  background-color: var(--color-primary-100);
+  color: var(--color-secondary-700);
+}
+
+/* ---------------------------------------------------------------------
+   Chart card tag pill (e.g. "Membership Revenue")
+   ------------------------------------------------------------------- */
+.chart-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-md);
+}
+
+.chart-card-header h3 {
+  margin: 0;
+}
+
+.chart-tag {
+  display: inline-flex;
+  padding: 0.25rem 0.7rem;
+  border-radius: var(--radius-full);
+  background: var(--color-primary-50);
+  color: var(--color-secondary-700);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* ---------------------------------------------------------------------
+   Donut chart legend + center label
+   ------------------------------------------------------------------- */
+.donut-center-value {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--color-secondary-700);
+  line-height: 1;
+}
+
+.donut-center-label {
+  font-size: 9.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+  font-weight: 700;
+  margin-top: 2px;
+}
+
+.donut-legend {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.donut-legend-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid var(--color-neutral-100);
+  font-size: var(--font-size-sm);
+}
+
+.donut-legend-row:last-child {
+  border-bottom: none;
+}
+
+.donut-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 6px;
+  flex-shrink: 0;
+}
+
+/* ---------------------------------------------------------------------
+   Recent activity timeline
+   ------------------------------------------------------------------- */
+.timeline {
+  display: flex;
+  flex-direction: column;
+}
+
+.timeline-item {
+  display: flex;
+  gap: var(--space-md);
+}
+
+.timeline-icon-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.timeline-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+
+.timeline-line {
+  flex: 1;
+  width: 2px;
+  background: var(--color-neutral-100);
+  margin-top: 4px;
+  min-height: 12px;
+}
+
+.timeline-content {
+  padding-bottom: var(--space-lg);
+  flex: 1;
+}
+
+.timeline-content p {
+  margin: 0;
+  font-size: var(--font-size-sm);
+}
+
+.timeline-time {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  margin-top: 2px;
 }

@@ -25,3 +25,6 @@ export const ABOUT_TRUST_BG_IMAGE_URL =
 
 export const CAREERS_GROWTH_BG_IMAGE_URL =
   'https://images.unsplash.com/photo-1756900302700-cd6a2761e854?auto=format&fit=crop&w=1600&q=80';
+
+export const LOGIN_SIDE_IMAGE_URL =
+  'https://images.unsplash.com/photo-1637942189107-9b0622b33b90?auto=format&fit=crop&w=1400&q=80';
