@@ -5,12 +5,29 @@ import { axiosClient } from '../../api/axiosClient.js';
 import { API_ENDPOINTS } from '../../api/apiEndpoints.js';
 import { ROUTES } from '../../constants/routes.js';
 
-export default function AdminHeader({ roleLabel, homeRoute, navItems }) {
+function BellIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
+      <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+    </svg>
+  );
+}
+
+function initialsOf(name) {
+  if (!name) return '?';
+  const parts = name.trim().split(/\s+/);
+  return parts.length === 1 ? parts[0][0].toUpperCase() : `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
+}
+
+export default function AdminHeader({ roleLabel, homeRoute, navItems, variant = 'classic' }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [announcements, setAnnouncements] = useState([]);
   const [isBellOpen, setIsBellOpen] = useState(false);
+  const [isAccountOpen, setIsAccountOpen] = useState(false);
   const [readIds, setReadIds] = useState([]);
+  const isModern = variant === 'modern';
 
   useEffect(() => {
     let isMounted = true;
@@ -31,25 +48,38 @@ export default function AdminHeader({ roleLabel, homeRoute, navItems }) {
   }
 
   function toggleBell() {
+    setIsAccountOpen(false);
     setIsBellOpen((open) => !open);
     setReadIds(announcements.map((a) => a.announcementId));
   }
 
+  function toggleAccount() {
+    setIsBellOpen(false);
+    setIsAccountOpen((open) => !open);
+  }
+
   const unreadCount = announcements.filter((a) => !readIds.includes(a.announcementId)).length;
+  const displayName = user?.fullName ?? user?.username;
 
   return (
-    <header className="admin-header">
+    <header className={`admin-header${isModern ? ' admin-header-modern' : ''}`}>
       <div className="container admin-header-inner">
         <div className="admin-brand">
           <NavLink to={homeRoute} style={{ color: 'inherit' }}>
             🛠️ HomeHero
           </NavLink>
+          {isModern && <span className="admin-header-divider" aria-hidden="true" />}
           <span className="admin-role-badge">{roleLabel}</span>
         </div>
 
-        <nav className="admin-header-nav">
+        <nav className={`admin-header-nav${isModern ? ' admin-header-nav-pill' : ''}`}>
           {navItems.map((item) => (
-            <NavLink key={item.to} to={item.to} className={({ isActive }) => `admin-nav-link${isActive ? ' active' : ''}`} end={item.end}>
+            <NavLink
+              key={item.to}
+              to={item.to}
+              className={({ isActive }) => `admin-nav-link${isModern ? ' admin-nav-link-pill' : ''}${isActive ? ' active' : ''}`}
+              end={item.end}
+            >
               {item.label}
             </NavLink>
           ))}
@@ -57,7 +87,7 @@ export default function AdminHeader({ roleLabel, homeRoute, navItems }) {
 
         <div className="admin-header-actions" style={{ position: 'relative' }}>
           <button type="button" className="admin-bell" aria-label="Announcements" onClick={toggleBell}>
-            🔔
+            <BellIcon />
             {unreadCount > 0 && <span className="admin-bell-dot" aria-hidden="true" />}
           </button>
 
@@ -76,10 +106,37 @@ export default function AdminHeader({ roleLabel, homeRoute, navItems }) {
             </div>
           )}
 
-          <span style={{ fontWeight: 600 }}>{user?.fullName ?? user?.username}</span>
-          <button type="button" className="btn btn-outline" style={{ color: '#fff', borderColor: 'rgba(255,255,255,0.6)' }} onClick={handleLogout}>
-            Logout
-          </button>
+          {isModern ? (
+            <>
+              <span className="admin-header-divider" aria-hidden="true" />
+              <div style={{ position: 'relative' }}>
+                <button type="button" className="admin-account-trigger" onClick={toggleAccount}>
+                  <span className="admin-avatar-circle">{initialsOf(displayName)}</span>
+                  <span className="admin-account-name">{displayName}</span>
+                  <span className="admin-account-chevron" aria-hidden="true">▾</span>
+                </button>
+
+                {isAccountOpen && (
+                  <div className="admin-account-dropdown animate-fade-in-up">
+                    <div className="admin-account-dropdown-header">
+                      <div className="admin-account-dropdown-role">Account</div>
+                      <div className="admin-account-dropdown-username">{displayName}</div>
+                    </div>
+                    <button type="button" className="admin-account-dropdown-logout" onClick={handleLogout}>
+                      <span aria-hidden="true">⎋</span> Log out
+                    </button>
+                  </div>
+                )}
+              </div>
+            </>
+          ) : (
+            <>
+              <span style={{ fontWeight: 600 }}>{displayName}</span>
+              <button type="button" className="btn btn-outline" style={{ color: '#fff', borderColor: 'rgba(255,255,255,0.6)' }} onClick={handleLogout}>
+                Logout
+              </button>
+            </>
+          )}
         </div>
       </div>
     </header>
