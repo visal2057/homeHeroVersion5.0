@@ -1,0 +1,40 @@
+import path from 'path';
+import crypto from 'crypto';
+import multer from 'multer';
+import { env } from '../config/environment.js';
+import { AppError } from '../utils/AppError.js';
+
+const IMAGE_TYPES = new Set(['image/jpeg', 'image/jpg', 'image/png']);
+const POLICE_REPORT_TYPES = new Set([...IMAGE_TYPES, 'application/pdf']);
+const MAX_FILE_SIZE = 5 * 1024 * 1024;
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, path.resolve(env.privateStoragePath, 'verification-documents'));
+  },
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    cb(null, `${crypto.randomUUID()}${ext}`);
+  },
+});
+
+function fileFilter(req, file, cb) {
+  const allowed = file.fieldname === 'policeReport' ? POLICE_REPORT_TYPES : IMAGE_TYPES;
+
+  if (!allowed.has(file.mimetype)) {
+    return cb(new AppError(`Invalid file type for ${file.fieldname}`, 422));
+  }
+
+  return cb(null, true);
+}
+
+export const uploadVerificationDocuments = multer({
+  storage,
+  fileFilter,
+  limits: { fileSize: MAX_FILE_SIZE },
+}).fields([
+  { name: 'facePhoto', maxCount: 1 },
+  { name: 'nicFront', maxCount: 1 },
+  { name: 'nicBack', maxCount: 1 },
+  { name: 'policeReport', maxCount: 1 },
+]);

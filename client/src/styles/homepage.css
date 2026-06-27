@@ -1,0 +1,703 @@
+/* =========================================================================
+   HomeHero landing-page global theme
+   Modern glassmorphism styling that started on the homepage (Hero,
+   Services, How It Works, Get Started) and is now reused as-is on the
+   About Us, Careers and Contact Us pages so every public page feels like
+   part of the same site. Pure presentation - no markup here changes any
+   routing, validation, or data logic. Built only with the approved
+   palette: primary #059669, secondary #064E3B, tertiary #D1FAE5,
+   neutral #F8FAFC (all already available as CSS variables).
+   ========================================================================= */
+
+/* -------------------------------------------------------------------------
+   Shared small utilities (eyebrow pill, kicker label, trust chips)
+   ------------------------------------------------------------------------- */
+.hh-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: 0.4rem 0.95rem;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: var(--color-neutral-0);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  margin-bottom: var(--space-md);
+}
+
+.hh-section-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: 0.3rem 0.9rem;
+  border-radius: var(--radius-full);
+  background: var(--color-primary-100);
+  color: var(--color-secondary-700);
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  margin-bottom: var(--space-sm);
+}
+
+.hh-trust-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  margin-top: var(--space-xl);
+}
+
+.hh-trust-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.95rem;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-neutral-0);
+  transition: transform var(--transition-base), background var(--transition-base);
+}
+
+.hh-trust-chip:hover {
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.hh-trust-chip strong {
+  color: var(--color-primary-100);
+}
+
+/* -------------------------------------------------------------------------
+   Hero section: two-column glass layout with a floating 3-photo collage.
+   The section is sized to exactly fill the viewport below the sticky
+   header, so the whole hero is visible on load without scrolling.
+   ------------------------------------------------------------------------- */
+.hh-home-hero {
+  min-height: calc(100vh - var(--header-height));
+}
+
+/* Lighter wash than the original so the cozy home photo behind the panel
+   stays clearly visible instead of being mostly hidden under green. */
+.hh-home-hero .glass-hero-overlay {
+  background: linear-gradient(135deg, rgba(3, 42, 32, 0.52), rgba(5, 150, 105, 0.28));
+}
+
+.hh-hero-title {
+  font-size: var(--font-size-4xl);
+}
+
+.hh-hero-subtitle {
+  font-size: var(--font-size-lg);
+}
+
+.hh-hero-grid {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: var(--space-2xl);
+  align-items: center;
+}
+
+.hh-hero-visual {
+  position: relative;
+  height: 420px;
+}
+
+.hh-hero-photo {
+  position: absolute;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: 0 30px 60px rgba(3, 42, 32, 0.45);
+  border: 4px solid rgba(255, 255, 255, 0.35);
+}
+
+.hh-hero-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Three overlapping photos (gardener, Labrador, technician), each given
+   its own float animation so the whole collage stays gently in motion. */
+.hh-hero-photo-main {
+  top: 0;
+  right: 0;
+  width: 72%;
+  height: 260px;
+  z-index: 1;
+  animation: hh-float 6s ease-in-out infinite;
+}
+
+.hh-hero-photo-secondary {
+  bottom: 0;
+  left: 0;
+  width: 50%;
+  height: 200px;
+  z-index: 2;
+  border-color: rgba(255, 255, 255, 0.55);
+  animation: hh-float 5s ease-in-out infinite;
+  animation-delay: 0.4s;
+}
+
+.hh-hero-photo-accent {
+  bottom: 28px;
+  right: 6%;
+  width: 36%;
+  height: 150px;
+  z-index: 3;
+  border-color: rgba(255, 255, 255, 0.6);
+  animation: hh-float 4.5s ease-in-out infinite;
+  animation-delay: 0.8s;
+}
+
+/* The hero's outlined "Become a Provider" button stays transparent with a
+   white border/text until hovered, then fills with the same green as the
+   Login button (--color-primary-600) so the white text stays readable.
+   Scoped to the hero panel only - other btn-outline buttons (Sign Up,
+   Logout) keep their default hover behavior. */
+.glass-hero-panel .btn-outline:hover:not(:disabled) {
+  background-color: var(--color-primary-600);
+  border-color: var(--color-primary-600);
+  color: var(--color-neutral-0);
+  box-shadow: var(--shadow-glow);
+}
+
+@media (max-width: 980px) {
+  .hh-hero-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hh-hero-visual {
+    display: none;
+  }
+}
+
+/* Compact the hero on shorter laptop screens so it still fits in one
+   viewport without needing the visual collage to shrink the text. */
+@media (max-height: 760px) {
+  .hh-home-hero .glass-hero-inner {
+    padding: var(--space-lg) 0;
+  }
+
+  .hh-home-hero .glass-hero-panel {
+    padding: var(--space-lg) var(--space-xl);
+  }
+
+  .hh-hero-title {
+    font-size: var(--font-size-3xl);
+  }
+
+  .hh-hero-subtitle {
+    font-size: var(--font-size-base);
+  }
+
+  .hh-trust-row {
+    margin-top: var(--space-md);
+  }
+
+  .hh-hero-visual {
+    height: 320px;
+  }
+
+  .hh-hero-photo-main {
+    height: 200px;
+  }
+
+  .hh-hero-photo-secondary {
+    height: 150px;
+  }
+
+  .hh-hero-photo-accent {
+    height: 120px;
+  }
+}
+
+/* -------------------------------------------------------------------------
+   Services section: clean glass tiles with a floating icon badge
+   ------------------------------------------------------------------------- */
+.hh-services-section {
+  position: relative;
+  background: var(--color-neutral-0);
+}
+
+/* Always a single horizontal row of all 5 cards - never 4-then-1 wrapping.
+   On narrower screens the row becomes a horizontal scroller instead of
+   wrapping, so it still reads as one continuous line. */
+.hh-services-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: var(--space-lg);
+}
+
+@media (max-width: 900px) {
+  .hh-services-grid {
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(220px, 1fr);
+    overflow-x: auto;
+    padding-bottom: var(--space-sm);
+    scroll-snap-type: x mandatory;
+  }
+
+  .hh-services-grid > * {
+    scroll-snap-align: start;
+  }
+}
+
+.hh-service-tile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  border: 1px solid rgba(5, 150, 105, 0.14);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.78);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: var(--shadow-md);
+  text-align: left;
+  padding: 0;
+  cursor: pointer;
+  transition: transform var(--transition-slow), box-shadow var(--transition-slow),
+    border-color var(--transition-slow);
+}
+
+.hh-service-tile:hover,
+.hh-service-tile:focus-visible {
+  transform: translateY(-10px);
+  box-shadow: 0 28px 50px rgba(5, 150, 105, 0.24);
+  border-color: var(--color-primary-300);
+}
+
+.hh-service-media {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+}
+
+.hh-service-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform var(--transition-slow);
+}
+
+.hh-service-tile:hover .hh-service-media img,
+.hh-service-tile:focus-visible .hh-service-media img {
+  transform: scale(1.12);
+}
+
+.hh-service-media::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(180deg, rgba(6, 78, 59, 0) 50%, rgba(6, 78, 59, 0.65) 100%);
+  pointer-events: none;
+}
+
+.hh-service-icon-badge {
+  position: absolute;
+  left: var(--space-md);
+  bottom: var(--space-md);
+  z-index: 2;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  box-shadow: var(--shadow-md);
+  transition: transform var(--transition-base), background var(--transition-base), color var(--transition-base);
+}
+
+.hh-service-tile:hover .hh-service-icon-badge,
+.hh-service-tile:focus-visible .hh-service-icon-badge {
+  transform: scale(1.12) rotate(-6deg);
+  background: var(--color-primary-600);
+  color: var(--color-neutral-0);
+}
+
+.hh-service-body {
+  padding: var(--space-lg);
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.hh-service-body h3 {
+  margin-bottom: var(--space-xs);
+  font-size: var(--font-size-lg);
+}
+
+.hh-service-body p {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  margin-bottom: var(--space-md);
+  flex: 1;
+}
+
+.hh-service-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-weight: 700;
+  font-size: var(--font-size-sm);
+  color: var(--color-primary-700);
+}
+
+.hh-service-link .hh-arrow {
+  display: inline-block;
+  transition: transform var(--transition-base);
+}
+
+.hh-service-tile:hover .hh-service-link .hh-arrow,
+.hh-service-tile:focus-visible .hh-service-link .hh-arrow {
+  transform: translateX(4px);
+}
+
+/* -------------------------------------------------------------------------
+   How It Works: icon rings with a dashed connector line on desktop
+   ------------------------------------------------------------------------- */
+.hh-steps-section {
+  position: relative;
+  background: var(--color-primary-100);
+}
+
+.hh-steps-grid {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-xl);
+}
+
+.hh-steps-grid::before {
+  content: '';
+  position: absolute;
+  top: 78px;
+  left: 16%;
+  right: 16%;
+  border-top: 3px dashed var(--color-primary-300);
+  z-index: 0;
+}
+
+.hh-step-card {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  padding: var(--space-xl) var(--space-lg);
+  background: rgba(255, 255, 255, 0.68);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  transition: transform var(--transition-slow), box-shadow var(--transition-slow);
+}
+
+.hh-step-card:hover {
+  transform: translateY(-6px);
+  box-shadow: var(--shadow-lg);
+}
+
+.hh-step-icon-ring {
+  position: relative;
+  width: 76px;
+  height: 76px;
+  margin: 0 auto var(--space-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--color-primary-500), var(--color-secondary-700));
+  box-shadow: var(--shadow-glow);
+  font-size: 1.9rem;
+}
+
+.hh-step-number {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--color-neutral-0);
+  color: var(--color-secondary-700);
+  font-size: 0.78rem;
+  font-weight: 800;
+  box-shadow: var(--shadow-sm);
+  border: 2px solid var(--color-primary-300);
+}
+
+@media (max-width: 900px) {
+  .hh-steps-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hh-steps-grid::before {
+    display: none;
+  }
+}
+
+/* -------------------------------------------------------------------------
+   Get Started CTA refinements
+   The collage background keeps its real photo colors (no green wash) -
+   instead, the glass panel itself carries a solid green tint so the text
+   stays clearly readable regardless of what's behind it.
+   ------------------------------------------------------------------------- */
+.collage-cta-overlay {
+  background: rgba(15, 23, 42, 0.16);
+}
+
+.collage-cta-panel {
+  background: linear-gradient(135deg, rgba(5, 150, 105, 0.85), rgba(6, 78, 59, 0.9));
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.hh-cta-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto var(--space-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.hh-cta-trust-row {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-lg);
+  margin-top: var(--space-lg);
+  flex-wrap: wrap;
+  font-size: var(--font-size-sm);
+  color: var(--color-primary-100);
+}
+
+.hh-cta-trust-row span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+/* -------------------------------------------------------------------------
+   Button shine sweep - a soft diagonal highlight that sweeps across a
+   button on hover for a more elegant, tactile feel on primary CTAs.
+   ------------------------------------------------------------------------- */
+.btn-shine {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-shine::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -60%;
+  width: 40%;
+  height: 100%;
+  background: linear-gradient(120deg, transparent, rgba(5, 150, 105, 0.35), transparent);
+  transform: skewX(-20deg);
+  transition: left 0.6s ease;
+  pointer-events: none;
+}
+
+.btn-shine:hover::after {
+  left: 130%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hh-hero-photo-main,
+  .hh-hero-photo-secondary,
+  .hh-hero-photo-accent {
+    animation: none;
+  }
+}
+
+/* =========================================================================
+   Shared sub-page theme (About Us, Careers, Contact Us)
+   Reuses the same glass-hero/glass-panel building blocks as the homepage,
+   just at a shorter "band" height instead of full viewport, plus a small
+   set of reusable glass card / photo-frame components so every public
+   page reads as part of one consistent design system.
+   ========================================================================= */
+.theme-page-hero {
+  min-height: 460px;
+}
+
+.theme-page-hero .glass-hero-overlay {
+  background: linear-gradient(135deg, rgba(3, 42, 32, 0.6), rgba(5, 150, 105, 0.34));
+}
+
+.theme-page-hero-title {
+  font-size: var(--font-size-4xl);
+}
+
+.theme-page-hero-subtitle {
+  font-size: var(--font-size-lg);
+}
+
+@media (max-width: 640px) {
+  .theme-page-hero {
+    min-height: 400px;
+  }
+
+  .theme-page-hero-title {
+    font-size: var(--font-size-3xl);
+  }
+}
+
+/* Reusable frosted card for benefit/requirement/info content - the same
+   glass recipe as the homepage's service tiles and step cards. */
+.theme-glass-card {
+  background: rgba(255, 255, 255, 0.78);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(5, 150, 105, 0.14);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: var(--space-xl);
+  transition: transform var(--transition-slow), box-shadow var(--transition-slow),
+    border-color var(--transition-slow);
+}
+
+.theme-glass-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 24px 44px rgba(5, 150, 105, 0.2);
+  border-color: var(--color-primary-300);
+}
+
+/* Real-photo replacement for the old emoji "illustration block" - a
+   rounded, glass-bordered frame that gently zooms its photo on hover. */
+.theme-photo-frame {
+  flex: 1 1 320px;
+  aspect-ratio: 4 / 3;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+  border: 4px solid rgba(255, 255, 255, 0.6);
+}
+
+.theme-photo-frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform var(--transition-slow);
+}
+
+.theme-photo-frame:hover img {
+  transform: scale(1.08);
+}
+
+/* Light, theme-matching section bands - reused on sub-pages the same way
+   the homepage alternates white and light-green between sections. */
+.theme-section-white {
+  background: var(--color-neutral-0);
+}
+
+.theme-section-tint {
+  background: var(--color-primary-100);
+}
+
+/* Full-bleed photo CTA band - a single themed background photo behind a
+   tinted overlay, with the glass panel popping above it (its own blur +
+   shadow already lifts it visually off the image). */
+.theme-image-cta {
+  position: relative;
+  overflow: hidden;
+  padding: var(--space-2xl) 0;
+}
+
+.theme-image-cta-bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+}
+
+.theme-image-cta-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(3, 42, 32, 0.62), rgba(5, 150, 105, 0.34));
+}
+
+/* Map widget used on the Contact page: a zoomable embedded map with a
+   floating address label hovering over its bottom edge. */
+.theme-map-wrap {
+  position: relative;
+  margin: var(--space-lg) 0 var(--space-xl);
+}
+
+.theme-map-frame {
+  width: 100%;
+  height: 220px;
+  border: 0;
+  display: block;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+
+.theme-map-label {
+  position: absolute;
+  left: 50%;
+  bottom: -22px;
+  transform: translateX(-50%);
+  width: 90%;
+  text-align: center;
+  background: var(--color-neutral-0);
+  border: 2px solid var(--color-primary-600);
+  border-radius: var(--radius-md);
+  padding: 0.55rem 1rem;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-secondary-700);
+  box-shadow: var(--shadow-md);
+}
+
+/* Checklist used for "required documents" style lists. */
+.theme-check-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 var(--space-lg);
+}
+
+.theme-check-list li {
+  display: flex;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-sm);
+  align-items: flex-start;
+}
+
+.theme-check-list li::before {
+  content: '✓';
+  color: var(--color-primary-600);
+  font-weight: 700;
+  flex-shrink: 0;
+}

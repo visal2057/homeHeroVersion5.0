@@ -1,0 +1,40 @@
+﻿# Dependencies
+node_modules/
+client/node_modules/
+server/node_modules/
+
+# Environment files
+.env
+client/.env
+server/.env
+.env.local
+
+# Build output
+client/dist/
+server/dist/
+
+# Logs
+*.log
+logs/
+
+# Uploaded files
+server/storage/public/profile-images/*
+server/storage/public/portfolio-images/*
+server/storage/public/site-assets/*
+server/storage/private/verification-documents/*
+server/storage/private/booking-images/*
+server/storage/temp/*
+
+# Keep empty upload directories
+!server/storage/**/.gitkeep
+
+# Database backups
+database/backups/*
+!database/backups/.gitkeep
+
+# Editor and OS files
+.DS_Store
+Thumbs.db
+
+# Test coverage
+coverage/
