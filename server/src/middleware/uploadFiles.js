@@ -38,3 +38,26 @@ export const uploadVerificationDocuments = multer({
   { name: 'nicBack', maxCount: 1 },
   { name: 'policeReport', maxCount: 1 },
 ]);
+
+const siteAssetStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, path.resolve(env.publicStoragePath, 'site-assets'));
+  },
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    cb(null, `${crypto.randomUUID()}${ext}`);
+  },
+});
+
+function imageOnlyFilter(req, file, cb) {
+  if (!IMAGE_TYPES.has(file.mimetype)) {
+    return cb(new AppError('Only JPG and PNG images are allowed', 422));
+  }
+  return cb(null, true);
+}
+
+export const uploadSiteImage = multer({
+  storage: siteAssetStorage,
+  fileFilter: imageOnlyFilter,
+  limits: { fileSize: MAX_FILE_SIZE },
+}).single('image');
