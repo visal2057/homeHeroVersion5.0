@@ -42,7 +42,7 @@ export default function LoginForm() {
   return (
     <form
       onSubmit={handleSubmit}
-      className="card animate-fade-in-up"
+      className="card auth-card animate-fade-in-up"
       style={{ padding: 'var(--space-xl)', maxWidth: 420, margin: '0 auto' }}
     >
       <FormInput

@@ -16,7 +16,7 @@ export default function Footer() {
     >
       <div className="container" style={{ padding: 'var(--space-xl) var(--space-lg)', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 'var(--space-lg)' }}>
         <div style={{ maxWidth: 320 }}>
-          <h3 style={{ color: 'var(--color-neutral-0)' }}>🛠️ HomeHero</h3>
+          <h3 style={{ color: 'var(--color-neutral-0)' }}>HomeHero</h3>
           <p style={{ color: 'var(--color-primary-100)' }}>
             Connecting Sri Lankan homeowners with trusted, verified service professionals.
           </p>

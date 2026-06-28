@@ -11,7 +11,7 @@ export default function ProviderPersonalForm({ form, errors, districts, categori
   }
 
   return (
-    <div className="card" style={{ padding: 'var(--space-xl)', maxWidth: 640, margin: '0 auto' }}>
+    <div className="card auth-card animate-fade-in-up" style={{ padding: 'var(--space-xl)', maxWidth: 640, margin: '0 auto' }}>
       <h3>Step 1: Personal & Service Information</h3>
 
       <FormInput label="Username" name="username" value={form.username} onChange={handleChange} error={errors.username} />
