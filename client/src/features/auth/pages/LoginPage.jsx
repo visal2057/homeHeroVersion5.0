@@ -2,13 +2,16 @@ import { Link } from 'react-router-dom';
 import LoginForm from '../components/LoginForm.jsx';
 import { ROUTES } from '../../../constants/routes.js';
 import { LOGIN_SIDE_IMAGE_URL } from '../../../constants/pageImages.js';
+import { useSiteImage } from '../../../hooks/useSiteImage.js';
 
 export default function LoginPage() {
+  const loginImageUrl = useSiteImage('LOGIN_SIDE_IMAGE', LOGIN_SIDE_IMAGE_URL);
+
   return (
     <div className="login-split">
       <div
         className="login-image-col"
-        style={{ backgroundImage: `url(${LOGIN_SIDE_IMAGE_URL})` }}
+        style={{ backgroundImage: `url(${loginImageUrl})` }}
         role="img"
         aria-label="A gardener's trowel and tools resting in fresh potting soil"
       >

@@ -1,15 +1,17 @@
 import { Link } from 'react-router-dom';
 import { ROUTES } from '../../../constants/routes.js';
 import { HERO_IMAGE_URL, HERO_VISUAL_PHOTOS } from '../../../constants/serviceCategories.js';
+import { useSiteImage } from '../../../hooks/useSiteImage.js';
 
 export default function HeroSection() {
   const [gardener, labrador, technician] = HERO_VISUAL_PHOTOS;
+  const heroImageUrl = useSiteImage('HOME_HERO_IMAGE', HERO_IMAGE_URL);
 
   return (
     <section className="glass-hero hh-home-hero">
       <div
         className="glass-hero-bg"
-        style={{ backgroundImage: `url(${HERO_IMAGE_URL})` }}
+        style={{ backgroundImage: `url(${heroImageUrl})` }}
         role="img"
         aria-label="Cozy home exterior with a well-kept garden"
       />
