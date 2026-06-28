@@ -202,7 +202,7 @@ img {
 }
 
 .hero-illustration {
-  animation: hh-fade-in var(--transition-slow) ease both, hh-float 4s ease-in-out infinite;
+  animation: hh-fade-in var(--transition-slow) both, hh-float 4s ease-in-out infinite;
 }
 
 /* The default link color (a medium green) is too dark to read clearly
@@ -339,13 +339,17 @@ footer a:hover {
   40%, 60% { transform: translateX(4px); }
 }
 
-/* Apply to any element to make it fade/slide in once when the page loads. */
+/* Apply to any element to make it fade/slide in once when the page loads.
+   --transition-slow already bundles a duration + timing-function (e.g.
+   "0.35s ease"), so it must not be followed by another timing-function
+   keyword - a second one makes the whole shorthand invalid and silently
+   drops the animation entirely (computed animation-name: none). */
 .animate-fade-in-up {
-  animation: hh-fade-in-up var(--transition-slow) ease both;
+  animation: hh-fade-in-up var(--transition-slow) both;
 }
 
 .animate-fade-in {
-  animation: hh-fade-in var(--transition-slow) ease both;
+  animation: hh-fade-in var(--transition-slow) both;
 }
 
 /* Adding a numbered delay class to items in a list (card grids, nav
@@ -355,6 +359,24 @@ footer a:hover {
 .delay-3 { animation-delay: 0.24s; }
 .delay-4 { animation-delay: 0.32s; }
 .delay-5 { animation-delay: 0.4s; }
+
+/* A slow, small-amplitude bob used on glass tiles/cards that should feel
+   gently alive once on screen, without the more dramatic float used on
+   the homepage hero photos. This must be the ONLY animation on its
+   element - pairing it with the one-time fade-in-up entrance on the
+   same element (both targeting `transform`) made browsers resolve the
+   overlap inconsistently, which is what produced the shaky motion.
+   Apply this class to a plain inner wrapper, and keep the entrance
+   fade (e.g. .animate-fade-in-up) on the outer element instead. */
+@keyframes hh-float-gentle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+.hh-float-gentle {
+  animation: hh-float-gentle 6s ease-in-out infinite;
+  will-change: transform;
+}
 
 /* ---------------------------------------------------------------------
    Page hero bands

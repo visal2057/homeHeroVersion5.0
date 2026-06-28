@@ -17,8 +17,10 @@ export default function LoginPage() {
       >
         <div className="login-image-overlay" aria-hidden="true" />
         <div className="glass-panel login-image-tile animate-fade-in-up">
-          <h3>Verified heroes, ready to help</h3>
-          <p>Every gardener, cleaner and technician on HomeHero is identity-checked and reviewed, so your home is always in trusted hands.</p>
+          <div className="hh-float-gentle">
+            <h3>Verified heroes, ready to help</h3>
+            <p>Every gardener, cleaner and technician on HomeHero is identity-checked and reviewed, so your home is always in trusted hands.</p>
+          </div>
         </div>
       </div>
 

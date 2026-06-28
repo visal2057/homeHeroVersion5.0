@@ -44,8 +44,15 @@ export default function PublicHeader() {
         className="container"
         style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'var(--space-lg)' }}
       >
-        <Link to={ROUTES.HOME} style={{ fontSize: 'var(--font-size-xl)', fontWeight: 800, color: 'var(--color-secondary-700)' }}>
-          🛠️ HomeHero
+        <Link
+          to={ROUTES.HOME}
+          style={{
+            fontSize: 'var(--font-size-xl)',
+            fontWeight: 800,
+            color: 'var(--color-secondary-700)',
+          }}
+        >
+          HomeHero
         </Link>
 
         <nav className="public-header-nav">

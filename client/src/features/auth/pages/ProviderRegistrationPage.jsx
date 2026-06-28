@@ -14,6 +14,8 @@ import {
   validateRequired,
 } from '../authValidation.js';
 import { ROUTES } from '../../../constants/routes.js';
+import { REGISTER_PROVIDER_HERO_IMAGE_URL } from '../../../constants/pageImages.js';
+import { IconHardHat } from '../../../components/common/icons.jsx';
 
 const initialPersonalForm = {
   username: '',
@@ -116,31 +118,49 @@ export default function ProviderRegistrationPage() {
   }
 
   return (
-    <div className="container section">
-      <h1 className="section-title text-center">Become a Service Provider</h1>
-      <p className="section-subtitle text-center">Step {step} of 2</p>
+    <div>
+      <section className="glass-hero register-hero">
+        <div
+          className="glass-hero-bg"
+          style={{ backgroundImage: `url(${REGISTER_PROVIDER_HERO_IMAGE_URL})` }}
+          role="img"
+          aria-label="A skilled tradesperson at work with their tools"
+        />
+        <div className="glass-hero-overlay" aria-hidden="true" />
+        <div className="container glass-hero-inner">
+          <div className="glass-panel glass-hero-panel text-center animate-fade-in-up" style={{ margin: '0 auto' }}>
+            <div className="hh-float-gentle">
+              <span className="hh-eyebrow"><IconHardHat size={16} /> Service Provider Sign Up</span>
+              <h1 className="register-hero-title">Become a Service Provider</h1>
+              <p>Step {step} of 2</p>
+            </div>
+          </div>
+        </div>
+      </section>
 
-      {step === 1 ? (
-        <ProviderPersonalForm
-          form={personalForm}
-          errors={errors}
-          districts={reference.districts}
-          categories={reference.serviceCategories}
-          onChange={setPersonalForm}
-          onCategoriesChange={(ids) => setPersonalForm((prev) => ({ ...prev, serviceCategoryIds: ids }))}
-          onNext={handleNext}
-        />
-      ) : (
-        <ProviderDocumentForm
-          form={documentForm}
-          errors={errors}
-          onChange={setDocumentForm}
-          onFileChange={(field, file) => setFiles((prev) => ({ ...prev, [field]: file }))}
-          onBack={() => setStep(1)}
-          onSubmit={handleSubmit}
-          isSubmitting={isSubmitting}
-        />
-      )}
+      <div className="container section">
+        {step === 1 ? (
+          <ProviderPersonalForm
+            form={personalForm}
+            errors={errors}
+            districts={reference.districts}
+            categories={reference.serviceCategories}
+            onChange={setPersonalForm}
+            onCategoriesChange={(ids) => setPersonalForm((prev) => ({ ...prev, serviceCategoryIds: ids }))}
+            onNext={handleNext}
+          />
+        ) : (
+          <ProviderDocumentForm
+            form={documentForm}
+            errors={errors}
+            onChange={setDocumentForm}
+            onFileChange={(field, file) => setFiles((prev) => ({ ...prev, [field]: file }))}
+            onBack={() => setStep(1)}
+            onSubmit={handleSubmit}
+            isSubmitting={isSubmitting}
+          />
+        )}
+      </div>
     </div>
   );
 }

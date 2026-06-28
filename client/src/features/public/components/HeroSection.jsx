@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { ROUTES } from '../../../constants/routes.js';
 import { HERO_IMAGE_URL, HERO_VISUAL_PHOTOS } from '../../../constants/serviceCategories.js';
 import { useSiteImage } from '../../../hooks/useSiteImage.js';
+import { IconHome, IconLeaf, IconCheckCircle, IconLock } from '../../../components/common/icons.jsx';
 
 export default function HeroSection() {
   const [gardener, labrador, technician] = HERO_VISUAL_PHOTOS;
@@ -20,7 +21,7 @@ export default function HeroSection() {
       <div className="container glass-hero-inner">
         <div className="hh-hero-grid">
           <div className="glass-panel glass-hero-panel animate-fade-in-up">
-            <span className="hh-eyebrow">🏡 Sri Lanka&apos;s home services, made simple</span>
+            <span className="hh-eyebrow"><IconHome size={16} /> Sri Lanka&apos;s home services, made simple</span>
             <h1 className="hh-hero-title">Trusted hands for the home you love coming back to.</h1>
             <p className="hh-hero-subtitle">
               HomeHero connects Sri Lankan homeowners with verified gardening, cleaning, pet care,
@@ -45,9 +46,9 @@ export default function HeroSection() {
             </div>
 
             <div className="hh-trust-row">
-              <span className="hh-trust-chip">🌿 <strong>5</strong> trusted services</span>
-              <span className="hh-trust-chip">✅ <strong>Verified</strong> heroes only</span>
-              <span className="hh-trust-chip">🔒 <strong>Secure</strong> payments</span>
+              <span className="hh-trust-chip"><IconLeaf size={16} /> <strong>5</strong> trusted services</span>
+              <span className="hh-trust-chip"><IconCheckCircle size={16} /> <strong>Verified</strong> heroes only</span>
+              <span className="hh-trust-chip"><IconLock size={16} /> <strong>Secure</strong> payments</span>
             </div>
           </div>
 

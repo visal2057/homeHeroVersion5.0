@@ -1,16 +1,18 @@
+import { IconClipboardList, IconUserCheck, IconHome } from '../../../components/common/icons.jsx';
+
 const STEPS = [
   {
-    icon: '📋',
+    Icon: IconClipboardList,
     title: 'Choose a service',
     description: 'Pick from gardening, cleaning, pet care, plumbing or AC repair.',
   },
   {
-    icon: '🤝',
+    Icon: IconUserCheck,
     title: 'Book a verified hero',
     description: 'Compare reviews and pick a trusted provider near you.',
   },
   {
-    icon: '🏡',
+    Icon: IconHome,
     title: 'Relax, it’s done',
     description: 'Your hero arrives, gets the job done, and you pay securely.',
   },
@@ -32,7 +34,7 @@ export default function HowItWorksSection() {
           {STEPS.map((step, index) => (
             <div key={step.title} className={`hh-step-card animate-fade-in-up delay-${index + 1}`}>
               <div className="hh-step-icon-ring">
-                <span aria-hidden="true">{step.icon}</span>
+                <step.Icon size={30} aria-hidden="true" />
                 <span className="hh-step-number">{index + 1}</span>
               </div>
               <h3>{step.title}</h3>
