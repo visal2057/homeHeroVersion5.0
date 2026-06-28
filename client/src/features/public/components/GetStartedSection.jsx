@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { ROUTES } from '../../../constants/routes.js';
 import { CTA_COLLAGE_PHOTOS } from '../../../constants/serviceCategories.js';
+import { IconHome, IconCheckCircle, IconLock, IconStar } from '../../../components/common/icons.jsx';
 
 export default function GetStartedSection() {
   return (
@@ -15,7 +16,7 @@ export default function GetStartedSection() {
       <div className="container">
         <div className="glass-panel collage-cta-panel animate-fade-in-up">
           <div className="hh-cta-icon" aria-hidden="true">
-            🏡
+            <IconHome size={32} />
           </div>
           <h2>Ready to feel at home again?</h2>
           <p>
@@ -30,9 +31,9 @@ export default function GetStartedSection() {
             Get Started
           </Link>
           <div className="hh-cta-trust-row">
-            <span>✅ Verified providers</span>
-            <span>🔒 Secure payments</span>
-            <span>⭐ Real reviews</span>
+            <span><IconCheckCircle size={16} /> Verified providers</span>
+            <span><IconLock size={16} /> Secure payments</span>
+            <span><IconStar size={16} /> Real reviews</span>
           </div>
         </div>
       </div>

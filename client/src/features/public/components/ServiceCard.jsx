@@ -1,4 +1,16 @@
+import { IconLeaf, IconSparkle, IconPaw, IconWrench, IconSnowflake } from '../../../components/common/icons.jsx';
+
+const CATEGORY_ICONS = {
+  leaf: IconLeaf,
+  sparkle: IconSparkle,
+  paw: IconPaw,
+  wrench: IconWrench,
+  snowflake: IconSnowflake,
+};
+
 export default function ServiceCard({ icon, name, description, image, onClick, animationDelayClass = '' }) {
+  const CategoryIcon = CATEGORY_ICONS[icon];
+
   return (
     <button
       type="button"
@@ -9,7 +21,7 @@ export default function ServiceCard({ icon, name, description, image, onClick, a
       <div className="hh-service-media">
         <img src={image} alt="" loading="lazy" />
         <span className="hh-service-icon-badge" aria-hidden="true">
-          {icon}
+          {CategoryIcon && <CategoryIcon size={22} />}
         </span>
       </div>
       <div className="hh-service-body">

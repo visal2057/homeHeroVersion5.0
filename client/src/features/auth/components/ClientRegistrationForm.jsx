@@ -77,7 +77,7 @@ export default function ClientRegistrationForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="card animate-fade-in-up" style={{ padding: 'var(--space-xl)', maxWidth: 560, margin: '0 auto' }}>
+    <form onSubmit={handleSubmit} className="card auth-card animate-fade-in-up" style={{ padding: 'var(--space-xl)', maxWidth: 560, margin: '0 auto' }}>
       <FormInput label="Username" name="username" value={form.username} onChange={handleChange} error={errors.username} />
       <FormInput label="Full Name" name="fullName" value={form.fullName} onChange={handleChange} error={errors.fullName} />
       <FormInput label="Email Address" name="email" type="email" value={form.email} onChange={handleChange} error={errors.email} />
