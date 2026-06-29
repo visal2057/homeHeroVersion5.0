@@ -6,7 +6,7 @@ export const ROLES = {
 };
 
 export const ROLE_HOME_ROUTE = {
-  [ROLES.CLIENT]: '/',
+  [ROLES.CLIENT]: '/client/home',
   [ROLES.SERVICE_PROVIDER]: '/provider/dashboard',
   [ROLES.SYSTEM_ADMIN]: '/admin/system/dashboard',
   [ROLES.VERIFICATION_ADMIN]: '/admin/verification/dashboard',

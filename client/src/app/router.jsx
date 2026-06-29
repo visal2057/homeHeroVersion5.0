@@ -39,6 +39,15 @@ import VerificationDashboardPage from '../features/admin/verification/pages/Veri
 import VerificationReviewPage from '../features/admin/verification/pages/VerificationReviewPage.jsx';
 import ComplaintReviewPage from '../features/admin/verification/pages/ComplaintReviewPage.jsx';
 
+import ClientHomePage from '../features/client/pages/ClientHomePage.jsx';
+import ExploreServicePage from '../features/client/pages/ExploreServicePage.jsx';
+import ProviderPublicProfilePage from '../features/client/pages/ProviderPublicProfilePage.jsx';
+import BookingConfirmationPage from '../features/client/pages/BookingConfirmationPage.jsx';
+import BookingRequestSentPage from '../features/client/pages/BookingRequestSentPage.jsx';
+import MyBookingsPage from '../features/client/pages/MyBookingsPage.jsx';
+import ClientProfilePage from '../features/client/pages/ClientProfilePage.jsx';
+import ClientComplaintsPage from '../features/client/pages/ClientComplaintsPage.jsx';
+
 export default function AppRouter() {
   return (
     <Routes>
