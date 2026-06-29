@@ -16,7 +16,7 @@ export default function ProviderDocumentForm({ form, errors, onChange, onFileCha
   }
 
   return (
-    <div className="card" style={{ padding: 'var(--space-xl)', maxWidth: 640, margin: '0 auto' }}>
+    <div className="card auth-card animate-fade-in-up" style={{ padding: 'var(--space-xl)', maxWidth: 640, margin: '0 auto' }}>
       <h3>Step 2: Verification Documents</h3>
 
       <FileUpload label="Face Photograph" name="facePhoto" accept="image/jpeg,image/png" error={errors.facePhoto} onFileSelected={(file) => onFileChange('facePhoto', file)} />

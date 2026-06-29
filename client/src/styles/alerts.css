@@ -18,7 +18,7 @@
   border: 1px solid transparent;
   font-size: var(--font-size-sm);
   box-shadow: var(--shadow-md);
-  animation: hh-alert-slide-in var(--transition-slow) ease both;
+  animation: hh-alert-slide-in var(--transition-slow) both;
 }
 
 .alert-icon {

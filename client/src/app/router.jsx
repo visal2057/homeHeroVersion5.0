@@ -29,6 +29,16 @@ import ProviderSubscriptionsPage from '../features/provider/pages/ProviderSubscr
 import ProviderProfilePage       from '../features/provider/pages/ProviderProfilePage.jsx';
 import ProviderComplaintsPage    from '../features/provider/pages/ProviderComplaintsPage.jsx';
 
+import SystemAdminDashboardPage from '../features/admin/system/pages/SystemAdminDashboardPage.jsx';
+import BookingManagementPage from '../features/admin/system/pages/BookingManagementPage.jsx';
+import UserManagementPage from '../features/admin/system/pages/UserManagementPage.jsx';
+import ContentManagementPage from '../features/admin/system/pages/ContentManagementPage.jsx';
+import AnnouncementsPage from '../features/admin/system/pages/AnnouncementsPage.jsx';
+
+import VerificationDashboardPage from '../features/admin/verification/pages/VerificationDashboardPage.jsx';
+import VerificationReviewPage from '../features/admin/verification/pages/VerificationReviewPage.jsx';
+import ComplaintReviewPage from '../features/admin/verification/pages/ComplaintReviewPage.jsx';
+
 export default function AppRouter() {
   return (
     <Routes>

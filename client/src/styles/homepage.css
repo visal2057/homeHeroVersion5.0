@@ -320,6 +320,7 @@
   font-size: 1.4rem;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.88);
+  color: var(--color-secondary-700);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.7);
@@ -428,6 +429,7 @@
   background: linear-gradient(135deg, var(--color-primary-500), var(--color-secondary-700));
   box-shadow: var(--shadow-glow);
   font-size: 1.9rem;
+  color: var(--color-neutral-0);
 }
 
 .hh-step-number {
@@ -483,6 +485,7 @@
   align-items: center;
   justify-content: center;
   font-size: 2rem;
+  color: var(--color-neutral-0);
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.16);
   border: 1px solid rgba(255, 255, 255, 0.3);
@@ -700,4 +703,153 @@
   color: var(--color-primary-600);
   font-weight: 700;
   flex-shrink: 0;
+}
+
+/* ---------------------------------------------------------------------
+   Login page split layout
+   Left: full-height dark-green-themed photo with a glass tile near the
+   bottom. Right: the "Welcome Back" heading and the login form. Purely
+   cosmetic - the form itself (LoginForm) is untouched.
+   ------------------------------------------------------------------- */
+.login-split {
+  display: flex;
+  min-height: calc(100vh - var(--header-height));
+}
+
+.login-image-col {
+  flex: 1 1 50%;
+  position: relative;
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  align-items: flex-end;
+  min-height: 420px;
+}
+
+.login-image-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(3, 42, 32, 0.35) 0%, rgba(3, 42, 32, 0.55) 55%, rgba(3, 42, 32, 0.92) 100%);
+}
+
+.login-image-tile {
+  position: relative;
+  z-index: 2;
+  margin: 0 var(--space-xl) var(--space-2xl);
+  padding: var(--space-lg);
+  max-width: 380px;
+}
+
+.login-image-tile h3 {
+  color: var(--color-neutral-0);
+  margin-bottom: var(--space-xs);
+}
+
+.login-image-tile p {
+  color: var(--color-primary-100);
+  margin: 0;
+  font-size: var(--font-size-sm);
+}
+
+.login-form-col {
+  flex: 1 1 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-2xl) var(--space-lg);
+}
+
+.login-form-col-inner {
+  width: 100%;
+  max-width: 420px;
+}
+
+@media (max-width: 900px) {
+  .login-split {
+    flex-direction: column;
+    min-height: auto;
+  }
+
+  .login-image-col {
+    min-height: 260px;
+    flex: none;
+  }
+
+  .login-form-col {
+    flex: none;
+    padding: var(--space-xl) var(--space-lg);
+  }
+}
+
+/* ---------------------------------------------------------------------
+   Signature-green auth card border
+   A thin, distinctive border in the brand's signature dark green wraps
+   the login/registration form cards, with a thinner version of the same
+   color tracing each input field, so the auth forms read as clearly
+   "branded" rather than a generic white card.
+   ------------------------------------------------------------------- */
+.auth-card {
+  border: 2px solid var(--color-secondary-700);
+}
+
+.auth-card .form-control {
+  border: 1px solid var(--color-secondary-700);
+}
+
+/* ---------------------------------------------------------------------
+   Registration hero bands
+   Same compact glass-hero recipe as the About Us / Careers pages
+   (photo + tinted overlay + frosted panel), reused here so the role
+   picker and the client/provider sign-up pages open with the same
+   lively, photo-backed feel as the homepage and login page instead of
+   a plain heading on a flat background.
+   ------------------------------------------------------------------- */
+.register-hero {
+  min-height: 360px;
+}
+
+.register-hero .glass-hero-overlay {
+  background: linear-gradient(135deg, rgba(3, 42, 32, 0.62), rgba(5, 150, 105, 0.36));
+}
+
+.register-hero-title {
+  font-size: var(--font-size-3xl);
+}
+
+@media (max-width: 640px) {
+  .register-hero {
+    min-height: 300px;
+  }
+
+  .register-hero-title {
+    font-size: var(--font-size-2xl);
+  }
+}
+
+/* Role-picker cards on the "Join HomeHero" page: a circular icon badge
+   sitting above the title, plus a signature-green top border so the
+   cards visually tie into the auth-card border treatment used on the
+   forms further down the registration flow. */
+.role-pick-card {
+  border-top: 3px solid var(--color-secondary-700);
+}
+
+.role-pick-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto var(--space-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  color: var(--color-secondary-700);
+  border-radius: 50%;
+  background: var(--color-primary-100);
+  transition: transform var(--transition-base), background var(--transition-base), color var(--transition-base);
+}
+
+.role-pick-card:hover .role-pick-icon {
+  transform: scale(1.1) rotate(-4deg);
+  background: var(--color-primary-600);
+  color: var(--color-neutral-0);
 }
