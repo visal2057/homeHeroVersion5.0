@@ -1,31 +1,15 @@
 import { useState, useEffect } from 'react';
 import { clientApi } from '../clientApi.js';
 
-const SRI_LANKA_DISTRICTS = [
-  'Colombo', 'Gampaha', 'Kalutara', 'Kandy', 'Matale', 'Nuwara Eliya',
-  'Galle', 'Matara', 'Hambantota', 'Jaffna', 'Kilinochchi', 'Mannar',
-  'Mullaitivu', 'Vavuniya', 'Puttalam', 'Kurunegala', 'Anuradhapura',
-  'Polonnaruwa', 'Badulla', 'Monaragala', 'Ratnapura', 'Kegalle',
-  'Trincomalee', 'Batticaloa', 'Ampara',
-];
-
 export default function ClientProfileForm({ initialData, onSaved }) {
-  const [form, setForm] = useState({
-    firstName: '',
-    lastName: '',
-    phone: '',
-    addressLine1: '',
-    addressLine2: '',
-    district: '',
-    ...initialData,
-  });
+  const [form, setForm] = useState({ fullName: '', phone: '' });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
 
   useEffect(() => {
     if (initialData) {
-      setForm((f) => ({ ...f, ...initialData }));
+      setForm({ fullName: initialData.fullName ?? '', phone: initialData.phone ?? '' });
     }
   }, [initialData]);
 
@@ -38,15 +22,15 @@ export default function ClientProfileForm({ initialData, onSaved }) {
     e.preventDefault();
     setError('');
     setSuccess(false);
-    if (!form.firstName?.trim() || !form.lastName?.trim() || !form.phone?.trim()) {
-      setError('First name, last name and phone are required.');
+    if (!form.fullName?.trim() || !form.phone?.trim()) {
+      setError('Full name and phone are required.');
       return;
     }
     setSaving(true);
     try {
-      await clientApi.updateProfile(form);
+      const response = await clientApi.updateProfile(form);
       setSuccess(true);
-      onSaved?.(form);
+      onSaved?.(response.data?.data ?? form);
       setTimeout(() => setSuccess(false), 3000);
     } catch (err) {
       setError(err?.response?.data?.message ?? 'Failed to save profile. Please try again.');
@@ -58,34 +42,13 @@ export default function ClientProfileForm({ initialData, onSaved }) {
   return (
     <form className="profile-form" onSubmit={handleSubmit}>
       <div className="pf-grid">
-        <div className="pf-group">
-          <label className="pf-label">First Name <span className="pf-req">*</span></label>
-          <input type="text" name="firstName" value={form.firstName} onChange={handleChange} className="pf-input" required />
-        </div>
-        <div className="pf-group">
-          <label className="pf-label">Last Name <span className="pf-req">*</span></label>
-          <input type="text" name="lastName" value={form.lastName} onChange={handleChange} className="pf-input" required />
+        <div className="pf-group pf-group-full">
+          <label className="pf-label">Full Name <span className="pf-req">*</span></label>
+          <input type="text" name="fullName" value={form.fullName} onChange={handleChange} className="pf-input" required />
         </div>
         <div className="pf-group pf-group-full">
           <label className="pf-label">Phone Number <span className="pf-req">*</span></label>
-          <input type="tel" name="phone" placeholder="+94 7X XXX XXXX" value={form.phone} onChange={handleChange} className="pf-input" required />
-        </div>
-        <div className="pf-group pf-group-full">
-          <label className="pf-label">Address Line 1</label>
-          <input type="text" name="addressLine1" placeholder="House no., Street" value={form.addressLine1} onChange={handleChange} className="pf-input" />
-        </div>
-        <div className="pf-group pf-group-full">
-          <label className="pf-label">Address Line 2</label>
-          <input type="text" name="addressLine2" placeholder="Area, City" value={form.addressLine2} onChange={handleChange} className="pf-input" />
-        </div>
-        <div className="pf-group pf-group-full">
-          <label className="pf-label">District</label>
-          <select name="district" value={form.district} onChange={handleChange} className="pf-input">
-            <option value="">Select district...</option>
-            {SRI_LANKA_DISTRICTS.map((d) => (
-              <option key={d} value={d.toLowerCase()}>{d}</option>
-            ))}
-          </select>
+          <input type="tel" name="phone" placeholder="07XXXXXXXX" value={form.phone} onChange={handleChange} className="pf-input" required />
         </div>
       </div>
 

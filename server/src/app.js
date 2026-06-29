@@ -16,6 +16,7 @@ import announcementRoutes from './modules/announcements/announcement.routes.js';
 import verificationAdminRoutes from './modules/verification/verification.routes.js';
 import complaintRoutes from './modules/complaints/complaint.routes.js';
 import reportRoutes from './modules/reports/report.routes.js';
+import clientRoutes from './modules/clients/client.routes.js';
 import { Router } from 'express';
 import { authenticate } from './middleware/authenticate.js';
 import { requireSystemAdmin } from './middleware/requireSystemAdmin.js';
@@ -40,6 +41,7 @@ app.use('/api/registration', registrationRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api/announcements', announcementRoutes);
 app.use('/api/content', contentRoutes);
+app.use('/api/client', clientRoutes);
 
 app.use('/api/system-admin/dashboard', dashboardRoutes);
 app.use('/api/system-admin/bookings', adminBookingRoutes);

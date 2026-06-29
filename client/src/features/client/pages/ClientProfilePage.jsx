@@ -2,36 +2,79 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '../../../hooks/useAuth.js';
 import { clientApi } from '../clientApi.js';
 import ClientProfileForm from '../components/ClientProfileForm.jsx';
+import ChangePasswordForm from '../components/ChangePasswordForm.jsx';
+import MapPicker from '../../../components/common/MapPicker.jsx';
 
 export default function ClientProfilePage() {
   const { user, refreshUser } = useAuth();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [location, setLocation] = useState(null);
+  const [savingLocation, setSavingLocation] = useState(false);
+  const [locationMessage, setLocationMessage] = useState('');
 
   useEffect(() => {
     clientApi.getProfile()
-      .then((r) => setProfile(r.data?.data ?? r.data ?? user))
+      .then((r) => {
+        const data = r.data?.data ?? r.data ?? user;
+        setProfile(data);
+        if (data?.location) setLocation(data.location);
+      })
       .catch(() => setProfile(user))
       .finally(() => setLoading(false));
   }, [user]);
 
-  const initials = user
-    ? ((user.firstName?.[0] ?? '') + (user.lastName?.[0] ?? '')).toUpperCase() || user.username?.[0]?.toUpperCase() || 'U'
-    : 'U';
+  async function handleImageChange(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const response = await clientApi.updateProfileImage(file);
+      setProfile((p) => ({ ...p, profileImageUrl: response.data?.data?.profileImageUrl }));
+      refreshUser?.();
+    } catch {
+      // image upload failure is shown inline next to the button
+    }
+  }
+
+  async function handleSaveLocation() {
+    if (!location) return;
+    setSavingLocation(true);
+    setLocationMessage('');
+    try {
+      const response = await clientApi.updateLocation({
+        latitude: location.latitude,
+        longitude: location.longitude,
+        addressText: location.addressText ?? profile?.location?.addressText ?? 'Selected on map',
+      });
+      setProfile((p) => ({ ...p, location: response.data?.data }));
+      setLocationMessage('Location saved successfully.');
+    } catch (err) {
+      setLocationMessage(err?.response?.data?.message ?? 'Failed to save location.');
+    } finally {
+      setSavingLocation(false);
+    }
+  }
+
+  const initials = profile?.fullName
+    ? profile.fullName.trim().split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toUpperCase()
+    : (profile?.username?.[0]?.toUpperCase() ?? 'U');
 
   return (
     <div style={{ padding: 'var(--space-2xl) 0' }}>
       <div className="container" style={{ maxWidth: 800 }}>
         <div className="cp-header">
-          <div className="cp-avatar-big">
-            <span>{initials}</span>
-          </div>
+          <label className="cp-avatar-big" style={{ cursor: 'pointer', overflow: 'hidden' }}>
+            {profile?.profileImageUrl ? (
+              <img src={profile.profileImageUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            ) : (
+              <span>{initials}</span>
+            )}
+            <input type="file" accept="image/jpeg,image/png" onChange={handleImageChange} style={{ display: 'none' }} />
+          </label>
           <div>
-            <h1 className="cp-title">
-              {user?.firstName ? `${user.firstName} ${user.lastName ?? ''}`.trim() : user?.username}
-            </h1>
-            <div className="cp-email">{user?.email}</div>
-            <div className="cp-role-chip">Client Account</div>
+            <h1 className="cp-title">{profile?.fullName ?? profile?.username}</h1>
+            <div className="cp-email">{profile?.email}</div>
+            <div className="cp-role-chip">Client Account · Token: {profile?.userToken}</div>
           </div>
         </div>
 
@@ -51,17 +94,25 @@ export default function ClientProfilePage() {
         </div>
 
         <div className="cp-card" style={{ marginTop: 'var(--space-lg)' }}>
+          <h2 className="cp-card-title">🔒 Change Password</h2>
+          <ChangePasswordForm />
+        </div>
+
+        <div className="cp-card" style={{ marginTop: 'var(--space-lg)' }}>
           <h2 className="cp-card-title">📍 Location Map</h2>
           <p style={{ color: 'var(--color-neutral-500)', marginBottom: 'var(--space-md)' }}>
-            Your address is used to help providers understand your service location.
+            Drag the pin to your exact location. Providers only see this once you have an active booking with them.
           </p>
-          <div className="cp-map-placeholder">
-            <span>🗺️</span>
-            <p>
-              {profile?.addressLine1
-                ? `${profile.addressLine1}${profile.addressLine2 ? ', ' + profile.addressLine2 : ''}${profile.district ? ', ' + profile.district : ''}`
-                : 'No address saved yet. Update your profile above to set your location.'}
-            </p>
+          <MapPicker
+            latitude={location?.latitude ?? profile?.location?.latitude}
+            longitude={location?.longitude ?? profile?.location?.longitude}
+            onChange={setLocation}
+          />
+          {locationMessage && <p style={{ marginTop: 'var(--space-sm)' }}>{locationMessage}</p>}
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 'var(--space-md)' }}>
+            <button type="button" className="btn btn-primary" disabled={!location || savingLocation} onClick={handleSaveLocation}>
+              {savingLocation ? 'Saving…' : 'Save Location'}
+            </button>
           </div>
         </div>
       </div>
@@ -90,12 +141,6 @@ export default function ClientProfilePage() {
           border-radius: var(--radius-lg); padding: var(--space-xl);
         }
         .cp-card-title { font-size: var(--font-size-xl); color: var(--color-secondary-700); margin-bottom: var(--space-xl); }
-        .cp-map-placeholder {
-          background: var(--color-neutral-50); border-radius: var(--radius-md);
-          border: 2px dashed var(--color-neutral-300); padding: var(--space-2xl);
-          text-align: center; color: var(--color-neutral-500);
-        }
-        .cp-map-placeholder span { font-size: 2.5rem; display: block; margin-bottom: var(--space-md); }
       `}</style>
     </div>
   );

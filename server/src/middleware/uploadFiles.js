@@ -61,3 +61,19 @@ export const uploadSiteImage = multer({
   fileFilter: imageOnlyFilter,
   limits: { fileSize: MAX_FILE_SIZE },
 }).single('image');
+
+const profileImageStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, path.resolve(env.publicStoragePath, 'profile-images'));
+  },
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    cb(null, `${crypto.randomUUID()}${ext}`);
+  },
+});
+
+export const uploadProfileImage = multer({
+  storage: profileImageStorage,
+  fileFilter: imageOnlyFilter,
+  limits: { fileSize: MAX_FILE_SIZE },
+}).single('profileImage');
