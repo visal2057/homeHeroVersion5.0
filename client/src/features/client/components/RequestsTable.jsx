@@ -3,7 +3,7 @@ import { bookingApi } from '../bookingApi.js';
 
 const STATUS_STYLES = {
   PENDING: { bg: '#fffbeb', color: '#d97706', label: '⏳ Pending' },
-  APPROVED: { bg: '#ecfdf5', color: '#059669', label: '✅ Approved' },
+  ACCEPTED: { bg: '#ecfdf5', color: '#059669', label: '✅ Accepted' },
   REJECTED: { bg: '#fef2f2', color: '#dc2626', label: '✗ Rejected' },
   CANCELLED: { bg: '#f8fafc', color: '#64748b', label: '↩ Cancelled' },
 };
@@ -42,7 +42,6 @@ export default function RequestsTable({ bookings = [], onRefresh }) {
               <th>Provider</th>
               <th>Service</th>
               <th>Date & Time</th>
-              <th>Duration</th>
               <th>Status</th>
               <th>Action</th>
             </tr>
@@ -50,7 +49,7 @@ export default function RequestsTable({ bookings = [], onRefresh }) {
           <tbody>
             {bookings.map((b) => {
               const status = STATUS_STYLES[b.status] ?? STATUS_STYLES.PENDING;
-              const canCancel = b.status === 'PENDING' || b.status === 'APPROVED';
+              const canCancel = b.status === 'PENDING' || b.status === 'ACCEPTED';
               return (
                 <tr key={b.id}>
                   <td>
@@ -61,10 +60,10 @@ export default function RequestsTable({ bookings = [], onRefresh }) {
                   </td>
                   <td>{b.category ?? '—'}</td>
                   <td>
-                    <div>{b.serviceDate ? new Date(b.serviceDate).toLocaleDateString('en-LK') : '—'}</div>
-                    <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-neutral-500)' }}>{b.startTime ?? ''}</div>
+                    {b.scheduledAt
+                      ? new Date(b.scheduledAt).toLocaleString('en-LK', { dateStyle: 'medium', timeStyle: 'short' })
+                      : '—'}
                   </td>
-                  <td>{b.durationHours ? `${b.durationHours}h` : '—'}</td>
                   <td>
                     <span className="bt-status" style={{ background: status.bg, color: status.color }}>
                       {status.label}

@@ -3,49 +3,51 @@ import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '../../../constants/routes.js';
 import { bookingApi } from '../bookingApi.js';
 
-const SRI_LANKA_DISTRICTS = [
-  'Colombo', 'Gampaha', 'Kalutara', 'Kandy', 'Matale', 'Nuwara Eliya',
-  'Galle', 'Matara', 'Hambantota', 'Jaffna', 'Kilinochchi', 'Mannar',
-  'Mullaitivu', 'Vavuniya', 'Puttalam', 'Kurunegala', 'Anuradhapura',
-  'Polonnaruwa', 'Badulla', 'Monaragala', 'Ratnapura', 'Kegalle',
-  'Trincomalee', 'Batticaloa', 'Ampara',
-];
-
 export default function BookingForm({ provider, client }) {
   const navigate = useNavigate();
   const today = new Date().toISOString().split('T')[0];
 
   const [form, setForm] = useState({
     serviceDate: '',
-    startTime: '',
-    durationHours: 2,
-    addressLine1: client?.addressLine1 ?? '',
-    addressLine2: client?.addressLine2 ?? '',
-    district: client?.district ?? '',
-    notes: '',
+    serviceTime: '',
+    jobDescription: '',
   });
+  const [photos, setPhotos] = useState([]);
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+
+  const hasLocation = client?.location?.latitude != null;
 
   function handleChange(e) {
     const { name, value } = e.target;
     setForm((f) => ({ ...f, [name]: value }));
   }
 
+  function handlePhotosChange(e) {
+    setPhotos(Array.from(e.target.files ?? []).slice(0, 3));
+  }
+
   async function handleSubmit(e) {
     e.preventDefault();
     setError('');
-    if (!form.serviceDate || !form.startTime || !form.addressLine1 || !form.district) {
+    if (!form.serviceDate || !form.serviceTime || !form.jobDescription) {
       setError('Please fill in all required fields.');
+      return;
+    }
+    if (!hasLocation) {
+      setError('Please set your location in your profile before booking.');
       return;
     }
     setSubmitting(true);
     try {
-      await bookingApi.createBooking({
-        providerId: provider.providerId ?? provider.id,
-        ...form,
-        durationHours: Number(form.durationHours),
-      });
+      const formData = new FormData();
+      formData.append('providerUserId', provider.providerId ?? provider.id);
+      formData.append('serviceCategoryId', provider.serviceCategoryId ?? provider.categoryId);
+      formData.append('jobDescription', form.jobDescription);
+      formData.append('scheduledAt', new Date(`${form.serviceDate}T${form.serviceTime}`).toISOString());
+      photos.forEach((file) => formData.append('jobPhotos', file));
+
+      await bookingApi.createBooking(formData);
       navigate(ROUTES.CLIENT_BOOKING_SENT);
     } catch (err) {
       setError(err?.response?.data?.message ?? 'Failed to submit booking. Please try again.');
@@ -53,10 +55,6 @@ export default function BookingForm({ provider, client }) {
       setSubmitting(false);
     }
   }
-
-  const estimatedCost = provider.hourlyRate
-    ? `Rs. ${(Number(provider.hourlyRate) * Number(form.durationHours)).toLocaleString()}`
-    : null;
 
   return (
     <form className="booking-form" onSubmit={handleSubmit}>
@@ -71,10 +69,10 @@ export default function BookingForm({ provider, client }) {
           <div style={{ fontWeight: 700, color: 'var(--color-secondary-700)' }}>{provider.name}</div>
           <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-neutral-500)' }}>{provider.category}</div>
         </div>
-        {estimatedCost && (
+        {provider.hourlyRate && (
           <div style={{ marginLeft: 'auto', textAlign: 'right' }}>
-            <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-neutral-500)' }}>Estimated Cost</div>
-            <div style={{ fontWeight: 700, color: 'var(--color-primary-700)', fontSize: 'var(--font-size-lg)' }}>{estimatedCost}</div>
+            <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-neutral-500)' }}>Estimated Rate</div>
+            <div style={{ fontWeight: 700, color: 'var(--color-primary-700)', fontSize: 'var(--font-size-lg)' }}>Rs. {provider.hourlyRate}/hr</div>
           </div>
         )}
       </div>
@@ -85,37 +83,27 @@ export default function BookingForm({ provider, client }) {
           <input type="date" name="serviceDate" min={today} value={form.serviceDate} onChange={handleChange} className="bf-input" required />
         </div>
         <div className="bf-group">
-          <label className="bf-label">Start Time <span className="bf-required">*</span></label>
-          <input type="time" name="startTime" value={form.startTime} onChange={handleChange} className="bf-input" required />
+          <label className="bf-label">Service Time <span className="bf-required">*</span></label>
+          <input type="time" name="serviceTime" value={form.serviceTime} onChange={handleChange} className="bf-input" required />
         </div>
-        <div className="bf-group">
-          <label className="bf-label">Duration (hours) <span className="bf-required">*</span></label>
-          <select name="durationHours" value={form.durationHours} onChange={handleChange} className="bf-input">
-            {[1, 2, 3, 4, 5, 6, 7, 8].map(h => (
-              <option key={h} value={h}>{h} hour{h > 1 ? 's' : ''}</option>
-            ))}
-          </select>
-        </div>
-        <div className="bf-group">
-          <label className="bf-label">District <span className="bf-required">*</span></label>
-          <select name="district" value={form.district} onChange={handleChange} className="bf-input" required>
-            <option value="">Select district...</option>
-            {SRI_LANKA_DISTRICTS.map(d => (
-              <option key={d} value={d.toLowerCase()}>{d}</option>
-            ))}
-          </select>
-        </div>
+
         <div className="bf-group bf-group-full">
-          <label className="bf-label">Address Line 1 <span className="bf-required">*</span></label>
-          <input type="text" name="addressLine1" placeholder="House no., Street" value={form.addressLine1} onChange={handleChange} className="bf-input" required />
+          <label className="bf-label">Your Location</label>
+          <div className="bf-input" style={{ background: 'var(--color-neutral-50)', color: 'var(--color-neutral-600)' }}>
+            {hasLocation
+              ? client.location.addressText ?? `${client.location.latitude}, ${client.location.longitude}`
+              : 'No location saved — please set it on your Profile page first.'}
+          </div>
         </div>
+
         <div className="bf-group bf-group-full">
-          <label className="bf-label">Address Line 2</label>
-          <input type="text" name="addressLine2" placeholder="Area, City" value={form.addressLine2} onChange={handleChange} className="bf-input" />
+          <label className="bf-label">Job Description <span className="bf-required">*</span></label>
+          <textarea name="jobDescription" rows={3} placeholder="Describe what you need done..." value={form.jobDescription} onChange={handleChange} className="bf-input bf-textarea" required />
         </div>
+
         <div className="bf-group bf-group-full">
-          <label className="bf-label">Notes for Provider</label>
-          <textarea name="notes" rows={3} placeholder="Any specific instructions or requirements..." value={form.notes} onChange={handleChange} className="bf-input bf-textarea" />
+          <label className="bf-label">Job Photos (up to 3)</label>
+          <input type="file" accept="image/jpeg,image/png" multiple onChange={handlePhotosChange} className="bf-input" />
         </div>
       </div>
 

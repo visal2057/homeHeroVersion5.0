@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { ROUTES } from '../../../constants/routes.js';
+import { getAssetUrl } from '../../../utils/storageUtils.js';
 
 function StarRating({ rating }) {
   const filled = Math.round(rating ?? 0);
@@ -22,7 +23,7 @@ export default function TopProvidersSection({ providers = [], category }) {
             <Link key={p.providerId ?? p.id} to={href} className="tps-card">
               <div className="tps-avatar">
                 {p.profilePhoto
-                  ? <img src={p.profilePhoto} alt={p.name} />
+                  ? <img src={getAssetUrl(p.profilePhoto)} alt={p.name} />
                   : <span>{(p.name ?? 'P')[0]}</span>}
                 {p.isVerified && <span className="tps-badge">✓</span>}
               </div>

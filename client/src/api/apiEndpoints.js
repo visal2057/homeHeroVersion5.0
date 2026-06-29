@@ -12,6 +12,39 @@ export const API_ENDPOINTS = {
   },
   CONTACT: '/contact',
 
+  CONTENT: {
+    SITE_IMAGES: '/content/site-images',
+  },
+
+  ANNOUNCEMENTS: {
+    ACTIVE: '/announcements/active',
+    LIST: '/announcements',
+    CREATE: '/announcements',
+    UPDATE: (id) => `/announcements/${id}`,
+    ARCHIVE: (id) => `/announcements/${id}/archive`,
+  },
+
+  SYSTEM_ADMIN: {
+    DASHBOARD_OVERVIEW: '/system-admin/dashboard/overview',
+    BOOKINGS: '/system-admin/bookings',
+    USERS: '/system-admin/users',
+    BAN_REQUESTS: '/system-admin/bans/requests',
+    APPLY_BAN: '/system-admin/bans',
+    REMOVE_BAN: (userBanId) => `/system-admin/bans/${userBanId}`,
+    EARNINGS_REPORT: '/system-admin/reports/earnings',
+  },
+
+  VERIFICATION_ADMIN: {
+    APPLICATIONS: '/verification-admin/verification/applications',
+    APPLICATION_DETAIL: (id) => `/verification-admin/verification/applications/${id}`,
+    DOCUMENT: (id) => `/verification-admin/verification/documents/${id}`,
+    APPROVE: (id) => `/verification-admin/verification/applications/${id}/approve`,
+    REJECT: (id) => `/verification-admin/verification/applications/${id}/reject`,
+    COMPLAINTS: '/verification-admin/complaints',
+    COMPLAINT_DETAIL: (id) => `/verification-admin/complaints/${id}`,
+    COMPLAINT_VERDICT: (id) => `/verification-admin/complaints/${id}/verdict`,
+  },
+
   PROVIDER: {
     PROFILE:            '/provider/profile',
     STATS:              '/provider/stats',

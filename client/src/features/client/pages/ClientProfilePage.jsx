@@ -4,6 +4,7 @@ import { clientApi } from '../clientApi.js';
 import ClientProfileForm from '../components/ClientProfileForm.jsx';
 import ChangePasswordForm from '../components/ChangePasswordForm.jsx';
 import MapPicker from '../../../components/common/MapPicker.jsx';
+import { getAssetUrl } from '../../../utils/storageUtils.js';
 
 export default function ClientProfilePage() {
   const { user, refreshUser } = useAuth();
@@ -65,7 +66,7 @@ export default function ClientProfilePage() {
         <div className="cp-header">
           <label className="cp-avatar-big" style={{ cursor: 'pointer', overflow: 'hidden' }}>
             {profile?.profileImageUrl ? (
-              <img src={profile.profileImageUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              <img src={getAssetUrl(profile.profileImageUrl)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             ) : (
               <span>{initials}</span>
             )}

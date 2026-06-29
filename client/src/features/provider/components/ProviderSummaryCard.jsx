@@ -1,3 +1,5 @@
+import { getAssetUrl } from '../../../utils/storageUtils.js';
+
 function StarRating({ value }) {
   const full = Math.round(value ?? 0);
   return (
@@ -8,36 +10,39 @@ function StarRating({ value }) {
 }
 
 export default function ProviderSummaryCard({ profile }) {
-  const initials = profile?.name
-    ? profile.name.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()
+  const initials = profile?.fullName
+    ? profile.fullName.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()
     : 'SP';
+  const averageRating = profile?.statistics?.averageRating;
 
   return (
     <div className="provider-summary-card">
-      {profile?.avatar_url ? (
-        <img src={profile.avatar_url} alt={profile.name} className="provider-summary-avatar" />
+      {profile?.profileImageUrl ? (
+        <img src={getAssetUrl(profile.profileImageUrl)} alt={profile.fullName} className="provider-summary-avatar" />
       ) : (
         <div className="provider-summary-avatar-placeholder">{initials}</div>
       )}
 
-      <h2 className="provider-summary-name">{profile?.name ?? 'Service Provider'}</h2>
+      <h2 className="provider-summary-name">{profile?.fullName ?? 'Service Provider'}</h2>
 
       <p className="provider-summary-meta">
-        {profile?.service_categories?.join(' · ') ?? '—'}
-        {profile?.location && <> &bull; {profile.location}</>}
+        {profile?.categories?.map((c) => c.categoryName).join(' · ') ?? '—'}
+        {profile?.serviceDistrictName && <> &bull; {profile.serviceDistrictName}</>}
       </p>
 
       <div className="provider-summary-rating">
-        <StarRating value={profile?.average_rating} />
-        <span>{profile?.average_rating?.toFixed(1) ?? '—'}</span>
-        <span>({profile?.review_count ?? 0} reviews)</span>
+        <StarRating value={averageRating} />
+        <span>{averageRating != null ? averageRating.toFixed(1) : '—'}</span>
+        <span>({profile?.statistics?.reviewCount ?? 0} reviews)</span>
       </div>
 
       <div>
-        <span className="provider-summary-chip verified">✓ Verified</span>
-        {profile?.membership_type && (
+        {profile?.bookability?.isVerified && (
+          <span className="provider-summary-chip verified">✓ Verified</span>
+        )}
+        {profile?.membership?.status && (
           <span className="provider-summary-chip member">
-            ⭐ {profile.membership_type}
+            ⭐ {profile.membership.status}
           </span>
         )}
       </div>

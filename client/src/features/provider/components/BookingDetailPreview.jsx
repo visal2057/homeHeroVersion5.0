@@ -1,3 +1,5 @@
+import { getAssetUrl } from '../../../utils/storageUtils.js';
+
 export default function BookingDetailPreview({ booking, style }) {
   if (!booking) return null;
 
@@ -29,7 +31,7 @@ export default function BookingDetailPreview({ booking, style }) {
       {booking.images?.length > 0 && (
         <div className="provider-row-preview-images">
           {booking.images.slice(0, 4).map((src, i) => (
-            <img key={i} src={src} alt={`Job image ${i + 1}`} />
+            <img key={i} src={getAssetUrl(src)} alt={`Job image ${i + 1}`} />
           ))}
         </div>
       )}
