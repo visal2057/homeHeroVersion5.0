@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { ROUTES } from '../../../constants/routes.js';
+import { getAssetUrl } from '../../../utils/storageUtils.js';
 
 const DISTRICTS = {
   colombo: 'Colombo', gampaha: 'Gampaha', kandy: 'Kandy', galle: 'Galle',
@@ -29,7 +30,7 @@ export default function ProviderProfileHeader({ provider }) {
           <div className="pph-avatar-wrap">
             <div className="pph-avatar">
               {provider.profilePhoto
-                ? <img src={provider.profilePhoto} alt={provider.name} />
+                ? <img src={getAssetUrl(provider.profilePhoto)} alt={provider.name} />
                 : <span>{(provider.name ?? 'P')[0].toUpperCase()}</span>}
             </div>
             {provider.isVerified && (

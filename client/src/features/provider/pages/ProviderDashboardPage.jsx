@@ -33,7 +33,7 @@ export default function ProviderDashboardPage() {
         if (profileRes.status === 'fulfilled') {
           const p = profileRes.value.data?.data ?? profileRes.value.data;
           setProfile(p);
-          setIsOnline(p?.is_available ?? false);
+          setIsOnline(p?.manualOnline ?? false);
         }
         if (statsRes.status === 'fulfilled') {
           setStats(statsRes.value.data?.data ?? statsRes.value.data);
@@ -59,16 +59,16 @@ export default function ProviderDashboardPage() {
     setTogglingStatus(true);
     try {
       const next = !isOnline;
-      await axiosClient.patch(API_ENDPOINTS.PROVIDER.AVAILABILITY, { is_available: next });
+      await axiosClient.patch(API_ENDPOINTS.PROVIDER.AVAILABILITY, { manualOnline: next });
       setIsOnline(next);
-    } catch {
-      // keep current state on failure
+    } catch (err) {
+      alert(err?.response?.data?.message ?? 'Could not update availability. Please try again.');
     } finally {
       setTogglingStatus(false);
     }
   }
 
-  const greetingName = profile?.name?.split(' ')[0] ?? user?.username ?? 'Provider';
+  const greetingName = profile?.fullName?.split(' ')[0] ?? user?.username ?? 'Provider';
 
   return (
     <div className="provider-page">

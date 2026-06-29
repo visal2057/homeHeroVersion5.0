@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { getAssetUrl } from '../../../utils/storageUtils.js';
 
 export default function PreviousWorkGallery({ images = [] }) {
   const [lightbox, setLightbox] = useState(null);
@@ -23,7 +24,7 @@ export default function PreviousWorkGallery({ images = [] }) {
             onClick={() => setLightbox(i)}
             aria-label={`View image ${i + 1}`}
           >
-            <img src={src} alt={`Work ${i + 1}`} />
+            <img src={getAssetUrl(src)} alt={`Work ${i + 1}`} />
             <div className="pgallery-overlay">🔍</div>
           </button>
         ))}
@@ -38,7 +39,7 @@ export default function PreviousWorkGallery({ images = [] }) {
               onClick={(e) => { e.stopPropagation(); setLightbox(lightbox - 1); }}
             >‹</button>
           )}
-          <img src={images[lightbox]} alt="" onClick={(e) => e.stopPropagation()} />
+          <img src={getAssetUrl(images[lightbox])} alt="" onClick={(e) => e.stopPropagation()} />
           {lightbox < images.length - 1 && (
             <button
               className="pgallery-lb-nav pgallery-lb-next"

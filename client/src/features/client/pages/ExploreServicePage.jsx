@@ -57,10 +57,10 @@ export default function ExploreServicePage() {
   const fetchProviders = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await clientApi.getProvidersByCategory(category, { district, sort, search });
-      const list = res.data?.data ?? [];
-      setProviders(list);
-      setTopProviders(list.filter((p) => p.isVerified && (p.averageRating ?? 0) >= 4.5).slice(0, 5));
+      const res = await clientApi.getProvidersByCategory(category, { district, search });
+      const data = res.data?.data ?? {};
+      setProviders(data.providers ?? []);
+      setTopProviders(data.topProviders ?? []);
     } catch {
       // API not ready – use mock data
       const mock = mockProviders(meta.label);
@@ -75,7 +75,13 @@ export default function ExploreServicePage() {
     fetchProviders();
   }, [fetchProviders]);
 
-  const displayed = providers.slice(0, 20);
+  const sorted = [...providers].sort((a, b) => {
+    if (sort === 'rate_asc') return (a.hourlyRate ?? 0) - (b.hourlyRate ?? 0);
+    if (sort === 'rate_desc') return (b.hourlyRate ?? 0) - (a.hourlyRate ?? 0);
+    if (sort === 'newest') return 0; // already ordered newest-first by the backend
+    return (b.averageRating ?? 0) - (a.averageRating ?? 0);
+  });
+  const displayed = sorted.slice(0, 20);
 
   return (
     <div className="explore-page">

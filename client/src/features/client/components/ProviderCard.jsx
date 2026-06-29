@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ROUTES } from '../../../constants/routes.js';
+import { getAssetUrl } from '../../../utils/storageUtils.js';
 
 const DISTRICTS = {
   colombo: 'Colombo', gampaha: 'Gampaha', kandy: 'Kandy', galle: 'Galle',
@@ -34,7 +35,7 @@ export default function ProviderCard({ provider }) {
       <div className="pc-inner">
         <div className="pc-avatar">
           {provider.profilePhoto
-            ? <img src={provider.profilePhoto} alt={provider.name} />
+            ? <img src={getAssetUrl(provider.profilePhoto)} alt={provider.name} />
             : <span>{(provider.name ?? 'P')[0].toUpperCase()}</span>}
           {provider.isVerified && <span className="pc-verified" title="Verified">✓</span>}
         </div>

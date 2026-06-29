@@ -4,7 +4,7 @@ export default function JobsToDoTable({ bookings = [] }) {
       <div className="bt-empty">
         <span>🔨</span>
         <h3>No upcoming jobs</h3>
-        <p>Your approved bookings will appear here.</p>
+        <p>Your accepted bookings will appear here.</p>
         <style>{`.bt-empty { text-align: center; padding: var(--space-2xl); color: var(--color-neutral-400); } .bt-empty span { font-size: 2.5rem; display: block; margin-bottom: var(--space-md); } .bt-empty h3 { color: var(--color-neutral-600); }`}</style>
       </div>
     );
@@ -19,8 +19,7 @@ export default function JobsToDoTable({ bookings = [] }) {
               <th>Provider</th>
               <th>Service</th>
               <th>Date & Time</th>
-              <th>Duration</th>
-              <th>Address</th>
+              <th>Status</th>
             </tr>
           </thead>
           <tbody>
@@ -34,12 +33,12 @@ export default function JobsToDoTable({ bookings = [] }) {
                 </td>
                 <td>{b.category ?? '—'}</td>
                 <td>
-                  <div style={{ fontWeight: 600 }}>{b.serviceDate ? new Date(b.serviceDate).toLocaleDateString('en-LK', { weekday: 'short', month: 'short', day: 'numeric' }) : '—'}</div>
-                  <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-neutral-500)' }}>{b.startTime ?? ''}</div>
+                  {b.scheduledAt
+                    ? new Date(b.scheduledAt).toLocaleString('en-LK', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })
+                    : '—'}
                 </td>
-                <td>{b.durationHours ? `${b.durationHours}h` : '—'}</td>
-                <td style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-neutral-600)' }}>
-                  {[b.addressLine1, b.addressLine2, b.district].filter(Boolean).join(', ')}
+                <td>
+                  <span className="bt-status" style={{ background: '#ecfdf5', color: '#059669' }}>✅ Accepted</span>
                 </td>
               </tr>
             ))}
@@ -54,6 +53,7 @@ export default function JobsToDoTable({ bookings = [] }) {
         .bt-table tr:hover td { background: var(--color-neutral-50); }
         .bt-provider-cell { display: flex; align-items: center; gap: 8px; }
         .bt-provider-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--color-primary-100); display: flex; align-items: center; justify-content: center; color: var(--color-primary-700); font-weight: 700; flex-shrink: 0; }
+        .bt-status { padding: 3px 10px; border-radius: var(--radius-full); font-size: var(--font-size-xs); font-weight: 600; white-space: nowrap; }
       `}</style>
     </div>
   );

@@ -6,9 +6,9 @@ import JobsToDoTable from '../components/JobsToDoTable.jsx';
 import CompletedJobsTable from '../components/CompletedJobsTable.jsx';
 
 const MOCK_BOOKINGS = [
-  { id: '1', providerName: 'Nimal Perera', category: 'Gardening', serviceDate: '2026-07-10', startTime: '09:00', durationHours: 3, status: 'APPROVED', addressLine1: '12 Flower Road', district: 'colombo' },
-  { id: '2', providerName: 'Kamal Silva', category: 'Cleaning', serviceDate: '2026-07-15', startTime: '10:00', durationHours: 2, status: 'PENDING', addressLine1: '45 Galle Road', district: 'gampaha' },
-  { id: '3', providerName: 'Sitha Fernando', category: 'Pet Care', serviceDate: '2026-06-20', startTime: '14:00', durationHours: 1, status: 'COMPLETED', clientRating: 5, addressLine1: '7 Temple Street', district: 'kandy' },
+  { id: '1', providerName: 'Nimal Perera', category: 'Gardening', scheduledAt: '2026-07-10T09:00:00.000Z', status: 'ACCEPTED' },
+  { id: '2', providerName: 'Kamal Silva', category: 'Cleaning', scheduledAt: '2026-07-15T10:00:00.000Z', status: 'PENDING' },
+  { id: '3', providerName: 'Sitha Fernando', category: 'Pet Care', completedAt: '2026-06-20T14:00:00.000Z', paymentMethod: 'CARD', status: 'COMPLETED' },
 ];
 
 export default function MyBookingsPage() {
@@ -32,8 +32,8 @@ export default function MyBookingsPage() {
     fetchBookings();
   }, [fetchBookings]);
 
-  const requests = bookings.filter((b) => ['PENDING', 'APPROVED', 'REJECTED', 'CANCELLED'].includes(b.status));
-  const jobs = bookings.filter((b) => b.status === 'APPROVED');
+  const requests = bookings.filter((b) => ['PENDING', 'ACCEPTED', 'REJECTED', 'CANCELLED'].includes(b.status));
+  const jobs = bookings.filter((b) => b.status === 'ACCEPTED');
   const completed = bookings.filter((b) => b.status === 'COMPLETED');
 
   return (

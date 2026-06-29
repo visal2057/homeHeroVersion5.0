@@ -1,9 +1,13 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import PublicLayout    from '../layouts/PublicLayout.jsx';
 import ProviderLayout  from '../layouts/ProviderLayout.jsx';
+import ClientLayout    from '../layouts/ClientLayout.jsx';
+import SystemAdminLayout       from '../layouts/SystemAdminLayout.jsx';
+import VerificationAdminLayout from '../layouts/VerificationAdminLayout.jsx';
 import GuestRoute      from '../components/routing/GuestRoute.jsx';
 import ProtectedRoute  from '../components/routing/ProtectedRoute.jsx';
 import { ROUTES }      from '../constants/routes.js';
+import { ROLES }       from '../constants/roles.js';
 
 import LandingPage            from '../features/public/pages/LandingPage.jsx';
 import AboutUsPage            from '../features/public/pages/AboutUsPage.jsx';
@@ -73,7 +77,7 @@ export default function AppRouter() {
       </Route>
 
       {/* ── Provider layout (Module 3) ─────────────────────────────────────── */}
-      <Route element={<ProtectedRoute />}>
+      <Route element={<ProtectedRoute roles={[ROLES.SERVICE_PROVIDER]} />}>
         <Route element={<ProviderLayout />}>
           {/* Redirect bare /provider → dashboard */}
           <Route path="/provider" element={<Navigate to={ROUTES.PROVIDER_DASHBOARD} replace />} />
@@ -85,6 +89,46 @@ export default function AppRouter() {
           <Route path={ROUTES.PROVIDER_SUBSCRIPTIONS} element={<ProviderSubscriptionsPage />} />
           <Route path={ROUTES.PROVIDER_PROFILE}       element={<ProviderProfilePage />} />
           <Route path={ROUTES.PROVIDER_COMPLAINTS}    element={<ProviderComplaintsPage />} />
+        </Route>
+      </Route>
+
+      {/* ── Client layout ────────────────────────────────────────────────── */}
+      <Route element={<ProtectedRoute roles={[ROLES.CLIENT]} />}>
+        <Route element={<ClientLayout />}>
+          <Route path="/client" element={<Navigate to={ROUTES.CLIENT_HOME} replace />} />
+
+          <Route path={ROUTES.CLIENT_HOME}             element={<ClientHomePage />} />
+          <Route path={ROUTES.CLIENT_EXPLORE}          element={<ExploreServicePage />} />
+          <Route path={ROUTES.CLIENT_PROVIDER_PROFILE} element={<ProviderPublicProfilePage />} />
+          <Route path={ROUTES.CLIENT_BOOKING_CONFIRM}  element={<BookingConfirmationPage />} />
+          <Route path={ROUTES.CLIENT_BOOKING_SENT}     element={<BookingRequestSentPage />} />
+          <Route path={ROUTES.CLIENT_MY_BOOKINGS}      element={<MyBookingsPage />} />
+          <Route path={ROUTES.CLIENT_PROFILE}          element={<ClientProfilePage />} />
+          <Route path={ROUTES.CLIENT_COMPLAINTS}       element={<ClientComplaintsPage />} />
+        </Route>
+      </Route>
+
+      {/* ── System Admin layout ─────────────────────────────────────────── */}
+      <Route element={<ProtectedRoute roles={[ROLES.SYSTEM_ADMIN]} />}>
+        <Route element={<SystemAdminLayout />}>
+          <Route path="/admin/system" element={<Navigate to={ROUTES.SYSTEM_ADMIN_DASHBOARD} replace />} />
+
+          <Route path={ROUTES.SYSTEM_ADMIN_DASHBOARD}     element={<SystemAdminDashboardPage />} />
+          <Route path={ROUTES.SYSTEM_ADMIN_BOOKINGS}       element={<BookingManagementPage />} />
+          <Route path={ROUTES.SYSTEM_ADMIN_USERS}          element={<UserManagementPage />} />
+          <Route path={ROUTES.SYSTEM_ADMIN_CONTENT}        element={<ContentManagementPage />} />
+          <Route path={ROUTES.SYSTEM_ADMIN_ANNOUNCEMENTS}  element={<AnnouncementsPage />} />
+        </Route>
+      </Route>
+
+      {/* ── Verification Admin layout ───────────────────────────────────── */}
+      <Route element={<ProtectedRoute roles={[ROLES.VERIFICATION_ADMIN]} />}>
+        <Route element={<VerificationAdminLayout />}>
+          <Route path="/admin/verification" element={<Navigate to={ROUTES.VERIFICATION_ADMIN_DASHBOARD} replace />} />
+
+          <Route path={ROUTES.VERIFICATION_ADMIN_DASHBOARD}  element={<VerificationDashboardPage />} />
+          <Route path={ROUTES.VERIFICATION_ADMIN_REVIEW}     element={<VerificationReviewPage />} />
+          <Route path={ROUTES.VERIFICATION_ADMIN_COMPLAINT}  element={<ComplaintReviewPage />} />
         </Route>
       </Route>
     </Routes>
