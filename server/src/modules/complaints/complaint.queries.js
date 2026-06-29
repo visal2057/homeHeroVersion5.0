@@ -64,7 +64,7 @@ export async function submitVerdict({ complaintId, verificationAdminUserId, inve
     }
 
     const { rows } = await client.query(
-      `UPDATE complaints SET complaint_status = $1, resolved_at = CASE WHEN $1 = 'RESOLVED' THEN now() ELSE resolved_at END, updated_at = now()
+      `UPDATE complaints SET complaint_status = $1::complaint_status, resolved_at = CASE WHEN $1::complaint_status = 'RESOLVED' THEN now() ELSE resolved_at END, updated_at = now()
        WHERE complaint_id = $2
        RETURNING *`,
       [finalStatus, complaintId],

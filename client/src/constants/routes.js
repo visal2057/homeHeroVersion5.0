@@ -12,12 +12,33 @@ export const ROUTES = {
   VERIFICATION_PENDING: '/verification-pending',
   APPLICATION_REJECTED: '/application-rejected',
 
+  // Client
+  CLIENT_HOME: '/client/home',
+  CLIENT_EXPLORE: '/client/explore/:category',
+  CLIENT_PROVIDER_PROFILE: '/client/providers/:providerId',
+  CLIENT_BOOKING_CONFIRM: '/client/book/:providerId',
+  CLIENT_BOOKING_SENT: '/client/booking-sent',
+  CLIENT_MY_BOOKINGS: '/client/bookings',
+  CLIENT_PROFILE: '/client/profile',
+  CLIENT_COMPLAINTS: '/client/complaints',
+
+  // Provider (Module 3)
+  PROVIDER_DASHBOARD: '/provider/dashboard',
+  PROVIDER_REQUESTS: '/provider/requests',
+  PROVIDER_JOBS: '/provider/jobs',
+  PROVIDER_COMPLETED: '/provider/completed',
+  PROVIDER_SUBSCRIPTIONS: '/provider/subscriptions',
+  PROVIDER_PROFILE: '/provider/profile',
+  PROVIDER_COMPLAINTS: '/provider/complaints',
+
+  // System Admin
   SYSTEM_ADMIN_DASHBOARD: '/admin/system/dashboard',
   SYSTEM_ADMIN_BOOKINGS: '/admin/system/bookings',
   SYSTEM_ADMIN_USERS: '/admin/system/users',
   SYSTEM_ADMIN_CONTENT: '/admin/system/content',
   SYSTEM_ADMIN_ANNOUNCEMENTS: '/admin/system/announcements',
 
+  // Verification Admin
   VERIFICATION_ADMIN_DASHBOARD: '/admin/verification/dashboard',
   VERIFICATION_ADMIN_REVIEW: '/admin/verification/applications/:applicationId',
   VERIFICATION_ADMIN_COMPLAINT: '/admin/verification/complaints/:complaintId',

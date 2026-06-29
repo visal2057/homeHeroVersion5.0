@@ -96,7 +96,7 @@ export async function approveApplication(applicationId, reviewerId) {
     description: `${detail.fullName} was approved as a verified Service Provider`,
   });
 
-  return detail;
+  return getApplicationDetail(applicationId);
 }
 
 export async function rejectApplication(applicationId, reviewerId, reason) {
@@ -118,5 +118,5 @@ export async function rejectApplication(applicationId, reviewerId, reason) {
     metadata: { reason },
   });
 
-  return detail;
+  return getApplicationDetail(applicationId);
 }
