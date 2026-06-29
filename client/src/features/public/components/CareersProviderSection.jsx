@@ -3,13 +3,24 @@ import { ROUTES } from '../../../constants/routes.js';
 import { SERVICE_CATEGORIES } from '../../../constants/serviceCategories.js';
 import { CAREERS_HERO_IMAGE_URL, CAREERS_GROWTH_BG_IMAGE_URL } from '../../../constants/pageImages.js';
 import ServiceCard from './ServiceCard.jsx';
+import {
+  IconToolbox,
+  IconMail,
+  IconImage,
+  IconStar,
+  IconClock,
+  IconDocumentEdit,
+  IconCheckCircle,
+  IconRocket,
+  IconHardHat,
+} from '../../../components/common/icons.jsx';
 
 const BENEFITS = [
-  { icon: '📩', title: 'Direct booking requests', text: 'Receive booking requests directly from homeowners in your district.' },
-  { icon: '🖼️', title: 'Public portfolio', text: 'Build a public portfolio that showcases your completed work.' },
-  { icon: '⭐', title: 'Verified reviews', text: 'Grow your reputation with verified client reviews and ratings.' },
-  { icon: '🧰', title: 'Choose your trade', text: 'Choose one or two of five high-demand service categories.' },
-  { icon: '🕒', title: 'Flexible availability', text: 'Manage your own availability and go online or offline anytime.' },
+  { Icon: IconMail, title: 'Direct booking requests', text: 'Receive booking requests directly from homeowners in your district.' },
+  { Icon: IconImage, title: 'Public portfolio', text: 'Build a public portfolio that showcases your completed work.' },
+  { Icon: IconStar, title: 'Verified reviews', text: 'Grow your reputation with verified client reviews and ratings.' },
+  { Icon: IconToolbox, title: 'Choose your trade', text: 'Choose one or two of five high-demand service categories.' },
+  { Icon: IconClock, title: 'Flexible availability', text: 'Manage your own availability and go online or offline anytime.' },
 ];
 
 const REQUIRED_DOCUMENTS = [
@@ -21,17 +32,17 @@ const REQUIRED_DOCUMENTS = [
 
 const STEPS = [
   {
-    icon: '📝',
+    Icon: IconDocumentEdit,
     title: 'Register & submit documents',
     description: 'Create your account, choose up to two service categories, and upload your verification documents.',
   },
   {
-    icon: '✅',
+    Icon: IconCheckCircle,
     title: 'Get verified',
     description: 'Our Verification Admin team reviews your application and documents, then approves your account.',
   },
   {
-    icon: '🚀',
+    Icon: IconRocket,
     title: 'Purchase membership & go online',
     description: 'Pay your monthly membership, go online, and start receiving booking requests from homeowners.',
   },
@@ -52,7 +63,7 @@ export default function CareersProviderSection() {
         <div className="glass-hero-overlay" aria-hidden="true" />
         <div className="container glass-hero-inner">
           <div className="glass-panel glass-hero-panel animate-fade-in-up">
-            <span className="hh-eyebrow">🧰 Careers at HomeHero</span>
+            <span className="hh-eyebrow"><IconToolbox size={16} /> Careers at HomeHero</span>
             <h1 className="theme-page-hero-title">Build your home services business with HomeHero</h1>
             <p className="theme-page-hero-subtitle">
               Grow your business with a steady stream of verified clients - and a platform that takes
@@ -82,7 +93,7 @@ export default function CareersProviderSection() {
             {BENEFITS.map((benefit, index) => (
               <div key={benefit.title} className={`theme-glass-card text-center animate-fade-in-up delay-${Math.min(index + 1, 5)}`}>
                 <div className="hh-step-icon-ring" style={{ fontSize: '1.6rem' }} aria-hidden="true">
-                  {benefit.icon}
+                  <benefit.Icon size={26} />
                 </div>
                 <h4 style={{ marginTop: 'var(--space-md)' }}>{benefit.title}</h4>
                 <p style={{ color: 'var(--color-text-muted)', marginBottom: 0 }}>{benefit.text}</p>
@@ -165,7 +176,7 @@ export default function CareersProviderSection() {
             {STEPS.map((step, index) => (
               <div key={step.title} className={`hh-step-card animate-fade-in-up delay-${index + 1}`}>
                 <div className="hh-step-icon-ring">
-                  <span aria-hidden="true">{step.icon}</span>
+                  <step.Icon size={30} aria-hidden="true" />
                   <span className="hh-step-number">{index + 1}</span>
                 </div>
                 <h3>{step.title}</h3>
@@ -182,7 +193,7 @@ export default function CareersProviderSection() {
         <div className="container">
           <div className="glass-panel collage-cta-panel animate-fade-in-up" style={{ margin: '0 auto' }}>
             <div className="hh-cta-icon" aria-hidden="true">
-              🧑‍🔧
+              <IconHardHat size={32} />
             </div>
             <h2>Ready to grow your business?</h2>
             <p>Join HomeHero today and start receiving verified booking requests from homeowners near you.</p>

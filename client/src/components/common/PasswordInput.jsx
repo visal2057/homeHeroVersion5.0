@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { IconEye, IconEyeOff } from './icons.jsx';
 
 export default function PasswordInput({ label, name, error, hint, ...inputProps }) {
   const [visible, setVisible] = useState(false);
@@ -29,7 +30,7 @@ export default function PasswordInput({ label, name, error, hint, ...inputProps 
           onClick={() => setVisible((prev) => !prev)}
           aria-label={visible ? 'Hide password' : 'Show password'}
         >
-          {visible ? '🙈' : '👁'}
+          {visible ? <IconEyeOff size={18} /> : <IconEye size={18} />}
         </button>
       </div>
       {error && <div className="form-error">{error}</div>}

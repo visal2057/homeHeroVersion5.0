@@ -9,6 +9,7 @@ import {
 } from '../../../constants/pageImages.js';
 import { ROUTES } from '../../../constants/routes.js';
 import ServiceCard from '../components/ServiceCard.jsx';
+import { IconHome, IconShield } from '../../../components/common/icons.jsx';
 
 export default function AboutUsPage() {
   const navigate = useNavigate();
@@ -28,7 +29,7 @@ export default function AboutUsPage() {
         <div className="glass-hero-overlay" aria-hidden="true" />
         <div className="container glass-hero-inner">
           <div className="glass-panel glass-hero-panel animate-fade-in-up">
-            <span className="hh-eyebrow">🏡 About HomeHero</span>
+            <span className="hh-eyebrow"><IconHome size={16} /> About HomeHero</span>
             <h1 className="theme-page-hero-title">Built for the way Sri Lankans care for their homes</h1>
             <p className="theme-page-hero-subtitle">
               We connect homeowners with verified, trustworthy professionals - so your home always feels safe,
@@ -147,7 +148,7 @@ export default function AboutUsPage() {
         <div className="container">
           <div className="glass-panel collage-cta-panel animate-fade-in-up" style={{ margin: '0 auto' }}>
             <div className="hh-cta-icon" aria-hidden="true">
-              🛡️
+              <IconShield size={32} />
             </div>
             <h2>Built on trust, convenience and quality</h2>
             <p>

@@ -1,9 +1,10 @@
 import ContactForm from '../components/ContactForm.jsx';
 import { CONTACT_HERO_IMAGE_URL } from '../../../constants/pageImages.js';
+import { IconChatBubble, IconMail, IconPhone, IconMapPin } from '../../../components/common/icons.jsx';
 
 const CONTACT_DETAILS = [
-  { icon: '📧', label: 'General Support', value: 'support@homehero.lk' },
-  { icon: '📞', label: 'Phone', value: '+94 11 234 5678' },
+  { Icon: IconMail, label: 'General Support', value: 'support@homehero.lk' },
+  { Icon: IconPhone, label: 'Phone', value: '+94 11 234 5678' },
 ];
 
 const OFFICE_ADDRESS = 'Sathara Building, Maharagama, Sri Lanka';
@@ -22,7 +23,7 @@ export default function ContactUsPage() {
         <div className="glass-hero-overlay" aria-hidden="true" />
         <div className="container glass-hero-inner">
           <div className="glass-panel glass-hero-panel animate-fade-in-up">
-            <span className="hh-eyebrow">💬 Contact Us</span>
+            <span className="hh-eyebrow"><IconChatBubble size={16} /> Contact Us</span>
             <h1 className="theme-page-hero-title">We're happy to help</h1>
             <p className="theme-page-hero-subtitle">
               Questions about booking, becoming a provider, or anything else? Reach out and our team will get
@@ -40,7 +41,7 @@ export default function ContactUsPage() {
             {CONTACT_DETAILS.map((detail) => (
               <div key={detail.label} className="icon-badge-row">
                 <span className="hh-step-icon-ring" style={{ width: 48, height: 48, fontSize: '1.2rem', margin: 0 }} aria-hidden="true">
-                  {detail.icon}
+                  <detail.Icon size={20} />
                 </span>
                 <div>
                   <div style={{ fontWeight: 600, color: 'var(--color-secondary-700)' }}>{detail.label}</div>
@@ -58,7 +59,9 @@ export default function ContactUsPage() {
                 allowFullScreen
                 referrerPolicy="no-referrer-when-downgrade"
               />
-              <div className="theme-map-label">📍 {OFFICE_ADDRESS}</div>
+              <div className="theme-map-label" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}>
+                <IconMapPin size={16} /> {OFFICE_ADDRESS}
+              </div>
             </div>
           </div>
 

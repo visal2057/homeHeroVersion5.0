@@ -25,3 +25,18 @@ export const ABOUT_TRUST_BG_IMAGE_URL =
 
 export const CAREERS_GROWTH_BG_IMAGE_URL =
   'https://images.unsplash.com/photo-1756900302700-cd6a2761e854?auto=format&fit=crop&w=1600&q=80';
+
+export const LOGIN_SIDE_IMAGE_URL =
+  'https://images.unsplash.com/photo-1637942189107-9b0622b33b90?auto=format&fit=crop&w=1400&q=80';
+
+/* Photos used only on the registration flow (role picker, client and
+   provider sign-up pages), so the hero bands there feel as alive as the
+   homepage and login page instead of being plain text on a flat background. */
+export const REGISTER_ROLE_HERO_IMAGE_URL =
+  'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1600&q=80';
+
+export const REGISTER_CLIENT_HERO_IMAGE_URL =
+  'https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?auto=format&fit=crop&w=1600&q=80';
+
+export const REGISTER_PROVIDER_HERO_IMAGE_URL =
+  'https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=1600&q=80';

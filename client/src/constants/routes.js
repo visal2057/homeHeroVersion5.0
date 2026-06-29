@@ -12,13 +12,12 @@ export const ROUTES = {
   VERIFICATION_PENDING: '/verification-pending',
   APPLICATION_REJECTED: '/application-rejected',
 
-  // Client (authenticated)
-  CLIENT_HOME: '/client/home',
-  CLIENT_EXPLORE: '/client/explore/:category',
-  CLIENT_PROVIDER_PROFILE: '/client/provider/:providerId',
-  CLIENT_BOOKING_CONFIRM: '/client/booking/confirm/:providerId',
-  CLIENT_BOOKING_SENT: '/client/booking/sent',
-  CLIENT_MY_BOOKINGS: '/client/bookings',
-  CLIENT_PROFILE: '/client/profile',
-  CLIENT_COMPLAINTS: '/client/complaints',
+  // Provider (Module 3)
+  PROVIDER_DASHBOARD: '/provider/dashboard',
+  PROVIDER_REQUESTS: '/provider/requests',
+  PROVIDER_JOBS: '/provider/jobs',
+  PROVIDER_COMPLETED: '/provider/completed',
+  PROVIDER_SUBSCRIPTIONS: '/provider/subscriptions',
+  PROVIDER_PROFILE: '/provider/profile',
+  PROVIDER_COMPLAINTS: '/provider/complaints',
 };
