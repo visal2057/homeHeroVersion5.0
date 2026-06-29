@@ -10,7 +10,7 @@ export const env = {
     port: Number(process.env.DATABASE_PORT) || 5432,
     database: process.env.DATABASE_NAME || 'homehero_db',
     user: process.env.DATABASE_USER || 'postgres',
-    password: process.env.DATABASE_PASSWORD || '1234',
+    password: process.env.DATABASE_PASSWORD || '12345678',
   },
 
   authSecret: process.env.AUTH_SECRET || 'dev_secret',
