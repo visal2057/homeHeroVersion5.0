@@ -11,4 +11,13 @@ export const ROUTES = {
   RESET_PASSWORD: '/reset-password',
   VERIFICATION_PENDING: '/verification-pending',
   APPLICATION_REJECTED: '/application-rejected',
+
+  // Provider (Module 3)
+  PROVIDER_DASHBOARD: '/provider/dashboard',
+  PROVIDER_REQUESTS: '/provider/requests',
+  PROVIDER_JOBS: '/provider/jobs',
+  PROVIDER_COMPLETED: '/provider/completed',
+  PROVIDER_SUBSCRIPTIONS: '/provider/subscriptions',
+  PROVIDER_PROFILE: '/provider/profile',
+  PROVIDER_COMPLAINTS: '/provider/complaints',
 };
