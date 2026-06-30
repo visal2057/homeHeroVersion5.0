@@ -43,7 +43,6 @@ import VerificationDashboardPage from '../features/admin/verification/pages/Veri
 import VerificationReviewPage from '../features/admin/verification/pages/VerificationReviewPage.jsx';
 import ComplaintReviewPage from '../features/admin/verification/pages/ComplaintReviewPage.jsx';
 
-import ClientHomePage from '../features/client/pages/ClientHomePage.jsx';
 import ExploreServicePage from '../features/client/pages/ExploreServicePage.jsx';
 import ProviderPublicProfilePage from '../features/client/pages/ProviderPublicProfilePage.jsx';
 import BookingConfirmationPage from '../features/client/pages/BookingConfirmationPage.jsx';
@@ -101,9 +100,8 @@ export default function AppRouter() {
       {/* ── Client layout ────────────────────────────────────────────────── */}
       <Route element={<ProtectedRoute roles={[ROLES.CLIENT]} />}>
         <Route element={<ClientLayout />}>
-          <Route path="/client" element={<Navigate to={ROUTES.CLIENT_HOME} replace />} />
-
-          <Route path={ROUTES.CLIENT_HOME}             element={<ClientHomePage />} />
+          <Route path="/client" element={<Navigate to={ROUTES.HOME} replace />} />
+          <Route path={ROUTES.CLIENT_HOME}             element={<Navigate to={ROUTES.HOME} replace />} />
           <Route path={ROUTES.CLIENT_EXPLORE}          element={<ExploreServicePage />} />
           <Route path={ROUTES.CLIENT_PROVIDER_PROFILE} element={<ProviderPublicProfilePage />} />
           <Route path={ROUTES.CLIENT_BOOKING_CONFIRM}  element={<BookingConfirmationPage />} />

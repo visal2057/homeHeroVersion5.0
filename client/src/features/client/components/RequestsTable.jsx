@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { bookingApi } from '../bookingApi.js';
+import { IconClipboardList } from '../../../components/common/icons.jsx';
 
 const STATUS_STYLES = {
-  PENDING: { bg: '#fffbeb', color: '#d97706', label: '⏳ Pending' },
-  ACCEPTED: { bg: '#ecfdf5', color: '#059669', label: '✅ Accepted' },
-  REJECTED: { bg: '#fef2f2', color: '#dc2626', label: '✗ Rejected' },
-  CANCELLED: { bg: '#f8fafc', color: '#64748b', label: '↩ Cancelled' },
+  PENDING:   { bg: '#fffbeb', color: '#d97706', label: 'Pending' },
+  ACCEPTED:  { bg: '#ecfdf5', color: '#059669', label: 'Accepted' },
+  REJECTED:  { bg: '#fef2f2', color: '#dc2626', label: 'Rejected' },
+  CANCELLED: { bg: '#f8fafc', color: '#64748b', label: 'Cancelled' },
 };
 
 export default function RequestsTable({ bookings = [], onRefresh }) {
@@ -26,9 +27,9 @@ export default function RequestsTable({ bookings = [], onRefresh }) {
   if (!bookings.length) {
     return (
       <div className="bt-empty">
-        <span>📨</span>
+        <IconClipboardList size={40} style={{ color: 'var(--color-neutral-300)', marginBottom: 'var(--space-md)' }} />
         <h3>No booking requests yet</h3>
-        <p>Explore services and book your first appointment!</p>
+        <p>Explore services and send your first booking request!</p>
       </div>
     );
   }
@@ -39,9 +40,11 @@ export default function RequestsTable({ bookings = [], onRefresh }) {
         <table className="bt-table">
           <thead>
             <tr>
+              <th>Booking ID</th>
               <th>Provider</th>
+              <th>SP Token</th>
               <th>Service</th>
-              <th>Date & Time</th>
+              <th>Date &amp; Time</th>
               <th>Status</th>
               <th>Action</th>
             </tr>
@@ -52,11 +55,17 @@ export default function RequestsTable({ bookings = [], onRefresh }) {
               const canCancel = b.status === 'PENDING' || b.status === 'ACCEPTED';
               return (
                 <tr key={b.id}>
+                  <td><span className="bt-id">#{b.bookingId ?? b.id}</span></td>
                   <td>
                     <div className="bt-provider-cell">
                       <div className="bt-provider-avatar">{(b.providerName ?? 'P')[0]}</div>
                       <span>{b.providerName ?? 'Unknown'}</span>
                     </div>
+                  </td>
+                  <td>
+                    {b.providerToken
+                      ? <span className="bt-token">{b.providerToken}</span>
+                      : <span style={{ color: 'var(--color-neutral-400)' }}>—</span>}
                   </td>
                   <td>{b.category ?? '—'}</td>
                   <td>
@@ -96,9 +105,8 @@ export default function RequestsTable({ bookings = [], onRefresh }) {
 function TableStyles() {
   return (
     <style>{`
-      .bt-empty { text-align: center; padding: var(--space-2xl); color: var(--color-neutral-400); }
-      .bt-empty span { font-size: 2.5rem; display: block; margin-bottom: var(--space-md); }
-      .bt-empty h3 { color: var(--color-neutral-600); }
+      .bt-empty { text-align: center; padding: var(--space-2xl); color: var(--color-neutral-400); display: flex; flex-direction: column; align-items: center; }
+      .bt-empty h3 { color: var(--color-neutral-600); margin-bottom: 6px; }
       .bt-table-wrap { overflow-x: auto; }
       .bt-table { width: 100%; border-collapse: collapse; font-size: var(--font-size-sm); }
       .bt-table th { background: var(--color-neutral-50); padding: 10px 14px; text-align: left; color: var(--color-neutral-600); font-weight: 600; border-bottom: 2px solid var(--color-neutral-200); white-space: nowrap; }
@@ -107,6 +115,8 @@ function TableStyles() {
       .bt-provider-cell { display: flex; align-items: center; gap: 8px; }
       .bt-provider-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--color-primary-100); display: flex; align-items: center; justify-content: center; color: var(--color-primary-700); font-weight: 700; flex-shrink: 0; }
       .bt-status { padding: 3px 10px; border-radius: var(--radius-full); font-size: var(--font-size-xs); font-weight: 600; white-space: nowrap; }
+      .bt-id { font-family: monospace; font-size: var(--font-size-xs); color: var(--color-neutral-500); }
+      .bt-token { font-family: monospace; font-size: var(--font-size-xs); background: var(--color-primary-50); color: var(--color-primary-700); padding: 2px 6px; border-radius: var(--radius-sm); letter-spacing: 0.05em; }
     `}</style>
   );
 }

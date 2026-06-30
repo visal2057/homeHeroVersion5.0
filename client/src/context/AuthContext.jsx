@@ -14,7 +14,6 @@ export function AuthProvider({ children }) {
       setIsLoading(false);
       return;
     }
-
     try {
       const { data } = await axiosClient.get(API_ENDPOINTS.AUTH.ME);
       setUser(data.data.user);
@@ -29,6 +28,15 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     loadCurrentUser();
   }, [loadCurrentUser]);
+
+  // Listen for 401 events dispatched by the axios interceptor
+  useEffect(() => {
+    function handleSessionExpired() {
+      setUser(null);
+    }
+    window.addEventListener('hh:session-expired', handleSessionExpired);
+    return () => window.removeEventListener('hh:session-expired', handleSessionExpired);
+  }, []);
 
   const login = useCallback(async (identifier, password) => {
     const { data } = await axiosClient.post(API_ENDPOINTS.AUTH.LOGIN, { identifier, password });

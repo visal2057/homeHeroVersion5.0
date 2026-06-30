@@ -2,6 +2,7 @@ export const SERVICE_CATEGORIES = [
   {
     code: 'GARDENING',
     name: 'Gardening',
+    slug: 'gardening',
     description: 'Lawn mowing, pruning, planting and garden maintenance.',
     icon: 'leaf',
     image: 'https://images.unsplash.com/photo-1650216600469-bb05741a636f?auto=format&fit=crop&w=900&q=80',
@@ -9,6 +10,7 @@ export const SERVICE_CATEGORIES = [
   {
     code: 'CLEANING',
     name: 'Cleaning',
+    slug: 'cleaning',
     description: 'Home and office deep cleaning services.',
     icon: 'sparkle',
     image: 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=900&q=80',
@@ -16,6 +18,7 @@ export const SERVICE_CATEGORIES = [
   {
     code: 'PET_CARE',
     name: 'Pet Care',
+    slug: 'pet-care',
     description: 'Pet grooming, sitting and walking services.',
     icon: 'paw',
     image: 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&w=900&q=80',
@@ -23,6 +26,7 @@ export const SERVICE_CATEGORIES = [
   {
     code: 'PLUMBING',
     name: 'Plumbing',
+    slug: 'plumbing',
     description: 'Pipe repairs, installations and leak fixes.',
     icon: 'wrench',
     image: 'https://images.unsplash.com/photo-1607472586893-edb57bdc0e39?auto=format&fit=crop&w=900&q=80',
@@ -30,6 +34,7 @@ export const SERVICE_CATEGORIES = [
   {
     code: 'AC_REPAIR',
     name: 'AC Repair',
+    slug: 'ac-repair',
     description: 'Air conditioner servicing and repairs.',
     icon: 'snowflake',
     image: 'https://images.unsplash.com/photo-1621905251918-48416bd8575a?auto=format&fit=crop&w=900&q=80',

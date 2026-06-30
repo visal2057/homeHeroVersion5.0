@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ROUTES } from '../../../constants/routes.js';
 import { getAssetUrl } from '../../../utils/storageUtils.js';
+import { IconMapPin, IconStar } from '../../../components/common/icons.jsx';
 
 const DISTRICTS = {
   colombo: 'Colombo', gampaha: 'Gampaha', kandy: 'Kandy', galle: 'Galle',
@@ -13,10 +14,12 @@ const DISTRICTS = {
 function StarRating({ rating }) {
   const filled = Math.round(rating ?? 0);
   return (
-    <span style={{ color: '#f59e0b', letterSpacing: 1 }}>
-      {'★'.repeat(filled)}{'☆'.repeat(5 - filled)}
+    <span style={{ display: 'inline-flex', gap: 2, alignItems: 'center' }}>
+      {Array.from({ length: 5 }, (_, i) => (
+        <IconStar key={i} size={12} style={{ color: i < filled ? '#f59e0b' : 'var(--color-neutral-200)' }} />
+      ))}
       <span style={{ color: 'var(--color-neutral-500)', marginLeft: 4, fontSize: 'var(--font-size-xs)' }}>
-        {rating > 0 ? `${Number(rating).toFixed(1)}` : 'New'}
+        {(rating ?? 0) > 0 ? Number(rating).toFixed(1) : 'New'}
       </span>
     </span>
   );
@@ -42,7 +45,10 @@ export default function ProviderCard({ provider }) {
         <div className="pc-body">
           <div className="pc-name">{provider.name}</div>
           <div className="pc-meta">
-            <span>📍 {DISTRICTS[provider.district] ?? provider.district ?? 'N/A'}</span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+              <IconMapPin size={12} style={{ color: 'var(--color-neutral-400)', flexShrink: 0 }} />
+              {DISTRICTS[provider.district] ?? provider.district ?? 'N/A'}
+            </span>
             <StarRating rating={provider.averageRating ?? provider.rating} />
           </div>
           {provider.bio && <p className="pc-bio">{provider.bio}</p>}
@@ -70,21 +76,18 @@ export default function ProviderCard({ provider }) {
 
       <style>{`
         .provider-card {
-          background: white;
-          border-radius: var(--radius-lg);
-          border: 1px solid var(--color-neutral-200);
-          padding: var(--space-lg);
-          transition: transform 0.2s ease, box-shadow 0.2s ease;
-          position: relative;
+          background: white; border-radius: var(--radius-lg);
+          border: 1px solid var(--color-neutral-200); padding: var(--space-lg);
+          transition: transform 0.2s ease, box-shadow 0.2s ease; position: relative;
         }
         .provider-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
         .pc-inner { display: flex; gap: var(--space-md); }
         .pc-avatar {
           position: relative; width: 72px; height: 72px; border-radius: 50%;
-          overflow: hidden; flex-shrink: 0;
-          background: var(--color-primary-100); display: flex; align-items: center;
-          justify-content: center; font-size: 1.75rem; font-weight: 700;
-          color: var(--color-primary-700); border: 3px solid var(--color-primary-200);
+          overflow: hidden; flex-shrink: 0; background: var(--color-primary-100);
+          display: flex; align-items: center; justify-content: center;
+          font-size: 1.75rem; font-weight: 700; color: var(--color-primary-700);
+          border: 3px solid var(--color-primary-200);
         }
         .pc-avatar img { width: 100%; height: 100%; object-fit: cover; }
         .pc-verified {
