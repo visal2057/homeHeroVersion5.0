@@ -186,7 +186,7 @@ export default function ClientProfilePage() {
         .cp-body { padding-top: var(--space-2xl); }
         .cp-sections { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-lg); }
         @media (max-width: 768px) { .cp-sections { grid-template-columns: 1fr; } }
-        .cp-card-full { grid-column: 1 / -1; }
+        .cp-card-full { grid-column: 1 / -1; isolation: isolate; }
         .cp-card {
           background: white; border: 1px solid var(--color-neutral-200);
           border-radius: var(--radius-lg); padding: var(--space-xl);

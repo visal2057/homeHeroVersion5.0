@@ -1,4 +1,5 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
+import ScrollToTop from '../components/common/ScrollToTop.jsx';
 import PublicLayout    from '../layouts/PublicLayout.jsx';
 import ProviderLayout  from '../layouts/ProviderLayout.jsx';
 import ClientLayout    from '../layouts/ClientLayout.jsx';
@@ -59,6 +60,8 @@ import PaymentFailedPage from '../features/payments/client/pages/PaymentFailedPa
 
 export default function AppRouter() {
   return (
+    <>
+    <ScrollToTop />
     <Routes>
       {/* ── Public layout ─────────────────────────────────────────────────── */}
       <Route element={<PublicLayout />}>
@@ -140,5 +143,6 @@ export default function AppRouter() {
         </Route>
       </Route>
     </Routes>
+    </>
   );
 }

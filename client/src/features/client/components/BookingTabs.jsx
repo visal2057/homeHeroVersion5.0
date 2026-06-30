@@ -1,8 +1,8 @@
 export default function BookingTabs({ activeTab, onTabChange }) {
   const tabs = [
-    { key: 'requests', label: '📨 Requests', desc: 'Pending & approved' },
-    { key: 'jobs', label: '🔨 Jobs To Do', desc: 'Upcoming jobs' },
-    { key: 'completed', label: '✅ Completed', desc: 'Finished jobs' },
+    { key: 'requests', label: 'Requests', desc: 'Pending & approved' },
+    { key: 'jobs', label: 'Jobs To Do', desc: 'Upcoming jobs' },
+    { key: 'completed', label: 'Completed', desc: 'Finished jobs' },
   ];
 
   return (

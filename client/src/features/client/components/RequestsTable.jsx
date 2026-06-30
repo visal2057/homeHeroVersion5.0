@@ -26,9 +26,9 @@ export default function RequestsTable({ bookings = [], onRefresh }) {
 
   if (!bookings.length) {
     return (
-      <div className="bt-empty">
+      <div style={{ textAlign: 'center', padding: 'var(--space-2xl)', color: 'var(--color-neutral-400)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
         <IconClipboardList size={40} style={{ color: 'var(--color-neutral-300)', marginBottom: 'var(--space-md)' }} />
-        <h3>No booking requests yet</h3>
+        <h3 style={{ color: 'var(--color-neutral-600)', marginBottom: 6 }}>No booking requests yet</h3>
         <p>Explore services and send your first booking request!</p>
       </div>
     );
