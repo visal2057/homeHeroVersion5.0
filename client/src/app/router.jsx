@@ -54,6 +54,9 @@ import ClientComplaintsPage from '../features/client/pages/ClientComplaintsPage.
 
 // Payment + review pages (Module 4 - Visal)
 import BookingPaymentPage from '../features/payments/client/pages/BookingPaymentPage.jsx';
+import SubmitReviewPage from '../features/payments/client/pages/SubmitReviewPage.jsx';
+import PaymentSuccessPage from '../features/payments/client/pages/PaymentSuccessPage.jsx';
+import PaymentFailedPage from '../features/payments/client/pages/PaymentFailedPage.jsx';
 
 export default function AppRouter() {
   return (
@@ -107,6 +110,9 @@ export default function AppRouter() {
           <Route path={ROUTES.CLIENT_BOOKING_SENT}     element={<BookingRequestSentPage />} />
           <Route path={ROUTES.CLIENT_MY_BOOKINGS}      element={<MyBookingsPage />} />
           <Route path={ROUTES.CLIENT_BOOKING_PAY}      element={<BookingPaymentPage />} />
+          <Route path={ROUTES.CLIENT_BOOKING_REVIEW}   element={<SubmitReviewPage />} />
+          <Route path={ROUTES.CLIENT_PAYMENT_SUCCESS}  element={<PaymentSuccessPage />} />
+          <Route path={ROUTES.CLIENT_PAYMENT_FAILED}   element={<PaymentFailedPage />} />
           <Route path={ROUTES.CLIENT_PROFILE}          element={<ClientProfilePage />} />
           <Route path={ROUTES.CLIENT_COMPLAINTS}       element={<ClientComplaintsPage />} />
         </Route>
