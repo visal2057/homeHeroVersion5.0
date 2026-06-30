@@ -98,7 +98,11 @@ export default function BookingForm({ provider, client }) {
 
         <div className="bf-group bf-group-full">
           <label className="bf-label">Job Description <span className="bf-required">*</span></label>
-          <textarea name="jobDescription" rows={3} placeholder="Describe what you need done..." value={form.jobDescription} onChange={handleChange} className="bf-input bf-textarea" required />
+          <textarea name="jobDescription" rows={3} maxLength={1000} placeholder="Describe what you need done (at least 10 characters)..." value={form.jobDescription} onChange={handleChange} className="bf-input bf-textarea" required />
+          {/* Show the length rule so clients know why a very short description is rejected */}
+          <div className={`bf-hint ${form.jobDescription.length > 0 && form.jobDescription.length < 10 ? 'bf-hint-warn' : ''}`}>
+            {form.jobDescription.length}/1000 — minimum 10 characters
+          </div>
         </div>
 
         <div className="bf-group bf-group-full">
@@ -147,6 +151,8 @@ export default function BookingForm({ provider, client }) {
         }
         .bf-input:focus { border-color: var(--color-primary-500); }
         .bf-textarea { resize: vertical; }
+        .bf-hint { margin-top: 4px; font-size: var(--font-size-xs); color: var(--color-neutral-500); text-align: right; }
+        .bf-hint-warn { color: var(--color-error); }
         .bf-error { margin: 0 var(--space-xl) var(--space-md); padding: 10px 14px; background: var(--color-error-bg); color: var(--color-error); border-radius: var(--radius-md); font-size: var(--font-size-sm); }
         .bf-actions { display: flex; gap: var(--space-md); justify-content: flex-end; padding: 0 var(--space-xl) var(--space-xl); }
       `}</style>

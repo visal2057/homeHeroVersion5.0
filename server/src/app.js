@@ -21,6 +21,10 @@ import { providerRouter, providerPublicRouter } from './modules/providers/provid
 import referenceRoutes from './modules/reference/reference.routes.js';
 import { clientBookingRouter, providerBookingRouter } from './modules/bookings/booking.routes.js';
 import availabilityRoutes from './modules/availability/availability.routes.js';
+import paymentRoutes from './modules/payments/payment.routes.js';
+import reviewRoutes from './modules/reviews/review.routes.js';
+import paymentSettingsRoutes from './modules/payment-settings/paymentSettings.routes.js';
+import membershipRoutes from './modules/memberships/membership.routes.js';
 import { Router } from 'express';
 import { authenticate } from './middleware/authenticate.js';
 import { requireSystemAdmin } from './middleware/requireSystemAdmin.js';
@@ -51,6 +55,10 @@ app.use('/api/provider', providerBookingRouter);
 app.use('/api/provider', availabilityRoutes);
 app.use('/api/providers', providerPublicRouter);
 app.use('/api/bookings', clientBookingRouter);
+app.use('/api/payments', paymentRoutes);
+app.use('/api/reviews', reviewRoutes);
+app.use('/api/payment-settings', paymentSettingsRoutes);
+app.use('/api/memberships', membershipRoutes);
 app.use('/api/reference', referenceRoutes);
 
 app.use('/api/system-admin/dashboard', dashboardRoutes);
