@@ -9,11 +9,13 @@ import {
   updateAnnouncementHandler,
   archiveAnnouncementHandler,
   listActiveAnnouncementsHandler,
+  markAnnouncementReadHandler,
 } from './announcement.controller.js';
 
 const router = Router();
 
 router.get('/active', authenticate, listActiveAnnouncementsHandler);
+router.post('/:announcementId/read', authenticate, markAnnouncementReadHandler);
 
 router.use(authenticate, requireSystemAdmin);
 router.get('/', listAnnouncementsHandler);

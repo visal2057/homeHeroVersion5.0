@@ -3,6 +3,7 @@ import { paymentSettingsApi } from '../paymentSettingsApi.js';
 import { extractErrorMessage } from '../../../../api/apiErrorHandler.js';
 import FormInput from '../../../../components/common/FormInput.jsx';
 import AlertMessage from '../../../../components/common/AlertMessage.jsx';
+import { IconCreditCard } from '../../../../components/common/icons.jsx';
 
 // The provider's bank details form. I own this component; Maheli places it
 // inside the Profile & Settings page. These details are what a client's card
@@ -84,7 +85,10 @@ export default function PaymentSettingsSection() {
 
   return (
     <form onSubmit={handleSubmit} className="pset">
-      <h3 className="pset-title">💳 Payment settings</h3>
+      <h3 className="pset-title">
+        <IconCreditCard size={18} style={{ marginRight: 6, verticalAlign: -3 }} />
+        Payment settings
+      </h3>
       <p className="pset-sub">Clients paying by card will send the money to this account.</p>
 
       {savedLastFour && (

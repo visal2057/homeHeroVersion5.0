@@ -8,6 +8,7 @@ import {
   updateAnnouncementRow,
   archiveAnnouncementRow,
   listActiveForAudience,
+  markAnnouncementRead,
 } from './announcement.queries.js';
 
 function toDto(row) {
@@ -22,6 +23,7 @@ function toDto(row) {
     archivedAt: row.archived_at,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
+    isRead: row.is_read ?? false,
   };
 }
 
@@ -104,9 +106,17 @@ export async function archiveAnnouncement(announcementId, actorUserId) {
   return toDto(rows[0]);
 }
 
-export async function getActiveAnnouncementsForRole(role) {
+export async function getActiveAnnouncementsForRole(role, userId) {
   await promoteDueScheduledAnnouncements();
   const audiences = role === 'CLIENT' ? ['ALL_USERS', 'CLIENTS'] : role === 'SERVICE_PROVIDER' ? ['ALL_USERS', 'SERVICE_PROVIDERS'] : ['ALL_USERS'];
-  const { rows } = await listActiveForAudience(audiences);
+  const { rows } = await listActiveForAudience(audiences, userId);
   return rows.map(toDto);
+}
+
+export async function markRead(announcementId, userId) {
+  const { rows } = await findAnnouncementById(announcementId);
+  if (rows.length === 0) {
+    throw new AppError('Announcement not found', 404);
+  }
+  await markAnnouncementRead(announcementId, userId);
 }

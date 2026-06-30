@@ -406,3 +406,14 @@ export function IconCreditCard(props) {
     </Stroke>
   );
 }
+
+export function IconChartBar(props) {
+  return (
+    <Stroke {...props}>
+      <path d="M4 21V10" />
+      <path d="M12 21V4" />
+      <path d="M20 21v-7" />
+      <path d="M3 21h18" />
+    </Stroke>
+  );
+}

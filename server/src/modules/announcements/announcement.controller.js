@@ -6,6 +6,7 @@ import {
   updateAnnouncement,
   archiveAnnouncement,
   getActiveAnnouncementsForRole,
+  markRead,
 } from './announcement.service.js';
 
 export const listAnnouncementsHandler = asyncHandler(async (req, res) => {
@@ -30,6 +31,11 @@ export const archiveAnnouncementHandler = asyncHandler(async (req, res) => {
 
 export const listActiveAnnouncementsHandler = asyncHandler(async (req, res) => {
   const role = req.user?.role ?? 'PUBLIC';
-  const announcements = await getActiveAnnouncementsForRole(role);
+  const announcements = await getActiveAnnouncementsForRole(role, req.user?.userId ?? null);
   sendSuccess(res, { announcements });
+});
+
+export const markAnnouncementReadHandler = asyncHandler(async (req, res) => {
+  await markRead(Number(req.params.announcementId), req.user.userId);
+  sendSuccess(res, {});
 });

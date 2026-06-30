@@ -1,8 +1,12 @@
+import { IconChatBubble, IconStar } from '../../../components/common/icons.jsx';
+
 function StarRow({ value }) {
   const n = Math.round(value ?? 0);
   return (
-    <div className="provider-review-stars" aria-label={`${value} stars`}>
-      {'★'.repeat(n)}{'☆'.repeat(5 - n)}
+    <div className="provider-review-stars" aria-label={`${value} stars`} style={{ display: 'inline-flex', gap: 1 }}>
+      {Array.from({ length: 5 }).map((_, i) => (
+        <IconStar key={i} size={13} style={{ opacity: i < n ? 1 : 0.25 }} />
+      ))}
     </div>
   );
 }
@@ -11,7 +15,7 @@ export default function ProviderReviews({ reviews }) {
   if (!reviews?.length) {
     return (
       <div className="provider-empty-state">
-        <div className="provider-empty-state-icon">💬</div>
+        <div className="provider-empty-state-icon"><IconChatBubble size={24} /></div>
         <p className="provider-empty-state-title">No reviews yet</p>
         <p className="provider-empty-state-desc">Client reviews will appear here after jobs are completed.</p>
       </div>
