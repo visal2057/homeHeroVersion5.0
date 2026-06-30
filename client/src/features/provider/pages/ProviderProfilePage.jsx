@@ -3,30 +3,37 @@ import { axiosClient } from '../../../api/axiosClient.js';
 import { API_ENDPOINTS } from '../../../api/apiEndpoints.js';
 import ProviderProfileForm     from '../components/ProviderProfileForm.jsx';
 import PortfolioPostEditor     from '../components/PortfolioPostEditor.jsx';
-import CreatePortfolioPostModal from '../components/CreatePortfolioPostModal.jsx';
+import ProviderReviews         from '../components/ProviderReviews.jsx';
+import ProviderPageHero        from '../components/ProviderPageHero.jsx';
+import PaymentSettingsSection  from '../../payments/provider/components/PaymentSettingsSection.jsx';
+import { IconUser, IconImage, IconStar, IconCreditCard } from '../../../components/common/icons.jsx';
+
+const HERO_IMAGE = 'https://images.unsplash.com/photo-1758687126864-96b61e1b3af0?auto=format&fit=crop&w=1600&q=80';
 
 const TABS = [
-  { id: 'profile',    label: '👤 Profile' },
-  { id: 'portfolio',  label: '🖼️ Portfolio' },
+  { id: 'profile',  label: 'Profile',          Icon: IconUser },
+  { id: 'works',    label: 'Previous Works',   Icon: IconImage },
+  { id: 'reviews',  label: 'Reviews',          Icon: IconStar },
+  { id: 'payments', label: 'Payment Settings', Icon: IconCreditCard },
 ];
 
 export default function ProviderProfilePage() {
   const [tab,           setTab]           = useState('profile');
   const [profile,       setProfile]       = useState(null);
   const [portfolio,     setPortfolio]     = useState([]);
+  const [reviews,       setReviews]       = useState([]);
   const [loading,       setLoading]       = useState(true);
   const [saving,        setSaving]        = useState(false);
   const [saveError,     setSaveError]     = useState('');
   const [saveSuccess,   setSaveSuccess]   = useState('');
-  const [showModal,     setShowModal]     = useState(false);
-  const [modalSaving,   setModalSaving]   = useState(false);
 
   useEffect(() => {
     async function load() {
       try {
-        const [profileRes, portfolioRes] = await Promise.allSettled([
+        const [profileRes, portfolioRes, reviewsRes] = await Promise.allSettled([
           axiosClient.get(API_ENDPOINTS.PROVIDER.PROFILE),
           axiosClient.get(API_ENDPOINTS.PROVIDER.PORTFOLIO),
+          axiosClient.get(API_ENDPOINTS.PROVIDER.REVIEWS),
         ]);
         if (profileRes.status === 'fulfilled') {
           setProfile(profileRes.value.data?.data ?? profileRes.value.data);
@@ -34,6 +41,10 @@ export default function ProviderProfilePage() {
         if (portfolioRes.status === 'fulfilled') {
           const list = portfolioRes.value.data?.data ?? portfolioRes.value.data ?? [];
           setPortfolio(Array.isArray(list) ? list : []);
+        }
+        if (reviewsRes.status === 'fulfilled') {
+          const list = reviewsRes.value.data?.data ?? reviewsRes.value.data ?? [];
+          setReviews(Array.isArray(list) ? list : []);
         }
       } finally {
         setLoading(false);
@@ -57,18 +68,14 @@ export default function ProviderProfilePage() {
     }
   }
 
-  async function handleAddPost(postData) {
-    setModalSaving(true);
-    try {
-      const res = await axiosClient.post(API_ENDPOINTS.PROVIDER.PORTFOLIO, postData);
-      const newPost = res.data?.data ?? res.data;
-      setPortfolio((prev) => [newPost, ...prev]);
-      setShowModal(false);
-    } catch {
-      // modal shows its own error
-    } finally {
-      setModalSaving(false);
-    }
+  async function handleProfileImageUploaded(profileImageUrl) {
+    setProfile((prev) => (prev ? { ...prev, profileImageUrl } : prev));
+  }
+
+  async function handleSavePost(id, { title, description }) {
+    const res = await axiosClient.put(API_ENDPOINTS.PROVIDER.PORTFOLIO_DELETE(id), { title, description });
+    const updated = res.data?.data ?? res.data;
+    setPortfolio((prev) => prev.map((p) => (p.id === id ? { ...p, ...updated } : p)));
   }
 
   async function handleDeletePost(id) {
@@ -83,34 +90,22 @@ export default function ProviderProfilePage() {
 
   return (
     <div className="provider-page">
-      <div className="provider-page-header">
-        <div>
-          <h1 className="provider-page-title">Profile &amp; Settings</h1>
-          <p className="provider-page-subtitle">Manage your public profile and portfolio.</p>
-        </div>
-      </div>
+      <ProviderPageHero
+        title="Profile & Settings"
+        subtitle="Manage your public profile, work, reviews and payment details."
+        image={HERO_IMAGE}
+      />
 
       {/* Tabs */}
-      <div style={{ display: 'flex', gap: 'var(--space-sm)', marginBottom: 'var(--space-lg)', borderBottom: '2px solid var(--color-border)', paddingBottom: '-2px' }}>
-        {TABS.map(({ id, label }) => (
+      <div className="provider-tabs">
+        {TABS.map(({ id, label, Icon }) => (
           <button
             key={id}
             type="button"
+            className={`provider-tab${tab === id ? ' active' : ''}`}
             onClick={() => setTab(id)}
-            style={{
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              padding: '10px 16px',
-              fontWeight: tab === id ? 700 : 500,
-              fontSize: 'var(--font-size-sm)',
-              color: tab === id ? 'var(--color-primary-700)' : 'var(--color-text-muted)',
-              borderBottom: tab === id ? '2px solid var(--color-primary-600)' : '2px solid transparent',
-              marginBottom: '-2px',
-              transition: 'color var(--transition-base)',
-            }}
           >
-            {label}
+            <Icon size={15} /> {label}
           </button>
         ))}
       </div>
@@ -128,6 +123,7 @@ export default function ProviderProfilePage() {
                 <ProviderProfileForm
                   profile={profile}
                   onSave={handleSaveProfile}
+                  onImageUploaded={handleProfileImageUploaded}
                   saving={saving}
                   error={saveError}
                   success={saveSuccess}
@@ -136,29 +132,34 @@ export default function ProviderProfilePage() {
             </div>
           )}
 
-          {tab === 'portfolio' && (
+          {tab === 'works' && (
             <div className="provider-card">
               <div className="provider-card-header">
-                <h2 className="provider-card-title">Portfolio</h2>
+                <h2 className="provider-card-title">Previous Works</h2>
               </div>
               <div className="provider-card-body">
                 <PortfolioPostEditor
                   posts={portfolio}
-                  onAdd={() => setShowModal(true)}
+                  onSave={handleSavePost}
                   onDelete={handleDeletePost}
                 />
               </div>
             </div>
           )}
-        </>
-      )}
 
-      {showModal && (
-        <CreatePortfolioPostModal
-          onClose={() => setShowModal(false)}
-          onSave={handleAddPost}
-          saving={modalSaving}
-        />
+          {tab === 'reviews' && (
+            <div className="provider-card">
+              <div className="provider-card-header">
+                <h2 className="provider-card-title">Client Reviews</h2>
+              </div>
+              <div className="provider-card-body">
+                <ProviderReviews reviews={reviews} />
+              </div>
+            </div>
+          )}
+
+          {tab === 'payments' && <PaymentSettingsSection />}
+        </>
       )}
     </div>
   );

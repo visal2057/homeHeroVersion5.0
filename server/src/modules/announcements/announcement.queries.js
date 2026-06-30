@@ -50,10 +50,23 @@ export function archiveAnnouncementRow(announcementId) {
   );
 }
 
-export function listActiveForAudience(audiences) {
+export function listActiveForAudience(audiences, userId) {
   return query(
-    `SELECT * FROM announcements WHERE announcement_status = 'ACTIVE' AND audience = ANY($1::announcement_audience[])
-     ORDER BY published_at DESC LIMIT 30`,
-    [audiences],
+    `SELECT a.*, (ar.user_id IS NOT NULL) AS is_read
+     FROM announcements a
+     LEFT JOIN announcement_reads ar ON ar.announcement_id = a.announcement_id AND ar.user_id = $2
+     WHERE a.announcement_status = 'ACTIVE' AND a.audience = ANY($1::announcement_audience[])
+     ORDER BY a.published_at DESC LIMIT 30`,
+    [audiences, userId],
+  );
+}
+
+export function markAnnouncementRead(announcementId, userId) {
+  return query(
+    `INSERT INTO announcement_reads (announcement_id, user_id)
+     VALUES ($1, $2)
+     ON CONFLICT (announcement_id, user_id) DO NOTHING
+     RETURNING *`,
+    [announcementId, userId],
   );
 }

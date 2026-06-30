@@ -1,7 +1,10 @@
-import { useState, useRef, useEffect } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { ROUTES } from '../../constants/routes.js';
 import { useAuth } from '../../hooks/useAuth.js';
+import { axiosClient } from '../../api/axiosClient.js';
+import { API_ENDPOINTS } from '../../api/apiEndpoints.js';
+import { IconBell } from '../common/icons.jsx';
 
 const PAGE_TITLES = {
   [ROUTES.PROVIDER_DASHBOARD]:     'Dashboard',
@@ -13,33 +16,57 @@ const PAGE_TITLES = {
   [ROUTES.PROVIDER_COMPLAINTS]:    'Complaints',
 };
 
+function initialsOf(name) {
+  if (!name) return 'SP';
+  return name.slice(0, 2).toUpperCase();
+}
+
 export default function ProviderTopbar({ onMenuToggle }) {
-  const { user, logout } = useAuth();
-  const navigate = useNavigate();
+  const { user } = useAuth();
   const location = useLocation();
-  const [accountOpen, setAccountOpen] = useState(false);
-  const menuRef = useRef(null);
+  const [announcements, setAnnouncements] = useState([]);
+  const [isBellOpen, setIsBellOpen] = useState(false);
+  const markedRef = useRef(new Set());
+  const bellRef = useRef(null);
 
   const pageTitle = PAGE_TITLES[location.pathname] ?? 'Provider Portal';
-  const initials = user?.username
-    ? user.username.slice(0, 2).toUpperCase()
-    : 'SP';
+  const username = user?.username ?? 'Provider';
+
+  useEffect(() => {
+    let isMounted = true;
+    axiosClient
+      .get(API_ENDPOINTS.ANNOUNCEMENTS.ACTIVE)
+      .then(({ data }) => {
+        if (isMounted) setAnnouncements(data.data.announcements ?? []);
+      })
+      .catch(() => {});
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   useEffect(() => {
     function handleClickOutside(e) {
-      if (menuRef.current && !menuRef.current.contains(e.target)) {
-        setAccountOpen(false);
+      if (bellRef.current && !bellRef.current.contains(e.target)) {
+        setIsBellOpen(false);
       }
     }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  function handleLogout() {
-    setAccountOpen(false);
-    logout();
-    navigate(ROUTES.LOGIN);
+  function markAsRead(announcementId) {
+    if (markedRef.current.has(announcementId)) return;
+    markedRef.current.add(announcementId);
+    setAnnouncements((prev) =>
+      prev.map((a) => (a.announcementId === announcementId ? { ...a, isRead: true } : a))
+    );
+    axiosClient.post(API_ENDPOINTS.ANNOUNCEMENTS.MARK_READ(announcementId)).catch(() => {
+      markedRef.current.delete(announcementId);
+    });
   }
+
+  const unreadCount = announcements.filter((a) => !a.isRead).length;
 
   return (
     <header className="provider-topbar">
@@ -50,63 +77,54 @@ export default function ProviderTopbar({ onMenuToggle }) {
         aria-label="Toggle sidebar"
         onClick={onMenuToggle}
       >
-        ☰
+        <span className="provider-hamburger-line" />
+        <span className="provider-hamburger-line" />
+        <span className="provider-hamburger-line" />
       </button>
 
       <h1 className="provider-topbar-title">{pageTitle}</h1>
 
       <div className="provider-topbar-actions">
         {/* Notification bell */}
-        <button
-          type="button"
-          className="provider-topbar-icon-btn"
-          aria-label="Notifications"
-          title="Notifications"
-        >
-          🔔
-          <span className="provider-notif-badge" aria-hidden="true" />
-        </button>
-
-        {/* Account menu */}
-        <div className="provider-account-menu" ref={menuRef}>
+        <div className="provider-bell-wrap" ref={bellRef}>
           <button
             type="button"
-            className="provider-topbar-avatar-placeholder"
-            aria-label="Account menu"
-            aria-expanded={accountOpen}
-            onClick={() => setAccountOpen((o) => !o)}
+            className="provider-topbar-icon-btn provider-bell"
+            aria-label="Notifications"
+            title="Notifications"
+            onClick={() => setIsBellOpen((o) => !o)}
           >
-            {initials}
+            <IconBell size={20} />
+            {unreadCount > 0 && <span className="provider-bell-dot" aria-hidden="true" />}
           </button>
 
-          {accountOpen && (
-            <div className="provider-account-dropdown" role="menu">
-              <div className="provider-account-dropdown-header">
-                <div className="provider-account-dropdown-name">
-                  {user?.username ?? 'Provider'}
-                </div>
-                <div className="provider-account-dropdown-role">Service Provider</div>
-              </div>
-
-              <Link
-                to={ROUTES.PROVIDER_PROFILE}
-                className="provider-account-dropdown-item"
-                role="menuitem"
-                onClick={() => setAccountOpen(false)}
-              >
-                👤 Profile & Settings
-              </Link>
-
-              <button
-                type="button"
-                className="provider-account-dropdown-item danger"
-                role="menuitem"
-                onClick={handleLogout}
-              >
-                🚪 Log Out
-              </button>
+          {isBellOpen && (
+            <div className="provider-notification-panel">
+              {announcements.length === 0 ? (
+                <div className="provider-notification-item">No announcements yet.</div>
+              ) : (
+                announcements.map((a) => (
+                  <div
+                    key={a.announcementId}
+                    className={`provider-notification-item${a.isRead ? '' : ' unread'}`}
+                    onMouseEnter={() => markAsRead(a.announcementId)}
+                    onClick={() => markAsRead(a.announcementId)}
+                  >
+                    <strong>{a.title}</strong>
+                    <p>{a.messageBody}</p>
+                  </div>
+                ))
+              )}
             </div>
           )}
+        </div>
+
+        <span className="provider-topbar-divider" aria-hidden="true" />
+
+        {/* Account bubble — read-only, all navigation lives in the sidebar */}
+        <div className="provider-account-bubble" aria-label={`Signed in as ${username}`}>
+          <span className="provider-account-avatar">{initialsOf(username)}</span>
+          <span className="provider-account-name">{username}</span>
         </div>
       </div>
     </header>

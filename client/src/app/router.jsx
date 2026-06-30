@@ -1,4 +1,5 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
+import ScrollToTop from '../components/common/ScrollToTop.jsx';
 import PublicLayout    from '../layouts/PublicLayout.jsx';
 import ProviderLayout  from '../layouts/ProviderLayout.jsx';
 import ClientLayout    from '../layouts/ClientLayout.jsx';
@@ -43,7 +44,6 @@ import VerificationDashboardPage from '../features/admin/verification/pages/Veri
 import VerificationReviewPage from '../features/admin/verification/pages/VerificationReviewPage.jsx';
 import ComplaintReviewPage from '../features/admin/verification/pages/ComplaintReviewPage.jsx';
 
-import ClientHomePage from '../features/client/pages/ClientHomePage.jsx';
 import ExploreServicePage from '../features/client/pages/ExploreServicePage.jsx';
 import ProviderPublicProfilePage from '../features/client/pages/ProviderPublicProfilePage.jsx';
 import BookingConfirmationPage from '../features/client/pages/BookingConfirmationPage.jsx';
@@ -60,6 +60,8 @@ import PaymentFailedPage from '../features/payments/client/pages/PaymentFailedPa
 
 export default function AppRouter() {
   return (
+    <>
+    <ScrollToTop />
     <Routes>
       {/* ── Public layout ─────────────────────────────────────────────────── */}
       <Route element={<PublicLayout />}>
@@ -101,9 +103,8 @@ export default function AppRouter() {
       {/* ── Client layout ────────────────────────────────────────────────── */}
       <Route element={<ProtectedRoute roles={[ROLES.CLIENT]} />}>
         <Route element={<ClientLayout />}>
-          <Route path="/client" element={<Navigate to={ROUTES.CLIENT_HOME} replace />} />
-
-          <Route path={ROUTES.CLIENT_HOME}             element={<ClientHomePage />} />
+          <Route path="/client" element={<Navigate to={ROUTES.HOME} replace />} />
+          <Route path={ROUTES.CLIENT_HOME}             element={<Navigate to={ROUTES.HOME} replace />} />
           <Route path={ROUTES.CLIENT_EXPLORE}          element={<ExploreServicePage />} />
           <Route path={ROUTES.CLIENT_PROVIDER_PROFILE} element={<ProviderPublicProfilePage />} />
           <Route path={ROUTES.CLIENT_BOOKING_CONFIRM}  element={<BookingConfirmationPage />} />
@@ -142,5 +143,6 @@ export default function AppRouter() {
         </Route>
       </Route>
     </Routes>
+    </>
   );
 }

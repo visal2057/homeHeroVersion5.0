@@ -4,13 +4,42 @@ import { ROUTES } from '../../../constants/routes.js';
 import { clientApi } from '../clientApi.js';
 import ProviderCard from '../components/ProviderCard.jsx';
 import TopProvidersSection from '../components/TopProvidersSection.jsx';
+import {
+  IconLeaf, IconSparkle, IconPaw, IconWrench, IconSnowflake,
+  IconToolbox, IconSearch,
+} from '../../../components/common/icons.jsx';
 
 const CATEGORY_META = {
-  gardening:  { label: 'Gardening',  emoji: '🌿', desc: 'Lawn care, pruning, landscaping & more' },
-  cleaning:   { label: 'Cleaning',   emoji: '🧹', desc: 'Deep cleaning, regular housekeeping & sanitizing' },
-  'pet-care': { label: 'Pet Care',   emoji: '🐾', desc: 'Grooming, sitting, walking & veterinary support' },
-  plumbing:   { label: 'Plumbing',   emoji: '🔧', desc: 'Leak repairs, pipe installations & drainage' },
-  'ac-repair':{ label: 'AC Repair',  emoji: '❄️', desc: 'AC servicing, repairs & maintenance' },
+  gardening:  {
+    label: 'Gardening',
+    desc: 'Lawn care, pruning, landscaping & more',
+    icon: IconLeaf,
+    image: 'https://images.unsplash.com/photo-1650216600469-bb05741a636f?auto=format&fit=crop&w=2000&q=80',
+  },
+  cleaning:   {
+    label: 'Cleaning',
+    desc: 'Deep cleaning, regular housekeeping & sanitizing',
+    icon: IconSparkle,
+    image: 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=2000&q=80',
+  },
+  'pet-care': {
+    label: 'Pet Care',
+    desc: 'Grooming, sitting, walking & veterinary support',
+    icon: IconPaw,
+    image: 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&w=2000&q=80',
+  },
+  plumbing:   {
+    label: 'Plumbing',
+    desc: 'Leak repairs, pipe installations & drainage',
+    icon: IconWrench,
+    image: 'https://images.unsplash.com/photo-1607472586893-edb57bdc0e39?auto=format&fit=crop&w=2000&q=80',
+  },
+  'ac-repair':{
+    label: 'AC Repair',
+    desc: 'AC servicing, repairs & maintenance',
+    icon: IconSnowflake,
+    image: 'https://images.unsplash.com/photo-1621905251918-48416bd8575a?auto=format&fit=crop&w=2000&q=80',
+  },
 };
 
 const SRI_LANKA_DISTRICTS = [
@@ -27,7 +56,6 @@ const SORT_OPTIONS = [
   { value: 'newest', label: 'Newest' },
 ];
 
-// Mock data for when API isn't ready yet
 function mockProviders(category) {
   return Array.from({ length: 8 }, (_, i) => ({
     id: `mock-${i}`,
@@ -45,7 +73,8 @@ function mockProviders(category) {
 
 export default function ExploreServicePage() {
   const { category } = useParams();
-  const meta = CATEGORY_META[category] ?? { label: category, emoji: '🛠️', desc: '' };
+  const meta = CATEGORY_META[category] ?? { label: category, desc: '', icon: IconToolbox, image: 'https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?auto=format&fit=crop&w=2000&q=80' };
+  const HeroIcon = meta.icon;
 
   const [providers, setProviders] = useState([]);
   const [topProviders, setTopProviders] = useState([]);
@@ -62,7 +91,6 @@ export default function ExploreServicePage() {
       setProviders(data.providers ?? []);
       setTopProviders(data.topProviders ?? []);
     } catch {
-      // API not ready – use mock data
       const mock = mockProviders(meta.label);
       setProviders(mock);
       setTopProviders(mock.slice(0, 5));
@@ -78,7 +106,6 @@ export default function ExploreServicePage() {
   const sorted = [...providers].sort((a, b) => {
     if (sort === 'rate_asc') return (a.hourlyRate ?? 0) - (b.hourlyRate ?? 0);
     if (sort === 'rate_desc') return (b.hourlyRate ?? 0) - (a.hourlyRate ?? 0);
-    if (sort === 'newest') return 0; // already ordered newest-first by the backend
     return (b.averageRating ?? 0) - (a.averageRating ?? 0);
   });
   const displayed = sorted.slice(0, 20);
@@ -86,12 +113,15 @@ export default function ExploreServicePage() {
   return (
     <div className="explore-page">
       {/* Hero banner */}
-      <div className="ep-hero">
+      <div className="ep-hero" style={{ backgroundImage: `url(${meta.image})` }}>
+        <div className="ep-hero-overlay" />
         <div className="container">
           <div className="ep-hero-inner">
-            <div className="ep-hero-icon">{meta.emoji}</div>
+            <div className="ep-hero-icon-wrap">
+              <HeroIcon size={36} style={{ color: 'white' }} />
+            </div>
             <div>
-              <div className="hh-eyebrow" style={{ color: 'rgba(255,255,255,0.7)' }}>Explore Services</div>
+              <div className="hh-eyebrow" style={{ color: 'rgba(255,255,255,0.75)', marginBottom: 6 }}>Explore Services</div>
               <h1 className="ep-hero-title">{meta.label}</h1>
               <p className="ep-hero-desc">{meta.desc}</p>
             </div>
@@ -100,7 +130,6 @@ export default function ExploreServicePage() {
       </div>
 
       <div className="container">
-        {/* Top providers */}
         {topProviders.length > 0 && (
           <div style={{ marginTop: 'var(--space-2xl)' }}>
             <TopProvidersSection providers={topProviders} category={meta.label} />
@@ -110,7 +139,7 @@ export default function ExploreServicePage() {
         {/* Filters */}
         <div className="ep-filters">
           <div className="ep-search-wrap">
-            <span className="ep-search-icon">🔍</span>
+            <IconSearch size={16} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-neutral-400)', pointerEvents: 'none' }} />
             <input
               type="text"
               placeholder={`Search ${meta.label} providers...`}
@@ -143,7 +172,7 @@ export default function ExploreServicePage() {
           </div>
         ) : displayed.length === 0 ? (
           <div className="ep-empty">
-            <span>{meta.emoji}</span>
+            <HeroIcon size={48} style={{ color: 'var(--color-neutral-300)', marginBottom: 'var(--space-md)' }} />
             <h3>No providers found</h3>
             <p>Try adjusting your filters or district selection.</p>
           </div>
@@ -157,19 +186,27 @@ export default function ExploreServicePage() {
       <style>{`
         .explore-page { padding-bottom: var(--space-2xl); }
         .ep-hero {
-          background: linear-gradient(135deg, var(--color-secondary-700) 0%, var(--color-primary-600) 100%);
-          padding: var(--space-2xl) 0;
+          position: relative; background-size: cover; background-position: center;
+          padding: 72px 0;
         }
-        .ep-hero-inner { display: flex; align-items: center; gap: var(--space-xl); }
-        .ep-hero-icon { font-size: 4rem; }
+        .ep-hero-overlay {
+          position: absolute; inset: 0;
+          background: linear-gradient(135deg, rgba(15,45,25,0.60) 0%, rgba(21,128,61,0.42) 100%);
+        }
+        .ep-hero-inner { display: flex; align-items: center; gap: var(--space-xl); position: relative; z-index: 1; }
+        .ep-hero-icon-wrap {
+          width: 72px; height: 72px; border-radius: var(--radius-lg);
+          background: rgba(255,255,255,0.15); backdrop-filter: blur(8px);
+          display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+          border: 1px solid rgba(255,255,255,0.25);
+        }
         .ep-hero-title { font-size: var(--font-size-3xl); font-weight: 800; color: white; margin-bottom: 8px; }
-        .ep-hero-desc { color: rgba(255,255,255,0.75); font-size: var(--font-size-lg); margin: 0; }
+        .ep-hero-desc { color: rgba(255,255,255,0.8); font-size: var(--font-size-lg); margin: 0; }
         .ep-filters {
           display: flex; gap: var(--space-md); flex-wrap: wrap;
           margin: var(--space-xl) 0; align-items: center;
         }
         .ep-search-wrap { flex: 1; min-width: 200px; position: relative; }
-        .ep-search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); pointer-events: none; }
         .ep-search {
           width: 100%; padding: 10px 14px 10px 38px;
           border: 1.5px solid var(--color-neutral-200); border-radius: var(--radius-md);
@@ -195,9 +232,8 @@ export default function ExploreServicePage() {
           animation: spin 0.7s linear infinite; margin: 0 auto var(--space-md);
         }
         @keyframes spin { to { transform: rotate(360deg); } }
-        .ep-empty { text-align: center; padding: var(--space-2xl); color: var(--color-neutral-400); }
-        .ep-empty span { font-size: 3rem; display: block; margin-bottom: var(--space-md); }
-        .ep-empty h3 { color: var(--color-neutral-600); }
+        .ep-empty { text-align: center; padding: var(--space-2xl) var(--space-md); color: var(--color-neutral-400); display: flex; flex-direction: column; align-items: center; }
+        .ep-empty h3 { color: var(--color-neutral-600); margin-bottom: 8px; }
       `}</style>
     </div>
   );

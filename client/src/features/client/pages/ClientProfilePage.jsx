@@ -5,6 +5,7 @@ import ClientProfileForm from '../components/ClientProfileForm.jsx';
 import ChangePasswordForm from '../components/ChangePasswordForm.jsx';
 import MapPicker from '../../../components/common/MapPicker.jsx';
 import { getAssetUrl } from '../../../utils/storageUtils.js';
+import { IconUser, IconDocumentEdit, IconLock, IconMapPin, IconShield } from '../../../components/common/icons.jsx';
 
 export default function ClientProfilePage() {
   const { user, refreshUser } = useAuth();
@@ -32,9 +33,7 @@ export default function ClientProfilePage() {
       const response = await clientApi.updateProfileImage(file);
       setProfile((p) => ({ ...p, profileImageUrl: response.data?.data?.profileImageUrl }));
       refreshUser?.();
-    } catch {
-      // image upload failure is shown inline next to the button
-    }
+    } catch { /* shown inline */ }
   }
 
   async function handleSaveLocation() {
@@ -61,87 +60,143 @@ export default function ClientProfilePage() {
     : (profile?.username?.[0]?.toUpperCase() ?? 'U');
 
   return (
-    <div style={{ padding: 'var(--space-2xl) 0' }}>
-      <div className="container" style={{ maxWidth: 800 }}>
-        <div className="cp-header">
-          <label className="cp-avatar-big" style={{ cursor: 'pointer', overflow: 'hidden' }}>
-            {profile?.profileImageUrl ? (
-              <img src={getAssetUrl(profile.profileImageUrl)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-            ) : (
-              <span>{initials}</span>
-            )}
-            <input type="file" accept="image/jpeg,image/png" onChange={handleImageChange} style={{ display: 'none' }} />
-          </label>
-          <div>
-            <h1 className="cp-title">{profile?.fullName ?? profile?.username}</h1>
-            <div className="cp-email">{profile?.email}</div>
-            <div className="cp-role-chip">Client Account · Token: {profile?.userToken}</div>
+    <div className="cp-page">
+      {/* Hero */}
+      <div className="cp-hero">
+        <div className="cp-hero-overlay" />
+        <div className="container" style={{ position: 'relative', zIndex: 1 }}>
+          <div className="cp-hero-inner">
+            <div className="cp-hero-avatar" onClick={() => document.getElementById('profile-img-input').click()} title="Click to change photo">
+              {profile?.profileImageUrl ? (
+                <img src={getAssetUrl(profile.profileImageUrl)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              ) : (
+                <span>{initials}</span>
+              )}
+              <div className="cp-avatar-overlay">
+                <IconDocumentEdit size={18} style={{ color: 'white' }} />
+              </div>
+              <input id="profile-img-input" type="file" accept="image/jpeg,image/png" onChange={handleImageChange} style={{ display: 'none' }} />
+            </div>
+            <div>
+              <h1 className="cp-hero-name">{profile?.fullName ?? profile?.username ?? 'My Profile'}</h1>
+              <div className="cp-hero-email">{profile?.email}</div>
+              {profile?.userToken && (
+                <div className="cp-hero-token">
+                  <IconShield size={12} style={{ marginRight: 4 }} />
+                  Token: <strong style={{ letterSpacing: '0.1em', marginLeft: 4 }}>{profile.userToken}</strong>
+                </div>
+              )}
+            </div>
           </div>
         </div>
+      </div>
 
-        <div className="cp-card">
-          <h2 className="cp-card-title">✏️ Edit Profile</h2>
-          {loading ? (
-            <div style={{ textAlign: 'center', padding: 'var(--space-xl)', color: 'var(--color-neutral-500)' }}>Loading...</div>
-          ) : (
-            <ClientProfileForm
-              initialData={profile}
-              onSaved={(updated) => {
-                setProfile((p) => ({ ...p, ...updated }));
-                refreshUser?.();
-              }}
+      <div className="container cp-body">
+        <div className="cp-sections">
+          {/* Edit profile */}
+          <div className="cp-card">
+            <div className="cp-card-title">
+              <IconDocumentEdit size={18} style={{ color: 'var(--color-primary-600)' }} />
+              Edit Profile
+            </div>
+            {loading ? (
+              <div style={{ textAlign: 'center', padding: 'var(--space-xl)', color: 'var(--color-neutral-500)' }}>Loading...</div>
+            ) : (
+              <ClientProfileForm
+                initialData={profile}
+                onSaved={(updated) => {
+                  setProfile((p) => ({ ...p, ...updated }));
+                  refreshUser?.();
+                }}
+              />
+            )}
+          </div>
+
+          {/* Change password */}
+          <div className="cp-card">
+            <div className="cp-card-title">
+              <IconLock size={18} style={{ color: 'var(--color-primary-600)' }} />
+              Change Password
+            </div>
+            <ChangePasswordForm />
+          </div>
+
+          {/* Location map */}
+          <div className="cp-card cp-card-full">
+            <div className="cp-card-title">
+              <IconMapPin size={18} style={{ color: 'var(--color-primary-600)' }} />
+              Location
+            </div>
+            <p style={{ color: 'var(--color-neutral-500)', marginBottom: 'var(--space-md)', fontSize: 'var(--font-size-sm)' }}>
+              Drag the pin to your exact location. Providers only see this once you have an active booking with them.
+            </p>
+            <MapPicker
+              latitude={location?.latitude ?? profile?.location?.latitude}
+              longitude={location?.longitude ?? profile?.location?.longitude}
+              onChange={setLocation}
             />
-          )}
-        </div>
-
-        <div className="cp-card" style={{ marginTop: 'var(--space-lg)' }}>
-          <h2 className="cp-card-title">🔒 Change Password</h2>
-          <ChangePasswordForm />
-        </div>
-
-        <div className="cp-card" style={{ marginTop: 'var(--space-lg)' }}>
-          <h2 className="cp-card-title">📍 Location Map</h2>
-          <p style={{ color: 'var(--color-neutral-500)', marginBottom: 'var(--space-md)' }}>
-            Drag the pin to your exact location. Providers only see this once you have an active booking with them.
-          </p>
-          <MapPicker
-            latitude={location?.latitude ?? profile?.location?.latitude}
-            longitude={location?.longitude ?? profile?.location?.longitude}
-            onChange={setLocation}
-          />
-          {locationMessage && <p style={{ marginTop: 'var(--space-sm)' }}>{locationMessage}</p>}
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 'var(--space-md)' }}>
-            <button type="button" className="btn btn-primary" disabled={!location || savingLocation} onClick={handleSaveLocation}>
-              {savingLocation ? 'Saving…' : 'Save Location'}
-            </button>
+            {locationMessage && (
+              <p style={{ marginTop: 'var(--space-sm)', fontSize: 'var(--font-size-sm)', color: locationMessage.includes('success') ? '#059669' : 'var(--color-error)' }}>
+                {locationMessage}
+              </p>
+            )}
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 'var(--space-md)' }}>
+              <button type="button" className="btn btn-primary" disabled={!location || savingLocation} onClick={handleSaveLocation}>
+                {savingLocation ? 'Saving…' : 'Save Location'}
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
       <style>{`
-        .cp-header {
-          display: flex; gap: var(--space-xl); align-items: center;
-          margin-bottom: var(--space-2xl); flex-wrap: wrap;
+        .cp-page { padding-bottom: var(--space-2xl); }
+        .cp-hero {
+          position: relative;
+          background-image: url('https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&w=2000&q=80');
+          background-size: cover; background-position: center; padding: 60px 0;
         }
-        .cp-avatar-big {
-          width: 100px; height: 100px; border-radius: 50%;
-          background: linear-gradient(135deg, var(--color-primary-600), var(--color-secondary-700));
+        .cp-hero-overlay {
+          position: absolute; inset: 0;
+          background: linear-gradient(135deg, rgba(15,45,25,0.60) 0%, rgba(21,128,61,0.42) 100%);
+        }
+        .cp-hero-inner { display: flex; align-items: center; gap: var(--space-xl); }
+        .cp-hero-avatar {
+          width: 90px; height: 90px; border-radius: 50%; flex-shrink: 0;
+          background: linear-gradient(135deg, var(--color-primary-400), var(--color-secondary-700));
           display: flex; align-items: center; justify-content: center;
-          font-size: 2.5rem; font-weight: 700; color: white; flex-shrink: 0;
-          border: 4px solid var(--color-primary-200);
+          font-size: 2rem; font-weight: 700; color: white;
+          border: 4px solid rgba(255,255,255,0.4); cursor: pointer;
+          position: relative; overflow: hidden;
         }
-        .cp-title { font-size: var(--font-size-2xl); color: var(--color-secondary-700); margin-bottom: 4px; }
-        .cp-email { color: var(--color-neutral-500); margin-bottom: 8px; }
-        .cp-role-chip {
-          display: inline-block; padding: 4px 12px; border-radius: var(--radius-full);
-          background: var(--color-primary-100); color: var(--color-primary-700);
-          font-size: var(--font-size-xs); font-weight: 600;
+        .cp-avatar-overlay {
+          position: absolute; inset: 0; background: rgba(0,0,0,0.45);
+          display: flex; align-items: center; justify-content: center;
+          opacity: 0; transition: opacity 0.2s;
         }
+        .cp-hero-avatar:hover .cp-avatar-overlay { opacity: 1; }
+        .cp-hero-name { font-size: var(--font-size-2xl); font-weight: 800; color: white; margin-bottom: 4px; }
+        .cp-hero-email { color: rgba(255,255,255,0.75); margin-bottom: 8px; font-size: var(--font-size-sm); }
+        .cp-hero-token {
+          display: inline-flex; align-items: center; padding: 4px 12px;
+          background: rgba(255,255,255,0.15); backdrop-filter: blur(6px);
+          border: 1px solid rgba(255,255,255,0.3); border-radius: var(--radius-full);
+          color: rgba(255,255,255,0.9); font-size: var(--font-size-xs);
+        }
+        .cp-body { padding-top: var(--space-2xl); }
+        .cp-sections { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-lg); }
+        @media (max-width: 768px) { .cp-sections { grid-template-columns: 1fr; } }
+        .cp-card-full { grid-column: 1 / -1; isolation: isolate; }
         .cp-card {
           background: white; border: 1px solid var(--color-neutral-200);
           border-radius: var(--radius-lg); padding: var(--space-xl);
         }
-        .cp-card-title { font-size: var(--font-size-xl); color: var(--color-secondary-700); margin-bottom: var(--space-xl); }
+        .cp-card-title {
+          display: flex; align-items: center; gap: 10px;
+          font-size: var(--font-size-lg); font-weight: 700;
+          color: var(--color-secondary-700); margin-bottom: var(--space-lg);
+          padding-bottom: var(--space-md); border-bottom: 1px solid var(--color-neutral-100);
+        }
       `}</style>
     </div>
   );

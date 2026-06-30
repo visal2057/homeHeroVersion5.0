@@ -1,10 +1,13 @@
 import { getAssetUrl } from '../../../utils/storageUtils.js';
+import { IconStar, IconCheck, IconTrophy } from '../../../components/common/icons.jsx';
 
 function StarRating({ value }) {
   const full = Math.round(value ?? 0);
   return (
-    <span className="stars" aria-label={`${value} out of 5 stars`}>
-      {'★'.repeat(full)}{'☆'.repeat(5 - full)}
+    <span className="stars" aria-label={`${value} out of 5 stars`} style={{ display: 'inline-flex', gap: 1 }}>
+      {Array.from({ length: 5 }).map((_, i) => (
+        <IconStar key={i} size={14} style={{ opacity: i < full ? 1 : 0.25 }} />
+      ))}
     </span>
   );
 }
@@ -38,11 +41,13 @@ export default function ProviderSummaryCard({ profile }) {
 
       <div>
         {profile?.bookability?.isVerified && (
-          <span className="provider-summary-chip verified">✓ Verified</span>
+          <span className="provider-summary-chip verified">
+            <IconCheck size={12} /> Verified
+          </span>
         )}
         {profile?.membership?.status && (
           <span className="provider-summary-chip member">
-            ⭐ {profile.membership.status}
+            <IconTrophy size={12} /> {profile.membership.status}
           </span>
         )}
       </div>

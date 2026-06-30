@@ -1,15 +1,8 @@
 import { useState } from 'react';
-
-const COMPLAINT_TYPES = [
-  'Client Behaviour',
-  'Payment Issue',
-  'Safety Concern',
-  'Platform / App Issue',
-  'Other',
-];
+import { IconCheckCircle, IconAlertCircle } from '../../../components/common/icons.jsx';
 
 export default function ProviderComplaintForm({ onSubmit, submitting, error, success }) {
-  const [form, setForm] = useState({ type: '', subject: '', description: '' });
+  const [form, setForm] = useState({ token: '', description: '' });
 
   function handleChange(e) {
     const { name, value } = e.target;
@@ -23,8 +16,8 @@ export default function ProviderComplaintForm({ onSubmit, submitting, error, suc
 
   if (success) {
     return (
-      <div className="provider-alert success" style={{ padding: 'var(--space-xl)', borderRadius: 'var(--radius-lg)' }}>
-        <div style={{ fontSize: '2rem', marginBottom: 'var(--space-sm)' }}>✅</div>
+      <div className="provider-alert success" style={{ padding: 'var(--space-xl)', borderRadius: 'var(--radius-lg)', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+        <div style={{ marginBottom: 'var(--space-sm)' }}><IconCheckCircle size={32} /></div>
         <p style={{ margin: 0, fontWeight: 600 }}>Complaint submitted successfully.</p>
         <p style={{ margin: 0, fontSize: 'var(--font-size-sm)' }}>Our team will review it and get back to you.</p>
       </div>
@@ -33,46 +26,33 @@ export default function ProviderComplaintForm({ onSubmit, submitting, error, suc
 
   return (
     <form onSubmit={handleSubmit} className="provider-complaint-wrap">
-      {error && <div className="provider-alert error">⚠️ {error}</div>}
+      {error && (
+        <div className="provider-alert error">
+          <IconAlertCircle size={16} /> {error}
+        </div>
+      )}
 
       <div className="provider-form-grid">
-        <div className="provider-form-group">
-          <label className="provider-form-label" htmlFor="comp-type">
-            Complaint Type <span className="required">*</span>
-          </label>
-          <select
-            id="comp-type"
-            name="type"
-            className="provider-form-select"
-            value={form.type}
-            onChange={handleChange}
-            required
-          >
-            <option value="">Select type…</option>
-            {COMPLAINT_TYPES.map((t) => (
-              <option key={t} value={t}>{t}</option>
-            ))}
-          </select>
-        </div>
-
-        <div className="provider-form-group">
-          <label className="provider-form-label" htmlFor="comp-subject">
-            Subject <span className="required">*</span>
+        <div className="provider-form-group full">
+          <label className="provider-form-label" htmlFor="comp-token">
+            Complaint For — Client Token <span className="required">*</span>
           </label>
           <input
-            id="comp-subject"
-            name="subject"
+            id="comp-token"
+            name="token"
             className="provider-form-input"
-            value={form.subject}
+            value={form.token}
             onChange={handleChange}
-            placeholder="Brief subject line"
+            placeholder="e.g. A7b2X9"
+            maxLength={6}
             required
           />
+          <span className="provider-form-hint">Enter the unique 6-character token of the Client you're reporting.</span>
         </div>
 
         <div className="provider-form-group full">
           <label className="provider-form-label" htmlFor="comp-desc">
-            Description <span className="required">*</span>
+            Complaint Details <span className="required">*</span>
           </label>
           <textarea
             id="comp-desc"
@@ -81,8 +61,9 @@ export default function ProviderComplaintForm({ onSubmit, submitting, error, suc
             style={{ minHeight: 160 }}
             value={form.description}
             onChange={handleChange}
-            placeholder="Describe the issue in detail…"
+            placeholder="Describe the issue in detail (minimum 20 characters)…"
             required
+            minLength={20}
           />
         </div>
       </div>

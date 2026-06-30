@@ -22,6 +22,7 @@ export const API_ENDPOINTS = {
     CREATE: '/announcements',
     UPDATE: (id) => `/announcements/${id}`,
     ARCHIVE: (id) => `/announcements/${id}/archive`,
+    MARK_READ: (id) => `/announcements/${id}/read`,
   },
 
   SYSTEM_ADMIN: {

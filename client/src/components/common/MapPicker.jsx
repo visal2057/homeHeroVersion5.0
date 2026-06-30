@@ -14,17 +14,28 @@ const markerIcon = L.icon({
 
 const DEFAULT_CENTER = [6.9271, 79.8612]; // Colombo
 
-function LocationMarker({ position, onSelect }) {
+function LocationMarker({ position, onSelect, draggable }) {
   useMapEvents({
     click(event) {
       onSelect(event.latlng);
     },
   });
 
-  return position ? <Marker position={position} icon={markerIcon} /> : null;
+  function handleDragEnd(e) {
+    onSelect(e.target.getLatLng());
+  }
+
+  return position ? (
+    <Marker
+      position={position}
+      icon={markerIcon}
+      draggable={!!draggable}
+      eventHandlers={draggable ? { dragend: handleDragEnd } : {}}
+    />
+  ) : null;
 }
 
-export default function MapPicker({ latitude, longitude, onChange, height = 320 }) {
+export default function MapPicker({ latitude, longitude, onChange, height = 320, draggable = false }) {
   const [position, setPosition] = useState(
     latitude && longitude ? { lat: latitude, lng: longitude } : null,
   );
@@ -46,10 +57,16 @@ export default function MapPicker({ latitude, longitude, onChange, height = 320 
             attribution='&copy; OpenStreetMap contributors'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
-          <LocationMarker position={position ? [position.lat, position.lng] : null} onSelect={handleSelect} />
+          <LocationMarker
+            position={position ? [position.lat, position.lng] : null}
+            onSelect={handleSelect}
+            draggable={draggable}
+          />
         </MapContainer>
       </div>
-      <p className="form-hint">Click on the map to drop a pin at your exact location.</p>
+      <p className="form-hint">
+        {draggable ? 'Click to place pin, then drag to adjust.' : 'Click on the map to drop a pin at your exact location.'}
+      </p>
       {position && (
         <p className="form-hint">
           Selected: {position.lat.toFixed(6)}, {position.lng.toFixed(6)}

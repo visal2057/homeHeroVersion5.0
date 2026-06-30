@@ -1,4 +1,5 @@
 import { getAssetUrl } from '../../../utils/storageUtils.js';
+import { IconCalendar, IconMapPin } from '../../../components/common/icons.jsx';
 
 export default function BookingDetailPreview({ booking, style }) {
   if (!booking) return null;
@@ -11,11 +12,15 @@ export default function BookingDetailPreview({ booking, style }) {
         <p className="provider-row-preview-desc">{booking.description}</p>
       )}
 
-      <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)', marginBottom: 'var(--space-xs)' }}>
-        {booking.service_date && <span>📅 {new Date(booking.service_date).toLocaleDateString()}</span>}
+      <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)', marginBottom: 'var(--space-xs)', display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
+        {booking.service_date && (
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+            <IconCalendar size={13} /> {new Date(booking.service_date).toLocaleDateString()}
+          </span>
+        )}
         {booking.location && (
-          <span style={{ marginLeft: '8px' }}>
-            📍{' '}
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+            <IconMapPin size={13} />
             <a
               href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(booking.location)}`}
               target="_blank"

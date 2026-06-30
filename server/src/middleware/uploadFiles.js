@@ -93,3 +93,19 @@ export const uploadBookingImages = multer({
   fileFilter: imageOnlyFilter,
   limits: { fileSize: MAX_FILE_SIZE },
 }).array('jobPhotos', 3);
+
+const portfolioImageStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, path.resolve(env.publicStoragePath, 'portfolio-images'));
+  },
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    cb(null, `${crypto.randomUUID()}${ext}`);
+  },
+});
+
+export const uploadPortfolioImages = multer({
+  storage: portfolioImageStorage,
+  fileFilter: imageOnlyFilter,
+  limits: { fileSize: MAX_FILE_SIZE },
+}).array('images', 3);

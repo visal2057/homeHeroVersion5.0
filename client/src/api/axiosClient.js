@@ -11,3 +11,15 @@ axiosClient.interceptors.request.use((config) => {
   }
   return config;
 });
+
+// Auto-logout when the server returns 401 (token expired / invalid)
+axiosClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem('hh_token');
+      window.dispatchEvent(new CustomEvent('hh:session-expired'));
+    }
+    return Promise.reject(error);
+  },
+);

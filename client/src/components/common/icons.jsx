@@ -266,3 +266,154 @@ export function IconEyeOff(props) {
     </Stroke>
   );
 }
+
+export function IconUser(props) {
+  return (
+    <Stroke {...props}>
+      <circle cx="12" cy="8" r="4" />
+      <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
+    </Stroke>
+  );
+}
+
+export function IconLogOut(props) {
+  return (
+    <Stroke {...props}>
+      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+      <path d="M16 17l5-5-5-5" />
+      <path d="M21 12H9" />
+    </Stroke>
+  );
+}
+
+export function IconFlag(props) {
+  return (
+    <Stroke {...props}>
+      <path d="M4 21V4" />
+      <path d="M4 4h12l-2.5 5L16 14H4V4Z" />
+    </Stroke>
+  );
+}
+
+export function IconChevronDown(props) {
+  return (
+    <Stroke {...props}>
+      <path d="M6 9l6 6 6-6" />
+    </Stroke>
+  );
+}
+
+export function IconCalendar(props) {
+  return (
+    <Stroke {...props}>
+      <rect x="3" y="4" width="18" height="17" rx="2" />
+      <path d="M8 2v3M16 2v3" />
+      <path d="M3 10h18" />
+    </Stroke>
+  );
+}
+
+export function IconBell(props) {
+  return (
+    <Stroke {...props}>
+      <path d="M18 8a6 6 0 1 0-12 0c0 4.5-2 6-2 6h16s-2-1.5-2-6Z" />
+      <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
+    </Stroke>
+  );
+}
+
+export function IconSend(props) {
+  return (
+    <Stroke {...props}>
+      <path d="M22 2 11 13" />
+      <path d="M22 2 15 22 11 13 2 9l20-7Z" />
+    </Stroke>
+  );
+}
+
+export function IconSearch(props) {
+  return (
+    <Stroke {...props}>
+      <circle cx="11" cy="11" r="7" />
+      <path d="M21 21l-4.35-4.35" />
+    </Stroke>
+  );
+}
+
+export function IconDollarSign(props) {
+  return (
+    <Stroke {...props}>
+      <path d="M12 2v20" />
+      <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+    </Stroke>
+  );
+}
+
+export function IconTrophy(props) {
+  return (
+    <Stroke {...props}>
+      <path d="M6 9H3V4h3" />
+      <path d="M18 9h3V4h-3" />
+      <path d="M6 4h12v7a6 6 0 0 1-12 0V4Z" />
+      <path d="M12 17v4" />
+      <path d="M8 21h8" />
+    </Stroke>
+  );
+}
+
+export function IconAlertCircle(props) {
+  return (
+    <Stroke {...props}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 8v4" />
+      <circle cx="12" cy="16" r="0.5" fill="currentColor" />
+    </Stroke>
+  );
+}
+
+export function IconCheck(props) {
+  return (
+    <Stroke {...props}>
+      <path d="M5 12l5 5L20 7" />
+    </Stroke>
+  );
+}
+
+export function IconXCircle(props) {
+  return (
+    <Stroke {...props}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M15 9l-6 6M9 9l6 6" />
+    </Stroke>
+  );
+}
+
+export function IconInbox(props) {
+  return (
+    <Stroke {...props}>
+      <path d="M4 15h16l-2-9H6L4 15Z" />
+      <path d="M4 15a4 4 0 0 0 4 4h8a4 4 0 0 0 4-4" />
+      <path d="M9 15v-2h6v2" />
+    </Stroke>
+  );
+}
+
+export function IconCreditCard(props) {
+  return (
+    <Stroke {...props}>
+      <rect x="2" y="5" width="20" height="14" rx="2" />
+      <path d="M2 10h20" />
+    </Stroke>
+  );
+}
+
+export function IconChartBar(props) {
+  return (
+    <Stroke {...props}>
+      <path d="M4 21V10" />
+      <path d="M12 21V4" />
+      <path d="M20 21v-7" />
+      <path d="M3 21h18" />
+    </Stroke>
+  );
+}

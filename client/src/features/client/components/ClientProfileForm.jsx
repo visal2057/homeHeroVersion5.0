@@ -57,7 +57,7 @@ export default function ClientProfileForm({ initialData, onSaved }) {
 
       <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
         <button type="submit" className="btn btn-primary btn-shine" disabled={saving}>
-          {saving ? 'Saving…' : '💾 Save Changes'}
+          {saving ? 'Saving…' : 'Save Changes'}
         </button>
       </div>
 
