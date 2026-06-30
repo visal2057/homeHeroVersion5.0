@@ -1,7 +1,7 @@
-import { formatLKR } from '../paymentMath.js';
-
 // Shows the read-only facts about the booking the client is paying for.
 // `context` comes from GET /payments/booking/:id (see clientPaymentApi.js).
+// There is no price here on purpose: the amount is agreed offline and the
+// client enters it on the card form.
 export default function PaymentSummary({ context }) {
   return (
     <div className="ps-card">
@@ -20,8 +20,8 @@ export default function PaymentSummary({ context }) {
         <strong>{context.categoryName}</strong>
       </div>
       <div className="ps-row ps-row-total">
-        <span>Service amount</span>
-        <strong>{formatLKR(context.serviceAmount)}</strong>
+        <span>Status</span>
+        <strong>{context.status}</strong>
       </div>
 
       <style>{`

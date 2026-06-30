@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { clientPaymentApi } from '../clientPaymentApi.js';
 import { extractErrorMessage } from '../../../../api/apiErrorHandler.js';
-import { formatLKR } from '../paymentMath.js';
 import ConfirmModal from '../../../../components/common/ConfirmModal.jsx';
 import AlertMessage from '../../../../components/common/AlertMessage.jsx';
 
@@ -31,7 +30,7 @@ export default function CashPaymentConfirmation({ context, onCancel, onPaid }) {
     <div>
       <h2 className="cash-title">💵 Cash payment</h2>
       <p className="cash-note">
-        You will pay <strong>{formatLKR(context.serviceAmount)}</strong> directly to{' '}
+        You will pay the agreed amount directly to{' '}
         <strong>{context.providerName}</strong>. HomeHero does not collect cash and
         takes no fee on cash payments.
       </p>
@@ -51,7 +50,7 @@ export default function CashPaymentConfirmation({ context, onCancel, onPaid }) {
       <ConfirmModal
         isOpen={showConfirm}
         title="Confirm cash payment"
-        message={`Confirm that you have paid ${formatLKR(context.serviceAmount)} in cash to ${context.providerName}. You will then leave a review.`}
+        message={`Confirm that you have paid ${context.providerName} in cash. You will then leave a review.`}
         confirmLabel="Yes, I paid"
         cancelLabel="Not yet"
         onConfirm={handleConfirm}

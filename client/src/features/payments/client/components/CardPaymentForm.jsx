@@ -11,6 +11,7 @@ import AlertMessage from '../../../../components/common/AlertMessage.jsx';
 // send everything to the backend (which re-checks the amounts).
 export default function CardPaymentForm({ context, onCancel, onPaid }) {
   const [form, setForm] = useState({
+    serviceAmount: '',
     cardholderName: '',
     cardNumber: '',
     expiryDate: '',
@@ -21,8 +22,9 @@ export default function CardPaymentForm({ context, onCancel, onPaid }) {
   const [submitting, setSubmitting] = useState(false);
   const [apiError, setApiError] = useState('');
 
-  // Live fee breakdown shown to the client. The backend calculates it again.
-  const totals = calculateCardTotals(context.serviceAmount);
+  // The client enters the price they agreed with the provider; the fee
+  // breakdown updates live from it. The backend calculates the fee again.
+  const totals = calculateCardTotals(form.serviceAmount);
 
   // One handler updates whichever field changed by its `name`.
   const handleChange = (e) => {
@@ -32,6 +34,8 @@ export default function CardPaymentForm({ context, onCancel, onPaid }) {
   // Simple, readable checks. Returns an object of { field: message }.
   const validate = () => {
     const next = {};
+    if (!(Number(form.serviceAmount) > 0)) next.serviceAmount = 'Enter the agreed service amount.';
+
     if (!form.cardholderName.trim()) next.cardholderName = 'Cardholder name is required.';
 
     const digits = form.cardNumber.replace(/\s/g, '');
@@ -58,6 +62,7 @@ export default function CardPaymentForm({ context, onCancel, onPaid }) {
     setApiError('');
     try {
       await clientPaymentApi.payByCard(context.bookingId, {
+        serviceAmount: Number(form.serviceAmount),
         cardholderName: form.cardholderName,
         cardNumber: form.cardNumber.replace(/\s/g, ''),
         expiryDate: form.expiryDate,
@@ -77,6 +82,13 @@ export default function CardPaymentForm({ context, onCancel, onPaid }) {
 
       {apiError && <AlertMessage type="error" message={apiError} onDismiss={() => setApiError('')} />}
 
+      <FormInput
+        label="Service amount (LKR)" name="serviceAmount"
+        value={form.serviceAmount} onChange={handleChange}
+        placeholder="10000" inputMode="numeric"
+        hint="The price you agreed with the provider."
+        error={errors.serviceAmount}
+      />
       <FormInput
         label="Cardholder name" name="cardholderName"
         value={form.cardholderName} onChange={handleChange}

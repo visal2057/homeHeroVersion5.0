@@ -14,8 +14,8 @@ const MOCK_CONTEXT = {
   bookingId: '1',
   providerName: 'Nimal Perera',
   categoryName: 'Gardening',
-  serviceAmount: 10000,
   status: 'ACCEPTED',
+  alreadyPaid: false,
   payee: {
     accountHolderName: 'Nimal Perera',
     bankName: 'Commercial Bank',
