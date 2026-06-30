@@ -1,4 +1,15 @@
+// Integration point (Module 4 - Visal): the "Pay & Review" button below
+// sends the client into the payment flow that I own.
+import { useNavigate } from 'react-router-dom';
+import { ROUTES } from '../../../constants/routes.js';
+
 export default function JobsToDoTable({ bookings = [] }) {
+  const navigate = useNavigate();
+
+  // Open my payment page for the chosen booking.
+  const goToPayment = (bookingId) =>
+    navigate(ROUTES.CLIENT_BOOKING_PAY.replace(':bookingId', bookingId));
+
   if (!bookings.length) {
     return (
       <div className="bt-empty">
@@ -20,6 +31,7 @@ export default function JobsToDoTable({ bookings = [] }) {
               <th>Service</th>
               <th>Date & Time</th>
               <th>Status</th>
+              <th>Action</th>
             </tr>
           </thead>
           <tbody>
@@ -40,6 +52,12 @@ export default function JobsToDoTable({ bookings = [] }) {
                 <td>
                   <span className="bt-status" style={{ background: '#ecfdf5', color: '#059669' }}>✅ Accepted</span>
                 </td>
+                <td>
+                  {/* Visal's payment flow entry point */}
+                  <button type="button" className="bt-pay-btn" onClick={() => goToPayment(b.id)}>
+                    Pay &amp; Review
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>
@@ -54,6 +72,8 @@ export default function JobsToDoTable({ bookings = [] }) {
         .bt-provider-cell { display: flex; align-items: center; gap: 8px; }
         .bt-provider-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--color-primary-100); display: flex; align-items: center; justify-content: center; color: var(--color-primary-700); font-weight: 700; flex-shrink: 0; }
         .bt-status { padding: 3px 10px; border-radius: var(--radius-full); font-size: var(--font-size-xs); font-weight: 600; white-space: nowrap; }
+        .bt-pay-btn { padding: 6px 14px; background: var(--color-primary-600); color: white; border: none; border-radius: var(--radius-md); font-size: var(--font-size-xs); font-weight: 600; cursor: pointer; white-space: nowrap; }
+        .bt-pay-btn:hover { background: var(--color-primary-700); }
       `}</style>
     </div>
   );

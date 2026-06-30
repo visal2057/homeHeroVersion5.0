@@ -22,6 +22,12 @@ export const ROUTES = {
   CLIENT_PROFILE: '/client/profile',
   CLIENT_COMPLAINTS: '/client/complaints',
 
+  // Client payment + review (Module 4 - Visal)
+  CLIENT_BOOKING_PAY: '/client/bookings/:bookingId/pay',
+  CLIENT_BOOKING_REVIEW: '/client/bookings/:bookingId/review',
+  CLIENT_PAYMENT_SUCCESS: '/client/bookings/:bookingId/success',
+  CLIENT_PAYMENT_FAILED: '/client/bookings/:bookingId/failed',
+
   // Provider (Module 3)
   PROVIDER_DASHBOARD: '/provider/dashboard',
   PROVIDER_REQUESTS: '/provider/requests',
