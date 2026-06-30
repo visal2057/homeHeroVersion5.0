@@ -2,6 +2,10 @@ import { useState, useEffect } from 'react';
 import { axiosClient } from '../../../api/axiosClient.js';
 import { API_ENDPOINTS } from '../../../api/apiEndpoints.js';
 import ProviderRequestTable from '../components/ProviderRequestTable.jsx';
+import ProviderPageHero from '../components/ProviderPageHero.jsx';
+import { IconXCircle } from '../../../components/common/icons.jsx';
+
+const HERO_IMAGE = 'https://images.unsplash.com/photo-1607472586893-edb57bdc0e39?auto=format&fit=crop&w=1600&q=80';
 
 export default function ProviderRequestsPage() {
   const [requests, setRequests]   = useState([]);
@@ -63,12 +67,11 @@ export default function ProviderRequestsPage() {
 
   return (
     <div className="provider-page">
-      <div className="provider-page-header">
-        <div>
-          <h1 className="provider-page-title">Booking Requests</h1>
-          <p className="provider-page-subtitle">Review and respond to incoming service requests.</p>
-        </div>
-      </div>
+      <ProviderPageHero
+        title="Booking Requests"
+        subtitle="Review and respond to incoming service requests."
+        image={HERO_IMAGE}
+      />
 
       {alert && (
         <div className={`provider-alert ${alert.type}`} style={{ marginBottom: 'var(--space-lg)' }}>
@@ -76,26 +79,25 @@ export default function ProviderRequestsPage() {
           <button
             type="button"
             onClick={() => setAlert(null)}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', marginLeft: 'auto', fontWeight: 700 }}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', marginLeft: 'auto', display: 'inline-flex' }}
+            aria-label="Dismiss"
           >
-            ✕
+            <IconXCircle size={16} />
           </button>
         </div>
       )}
 
       {/* Filter tabs */}
-      <div style={{ display: 'flex', gap: 'var(--space-sm)', marginBottom: 'var(--space-lg)', flexWrap: 'wrap' }}>
+      <div className="provider-tabs">
         {['all', 'pending', 'accepted', 'rejected'].map((f) => (
           <button
             key={f}
             type="button"
-            className={`btn ${filter === f ? 'btn-primary' : 'btn-outline'}`}
-            style={{ fontSize: 'var(--font-size-sm)', padding: '5px 16px' }}
+            className={`provider-tab${filter === f ? ' active' : ''}`}
             onClick={() => setFilter(f)}
           >
             {f.charAt(0).toUpperCase() + f.slice(1)}
-            {' '}
-            <span style={{ opacity: 0.7 }}>
+            <span className="count">
               ({requests.filter((r) => f === 'all' ? true : r.status === f).length})
             </span>
           </button>

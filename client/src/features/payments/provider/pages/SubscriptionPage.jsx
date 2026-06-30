@@ -5,6 +5,9 @@ import MembershipStatusCard from '../components/MembershipStatusCard.jsx';
 import MembershipPricingCard from '../components/MembershipPricingCard.jsx';
 import MembershipHistoryTable from '../components/MembershipHistoryTable.jsx';
 import MembershipPaymentForm from '../components/MembershipPaymentForm.jsx';
+import ProviderPageHero from '../../../provider/components/ProviderPageHero.jsx';
+
+const HERO_IMAGE = 'https://images.unsplash.com/photo-1594989627219-01e365ee6d05?auto=format&fit=crop&w=1600&q=80';
 
 // Mock so the page renders before the backend / a real membership exists.
 const MOCK_OVERVIEW = {
@@ -60,8 +63,11 @@ export default function SubscriptionPage() {
   return (
     <div style={{ padding: 'var(--space-2xl) 0' }}>
       <div className="container">
-        <h1 className="sub-title">⭐ Membership</h1>
-        <p className="sub-sub">Your HomeHero membership keeps you visible and bookable to clients.</p>
+        <ProviderPageHero
+          title="Membership"
+          subtitle="Your HomeHero membership keeps you visible and bookable to clients."
+          image={HERO_IMAGE}
+        />
 
         <MembershipExpiryWarning current={overview.current} />
 

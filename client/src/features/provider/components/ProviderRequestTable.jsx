@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import BookingDetailPreview from './BookingDetailPreview.jsx';
+import { IconInbox, IconMapPin } from '../../../components/common/icons.jsx';
 
 function statusBadge(status) {
   return <span className={`provider-badge ${status}`}>{status.charAt(0).toUpperCase() + status.slice(1)}</span>;
@@ -14,7 +15,7 @@ export default function ProviderRequestTable({ requests, onAccept, onReject, loa
   if (!requests?.length) {
     return (
       <div className="provider-empty-state">
-        <div className="provider-empty-state-icon">📭</div>
+        <div className="provider-empty-state-icon"><IconInbox size={26} /></div>
         <p className="provider-empty-state-title">No booking requests</p>
         <p className="provider-empty-state-desc">Incoming requests will appear here.</p>
       </div>
@@ -36,10 +37,12 @@ export default function ProviderRequestTable({ requests, onAccept, onReject, loa
       <table className="provider-table">
         <thead>
           <tr>
+            <th>Booking ID</th>
             <th>Client</th>
+            <th>Token</th>
             <th>Service</th>
-            <th>Date Requested</th>
-            <th>Service Date</th>
+            <th>Booking Date</th>
+            <th>Booking Time</th>
             <th>Location</th>
             <th>Status</th>
             <th>Actions</th>
@@ -53,20 +56,22 @@ export default function ProviderRequestTable({ requests, onAccept, onReject, loa
               onMouseLeave={() => setHoveredId(null)}
               style={{ cursor: 'default' }}
             >
+              <td>#{r.id}</td>
               <td>{r.client_name ?? '—'}</td>
+              <td>{r.client_token ?? '—'}</td>
               <td>{r.service_title ?? '—'}</td>
-              <td>{r.created_at ? new Date(r.created_at).toLocaleDateString() : '—'}</td>
               <td>{r.service_date ? new Date(r.service_date).toLocaleDateString() : '—'}</td>
+              <td>{r.service_date ? new Date(r.service_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—'}</td>
               <td>
                 {r.location ? (
                   <a
                     href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(r.location)}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    style={{ color: 'var(--color-primary-600)' }}
+                    style={{ color: 'var(--color-primary-600)', display: 'inline-flex', alignItems: 'center', gap: 4 }}
                     onClick={(e) => e.stopPropagation()}
                   >
-                    📍 {r.location}
+                    <IconMapPin size={14} /> {r.location}
                   </a>
                 ) : '—'}
               </td>

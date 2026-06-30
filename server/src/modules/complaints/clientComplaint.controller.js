@@ -8,8 +8,8 @@ async function findUserByToken(token) {
     `SELECT u.user_id, u.full_name, r.role_code
      FROM users u
      JOIN roles r ON r.role_id = u.role_id
-     WHERE u.user_token = $1`,
-    [token.trim().toUpperCase()],
+     WHERE UPPER(u.user_token) = UPPER($1)`,
+    [token.trim()],
   );
   return rows[0] ?? null;
 }

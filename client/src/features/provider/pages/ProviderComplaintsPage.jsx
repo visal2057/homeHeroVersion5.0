@@ -2,6 +2,10 @@ import { useState, useEffect } from 'react';
 import { axiosClient } from '../../../api/axiosClient.js';
 import { API_ENDPOINTS } from '../../../api/apiEndpoints.js';
 import ProviderComplaintForm from '../components/ProviderComplaintForm.jsx';
+import ProviderPageHero from '../components/ProviderPageHero.jsx';
+import { IconClipboardList } from '../../../components/common/icons.jsx';
+
+const HERO_IMAGE = 'https://images.unsplash.com/photo-1686178827149-6d55c72d81df?auto=format&fit=crop&w=1600&q=80';
 
 export default function ProviderComplaintsPage() {
   const [complaints,  setComplaints]  = useState([]);
@@ -46,44 +50,35 @@ export default function ProviderComplaintsPage() {
   }
 
   const statusColor = {
-    open:        'pending',
-    'in-review': 'active',
-    resolved:    'completed',
-    closed:      'cancelled',
+    SUBMITTED:       'pending',
+    UNDER_REVIEW:    'active',
+    RESOLVED:        'completed',
+    BAN_RECOMMENDED: 'active',
+    CLOSED:          'cancelled',
   };
 
   return (
     <div className="provider-page">
-      <div className="provider-page-header">
-        <div>
-          <h1 className="provider-page-title">Complaints</h1>
-          <p className="provider-page-subtitle">Report issues or concerns to the HomeHero team.</p>
-        </div>
-      </div>
+      <ProviderPageHero
+        title="Complaints"
+        subtitle="Report issues or concerns to the HomeHero team."
+        image={HERO_IMAGE}
+      />
 
       {/* Tabs */}
-      <div style={{ display: 'flex', gap: 'var(--space-sm)', marginBottom: 'var(--space-xl)', borderBottom: '2px solid var(--color-border)', paddingBottom: '-2px' }}>
+      <div className="provider-tabs">
         {[
-          { id: 'history', label: `My Complaints (${complaints.length})` },
-          { id: 'new',     label: '+ New Complaint' },
-        ].map(({ id, label }) => (
+          { id: 'history', label: 'My Complaints', count: complaints.length },
+          { id: 'new',     label: 'New Complaint' },
+        ].map(({ id, label, count }) => (
           <button
             key={id}
             type="button"
+            className={`provider-tab${tab === id ? ' active' : ''}`}
             onClick={() => { setTab(id); if (id === 'new') { setSubmitted(false); setSubmitError(''); } }}
-            style={{
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              padding: '10px 16px',
-              fontWeight: tab === id ? 700 : 500,
-              fontSize: 'var(--font-size-sm)',
-              color: tab === id ? 'var(--color-primary-700)' : 'var(--color-text-muted)',
-              borderBottom: tab === id ? '2px solid var(--color-primary-600)' : '2px solid transparent',
-              marginBottom: '-2px',
-            }}
           >
             {label}
+            {count != null && <span className="count">({count})</span>}
           </button>
         ))}
       </div>
@@ -96,7 +91,7 @@ export default function ProviderComplaintsPage() {
             <div className="provider-card">
               {complaints.length === 0 ? (
                 <div className="provider-empty-state">
-                  <div className="provider-empty-state-icon">📋</div>
+                  <div className="provider-empty-state-icon"><IconClipboardList size={24} /></div>
                   <p className="provider-empty-state-title">No complaints submitted</p>
                   <p className="provider-empty-state-desc">If you need to report an issue, use the "New Complaint" tab.</p>
                   <button type="button" className="btn btn-primary" onClick={() => setTab('new')}>
@@ -108,8 +103,9 @@ export default function ProviderComplaintsPage() {
                   <table className="provider-table">
                     <thead>
                       <tr>
-                        <th>Type</th>
-                        <th>Subject</th>
+                        <th>Complaint For</th>
+                        <th>Token</th>
+                        <th>Details</th>
                         <th>Submitted</th>
                         <th>Status</th>
                       </tr>
@@ -117,12 +113,13 @@ export default function ProviderComplaintsPage() {
                     <tbody>
                       {complaints.map((c) => (
                         <tr key={c.id}>
-                          <td>{c.type ?? '—'}</td>
-                          <td>{c.subject ?? '—'}</td>
-                          <td>{c.created_at ? new Date(c.created_at).toLocaleDateString() : '—'}</td>
+                          <td>{c.targetName ?? '—'}</td>
+                          <td>{c.targetToken ?? '—'}</td>
+                          <td style={{ maxWidth: 280 }}>{c.description ?? '—'}</td>
+                          <td>{c.createdAt ? new Date(c.createdAt).toLocaleDateString() : '—'}</td>
                           <td>
                             <span className={`provider-badge ${statusColor[c.status] ?? 'pending'}`}>
-                              {c.status ?? 'open'}
+                              {c.status?.replace('_', ' ') ?? 'Submitted'}
                             </span>
                           </td>
                         </tr>

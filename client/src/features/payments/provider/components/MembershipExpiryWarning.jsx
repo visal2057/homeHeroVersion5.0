@@ -1,3 +1,5 @@
+import { IconAlertCircle } from '../../../../components/common/icons.jsx';
+
 // A red/amber banner that appears only when the membership has expired or is
 // in its grace period, telling the provider to renew before they are forced
 // offline. Returns nothing (renders nothing) when the membership is healthy.
@@ -17,7 +19,7 @@ export default function MembershipExpiryWarning({ current }) {
 
   return (
     <div className={`mw ${stillInGrace ? 'mw-warn' : 'mw-danger'}`}>
-      <span className="mw-icon">⚠️</span>
+      <span className="mw-icon"><IconAlertCircle size={18} /></span>
       <div>
         {stillInGrace ? (
           <>

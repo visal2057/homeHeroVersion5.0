@@ -2,12 +2,17 @@ import { useState, useEffect } from 'react';
 import { axiosClient } from '../../../api/axiosClient.js';
 import { API_ENDPOINTS } from '../../../api/apiEndpoints.js';
 import { useAuth } from '../../../hooks/useAuth.js';
+import { IconAlertCircle } from '../../../components/common/icons.jsx';
 
-import OnlineStatusControl from '../components/OnlineStatusControl.jsx';
-import ProviderSummaryCard  from '../components/ProviderSummaryCard.jsx';
-import ProviderStatistics   from '../components/ProviderStatistics.jsx';
-import AcceptancePieChart   from '../components/AcceptancePieChart.jsx';
-import RecentRequests       from '../components/RecentRequests.jsx';
+import OnlineStatusControl   from '../components/OnlineStatusControl.jsx';
+import OfflineDateRangePicker from '../components/OfflineDateRangePicker.jsx';
+import ProviderSummaryCard   from '../components/ProviderSummaryCard.jsx';
+import ProviderStatistics    from '../components/ProviderStatistics.jsx';
+import AcceptancePieChart    from '../components/AcceptancePieChart.jsx';
+import RecentRequests        from '../components/RecentRequests.jsx';
+
+const DASHBOARD_HERO_IMAGE =
+  'https://images.unsplash.com/photo-1668189777890-495c36095340?auto=format&fit=crop&w=1600&q=80';
 
 export default function ProviderDashboardPage() {
   const { user } = useAuth();
@@ -18,16 +23,16 @@ export default function ProviderDashboardPage() {
   const [isOnline,         setIsOnline]         = useState(false);
   const [loading,          setLoading]          = useState(true);
   const [togglingStatus,   setTogglingStatus]   = useState(false);
-  const [announcements,    setAnnouncements]    = useState([]);
+  const [showOfflinePicker, setShowOfflinePicker] = useState(false);
+  const [statusError,      setStatusError]      = useState('');
 
   useEffect(() => {
     async function load() {
       try {
-        const [profileRes, statsRes, bookingsRes, announcementsRes] = await Promise.allSettled([
+        const [profileRes, statsRes, bookingsRes] = await Promise.allSettled([
           axiosClient.get(API_ENDPOINTS.PROVIDER.PROFILE),
           axiosClient.get(API_ENDPOINTS.PROVIDER.STATS),
           axiosClient.get(API_ENDPOINTS.PROVIDER.BOOKINGS + '?limit=5'),
-          axiosClient.get(API_ENDPOINTS.PROVIDER.ANNOUNCEMENTS),
         ]);
 
         if (profileRes.status === 'fulfilled') {
@@ -42,10 +47,6 @@ export default function ProviderDashboardPage() {
           const list = bookingsRes.value.data?.data ?? bookingsRes.value.data ?? [];
           setRecentRequests(Array.isArray(list) ? list : []);
         }
-        if (announcementsRes.status === 'fulfilled') {
-          const list = announcementsRes.value.data?.data ?? announcementsRes.value.data ?? [];
-          setAnnouncements(Array.isArray(list) ? list : []);
-        }
       } catch {
         // pages degrade gracefully — empty state is shown instead
       } finally {
@@ -55,82 +56,133 @@ export default function ProviderDashboardPage() {
     load();
   }, []);
 
-  async function handleToggleStatus() {
+  async function patchAvailability(manualOnline) {
     setTogglingStatus(true);
+    setStatusError('');
     try {
-      const next = !isOnline;
-      await axiosClient.patch(API_ENDPOINTS.PROVIDER.AVAILABILITY, { manualOnline: next });
-      setIsOnline(next);
+      await axiosClient.patch(API_ENDPOINTS.PROVIDER.AVAILABILITY, { manualOnline });
+      setIsOnline(manualOnline);
     } catch (err) {
-      alert(err?.response?.data?.message ?? 'Could not update availability. Please try again.');
+      setStatusError(err?.response?.data?.message ?? 'Could not update availability. Please try again.');
+    } finally {
+      setTogglingStatus(false);
+    }
+  }
+
+  function handleToggleStatus() {
+    if (isOnline) {
+      // Going offline opens the date-range picker instead of toggling immediately.
+      setShowOfflinePicker(true);
+      return;
+    }
+    patchAvailability(true);
+  }
+
+  async function handleConfirmOffline(dateKeys) {
+    setTogglingStatus(true);
+    setStatusError('');
+    try {
+      const { data } = await axiosClient.get(API_ENDPOINTS.PROVIDER.UNAVAILABLE_DATES);
+      const existing = data?.data ?? data ?? [];
+      const merged = [...new Set([...(Array.isArray(existing) ? existing : []), ...dateKeys])];
+      await axiosClient.put(API_ENDPOINTS.PROVIDER.UNAVAILABLE_DATES, { dates: merged });
+      await axiosClient.patch(API_ENDPOINTS.PROVIDER.AVAILABILITY, { manualOnline: false });
+      setIsOnline(false);
+      setShowOfflinePicker(false);
+    } catch (err) {
+      setStatusError(err?.response?.data?.message ?? 'Could not save unavailable dates. Please try again.');
     } finally {
       setTogglingStatus(false);
     }
   }
 
   const greetingName = profile?.fullName?.split(' ')[0] ?? user?.username ?? 'Provider';
+  const greeting = (() => {
+    const h = new Date().getHours();
+    if (h < 12) return 'Good morning';
+    if (h < 17) return 'Good afternoon';
+    return 'Good evening';
+  })();
+
+  const bookability = profile?.bookability;
+  const eligibleToGoOnline = Boolean(
+    bookability?.isVerified && bookability?.hasValidMembershipOrGrace && !bookability?.hasActiveBan
+  );
+  const ineligibleReason = bookability && !eligibleToGoOnline ? bookability.reason : null;
 
   return (
     <div className="provider-page">
-      {/* Greeting */}
-      <div className="provider-page-header">
-        <div>
-          <h1 className="provider-page-title">Welcome back, {greetingName} 👋</h1>
-          <p className="provider-page-subtitle">Here's what's happening with your business today.</p>
+      {/* Hero banner */}
+      <section className="provider-hero">
+        <div className="provider-hero-bg" style={{ backgroundImage: `url(${DASHBOARD_HERO_IMAGE})` }} role="img" aria-label="Service provider at work" />
+        <div className="provider-hero-overlay" aria-hidden="true" />
+        <div className="provider-hero-inner">
+          <div>
+            <h1 className="provider-hero-greeting">{greeting}, {greetingName}</h1>
+            <p className="provider-hero-sub">Here's what's happening with your business today.</p>
+          </div>
         </div>
-        <OnlineStatusControl
-          isOnline={isOnline}
-          onToggle={handleToggleStatus}
-          loading={togglingStatus}
-        />
-      </div>
+      </section>
 
-      {/* Announcements */}
-      {announcements.length > 0 && (
-        <div style={{ marginBottom: 'var(--space-xl)' }}>
-          {announcements.map((a) => (
-            <div key={a.id} className="provider-alert warning">
-              📢 <strong>{a.title}:</strong> {a.message}
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Stats */}
       {loading ? (
         <div className="provider-spinner-wrap"><div className="provider-spinner" /></div>
       ) : (
         <>
+          {/* Availability + Summary */}
+          <div className="provider-top-grid">
+            <div className="provider-card">
+              <div className="provider-card-header">
+                <h2 className="provider-card-title">Availability</h2>
+              </div>
+              <div className="provider-card-body">
+                {statusError && (
+                  <div className="provider-alert error">
+                    <IconAlertCircle size={16} /> {statusError}
+                  </div>
+                )}
+                <OnlineStatusControl
+                  isOnline={isOnline}
+                  eligible={eligibleToGoOnline}
+                  ineligibleReason={ineligibleReason}
+                  onToggle={handleToggleStatus}
+                  loading={togglingStatus}
+                />
+                {showOfflinePicker && (
+                  <OfflineDateRangePicker
+                    onConfirm={handleConfirmOffline}
+                    onCancel={() => setShowOfflinePicker(false)}
+                    saving={togglingStatus}
+                  />
+                )}
+              </div>
+            </div>
+
+            <ProviderSummaryCard profile={profile} />
+          </div>
+
+          {/* Stats */}
           <ProviderStatistics stats={stats} />
 
           <div className="provider-dashboard-grid">
             {/* Left column */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-xl)' }}>
-              {/* Recent Requests */}
-              <div className="provider-card">
-                <div className="provider-card-header">
-                  <h2 className="provider-card-title">Recent Booking Requests</h2>
-                </div>
-                <RecentRequests requests={recentRequests} />
+            <div className="provider-card">
+              <div className="provider-card-header">
+                <h2 className="provider-card-title">Recent Booking Requests</h2>
               </div>
+              <RecentRequests requests={recentRequests} />
             </div>
 
             {/* Right column */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-xl)' }}>
-              <ProviderSummaryCard profile={profile} />
-
-              {/* Acceptance chart */}
-              <div className="provider-card">
-                <div className="provider-card-header">
-                  <h2 className="provider-card-title">Request Acceptance</h2>
-                </div>
-                <div className="provider-card-body">
-                  <AcceptancePieChart
-                    accepted={stats?.accepted_bookings ?? 0}
-                    rejected={stats?.rejected_bookings ?? 0}
-                    pending={stats?.pending_requests   ?? 0}
-                  />
-                </div>
+            <div className="provider-card">
+              <div className="provider-card-header">
+                <h2 className="provider-card-title">Request Acceptance</h2>
+              </div>
+              <div className="provider-card-body">
+                <AcceptancePieChart
+                  accepted={stats?.accepted_bookings ?? 0}
+                  rejected={stats?.rejected_bookings ?? 0}
+                  pending={stats?.pending_requests   ?? 0}
+                />
               </div>
             </div>
           </div>

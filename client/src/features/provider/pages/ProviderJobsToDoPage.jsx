@@ -3,6 +3,9 @@ import { axiosClient } from '../../../api/axiosClient.js';
 import { API_ENDPOINTS } from '../../../api/apiEndpoints.js';
 import ProviderJobsTable       from '../components/ProviderJobsTable.jsx';
 import UnavailableDateCalendar from '../components/UnavailableDateCalendar.jsx';
+import ProviderPageHero        from '../components/ProviderPageHero.jsx';
+
+const HERO_IMAGE = 'https://images.unsplash.com/photo-1621905251918-48416bd8575a?auto=format&fit=crop&w=1600&q=80';
 
 export default function ProviderJobsToDoPage() {
   const [jobs,             setJobs]             = useState([]);
@@ -50,12 +53,11 @@ export default function ProviderJobsToDoPage() {
 
   return (
     <div className="provider-page">
-      <div className="provider-page-header">
-        <div>
-          <h1 className="provider-page-title">Jobs To Do</h1>
-          <p className="provider-page-subtitle">Accepted bookings you need to complete.</p>
-        </div>
-      </div>
+      <ProviderPageHero
+        title="Jobs To Do"
+        subtitle="Accepted bookings you need to complete."
+        image={HERO_IMAGE}
+      />
 
       {loading ? (
         <div className="provider-spinner-wrap"><div className="provider-spinner" /></div>
