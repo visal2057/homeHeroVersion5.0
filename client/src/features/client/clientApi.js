@@ -13,7 +13,7 @@ export const clientApi = {
   updateLocation: (data) => axiosClient.put('/client/profile/location', data),
   changePassword: (data) => axiosClient.put('/client/profile/password', data),
 
-  getAnnouncements: () => axiosClient.get('/client/announcements'),
+  getAnnouncements: () => axiosClient.get('/announcements/active'),
 
   getProvidersByCategory: (category, params) =>
     axiosClient.get(`/providers`, { params: { category, ...params } }),

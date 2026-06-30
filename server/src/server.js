@@ -4,8 +4,20 @@ import { startMembershipExpiryJob } from './jobs/membershipExpiry.job.js';
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`Server listening on http://localhost:${PORT}`);
-  // Background job (Module 4 - Visal): expire memberships + force offline after grace.
   startMembershipExpiryJob();
+});
+
+server.on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    console.error(
+      `\n[ERROR] Port ${PORT} is already in use.\n` +
+      `Another server process is still running. Stop it first:\n` +
+      `  Windows: Run "npx kill-port ${PORT}" or close the other terminal.\n`
+    );
+  } else {
+    console.error('[ERROR] Server failed to start:', err.message);
+  }
+  process.exit(1);
 });

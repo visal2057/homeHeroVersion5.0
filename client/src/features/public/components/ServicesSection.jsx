@@ -1,10 +1,21 @@
 import { useNavigate } from 'react-router-dom';
 import { SERVICE_CATEGORIES } from '../../../constants/serviceCategories.js';
 import { ROUTES } from '../../../constants/routes.js';
+import { useAuth } from '../../../hooks/useAuth.js';
+import { ROLES } from '../../../constants/roles.js';
 import ServiceCard from './ServiceCard.jsx';
 
 export default function ServicesSection() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+
+  function handleServiceClick(slug) {
+    if (user?.role === ROLES.CLIENT) {
+      navigate(ROUTES.CLIENT_EXPLORE.replace(':category', slug));
+    } else {
+      navigate(ROUTES.REGISTER_CLIENT);
+    }
+  }
 
   return (
     <section className="section hh-services-section">
@@ -26,9 +37,7 @@ export default function ServicesSection() {
               name={category.name}
               description={category.description}
               image={category.image}
-              onClick={() => navigate(ROUTES.REGISTER_CLIENT)}
-              // Each card gets a slightly longer delay than the one before
-              // it, so they animate in as a left-to-right wave.
+              onClick={() => handleServiceClick(category.slug)}
               animationDelayClass={`delay-${Math.min(index + 1, 5)}`}
             />
           ))}

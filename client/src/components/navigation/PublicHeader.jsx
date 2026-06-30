@@ -1,143 +1,374 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { ROUTES } from '../../constants/routes.js';
 import { useAuth } from '../../hooks/useAuth.js';
+import { ROLES } from '../../constants/roles.js';
+import { clientApi } from '../../features/client/clientApi.js';
+import {
+  IconHome, IconUser, IconClipboardList, IconFlag,
+  IconLogOut, IconChevronDown, IconBell,
+} from '../common/icons.jsx';
 
 const navLinkStyle = ({ isActive }) => ({
   color: isActive ? 'var(--color-primary-700)' : 'var(--color-secondary-700)',
   fontWeight: 600,
 });
 
+const POLL_INTERVAL_MS = 30_000; // refresh announcements every 30 s
+
 export default function PublicHeader() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
-  // Tracks whether the page has been scrolled down, so we can add a
-  // subtle shadow to the header once content starts passing behind it.
+  const isClient = user?.role === ROLES.CLIENT;
+
   const [isScrolled, setIsScrolled] = useState(false);
-
-  // Tracks whether the mobile hamburger menu is open. Only used on
-  // small screens; the CSS hides the toggle button on desktop.
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isAccountOpen, setIsAccountOpen] = useState(false);
+  const [isNotifOpen, setIsNotifOpen] = useState(false);
+  const [announcements, setAnnouncements] = useState([]);
+  const [readIds, setReadIds] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('hh_read_notifs') ?? '[]'); } catch { return []; }
+  });
 
+  const accountRef = useRef(null);
+  const notifRef = useRef(null);
+  const pollRef = useRef(null);
+
+  const initials = user
+    ? (user.firstName?.[0] ?? user.username?.[0] ?? 'U').toUpperCase()
+    : 'U';
+  const displayName = user?.firstName ?? user?.username ?? 'Account';
+  const fullName = user?.firstName
+    ? `${user.firstName} ${user.lastName ?? ''}`.trim()
+    : user?.username;
+
+  // Scroll shadow
   useEffect(() => {
-    function handleScroll() {
-      setIsScrolled(window.scrollY > 8);
-    }
+    function handleScroll() { setIsScrolled(window.scrollY > 8); }
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  function handleLogout() {
-    logout();
-    setIsMobileMenuOpen(false);
-    navigate(ROUTES.HOME);
+  // Close dropdowns on outside click
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (accountRef.current && !accountRef.current.contains(e.target)) setIsAccountOpen(false);
+      if (notifRef.current && !notifRef.current.contains(e.target)) setIsNotifOpen(false);
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Fetch announcements (called on mount and every POLL_INTERVAL_MS)
+  const fetchAnnouncements = useCallback(async () => {
+    if (!isClient) return;
+    try {
+      const res = await clientApi.getAnnouncements();
+      const list = res.data?.data?.announcements ?? res.data?.announcements ?? [];
+      setAnnouncements(list);
+
+      // If any previously "read" IDs are no longer in the active list, remove them to keep the store clean
+      setReadIds((prev) => {
+        const activeIds = list.map((a) => getId(a));
+        return prev.filter((id) => activeIds.includes(id));
+      });
+    } catch { /* non-critical */ }
+  }, [isClient]);
+
+  useEffect(() => {
+    fetchAnnouncements();
+    if (isClient) {
+      pollRef.current = setInterval(fetchAnnouncements, POLL_INTERVAL_MS);
+    }
+    return () => clearInterval(pollRef.current);
+  }, [fetchAnnouncements, isClient]);
+
+  function getId(a) {
+    return a.announcementId ?? a.announcement_id ?? a.id;
   }
 
-  function closeMobileMenu() {
+  function markRead(id) {
+    setReadIds((prev) => {
+      if (prev.includes(id)) return prev;
+      const next = [...prev, id];
+      localStorage.setItem('hh_read_notifs', JSON.stringify(next));
+      return next;
+    });
+  }
+
+  function markAllRead() {
+    const ids = announcements.map(getId);
+    localStorage.setItem('hh_read_notifs', JSON.stringify(ids));
+    setReadIds(ids);
+  }
+
+  const unreadCount = announcements.filter((a) => !readIds.includes(getId(a))).length;
+
+  function handleLogout() {
+    logout();
+    setIsAccountOpen(false);
     setIsMobileMenuOpen(false);
+    navigate(ROUTES.HOME, { replace: true });
+  }
+
+  function closeMobileMenu() { setIsMobileMenuOpen(false); }
+
+  function handleOpenNotif() {
+    setIsNotifOpen((v) => !v);
+    setIsAccountOpen(false);
   }
 
   return (
-    <header className={`public-header ${isScrolled ? 'public-header-scrolled' : ''}`}>
-      <div
-        className="container"
-        style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'var(--space-lg)' }}
-      >
-        <Link
-          to={ROUTES.HOME}
-          style={{
-            fontSize: 'var(--font-size-xl)',
-            fontWeight: 800,
-            color: 'var(--color-secondary-700)',
-          }}
-        >
-          HomeHero
-        </Link>
+    <>
+      <header className={`public-header ${isScrolled ? 'public-header-scrolled' : ''}`}>
+        <div className="container" style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'var(--space-lg)' }}>
+          <Link to={ROUTES.HOME} style={{ fontSize: 'var(--font-size-xl)', fontWeight: 800, color: 'var(--color-secondary-700)' }}>
+            HomeHero
+          </Link>
 
-        <nav className="public-header-nav">
-          <NavLink to={ROUTES.HOME} style={navLinkStyle} end>
-            Home
-          </NavLink>
-          <NavLink to={ROUTES.ABOUT} style={navLinkStyle}>
-            About Us
-          </NavLink>
-          <NavLink to={ROUTES.CAREERS} style={navLinkStyle}>
-            Careers
-          </NavLink>
-          <NavLink to={ROUTES.CONTACT} style={navLinkStyle}>
-            Contact Us
-          </NavLink>
-        </nav>
+          <nav className="public-header-nav">
+            <NavLink to={ROUTES.HOME} style={navLinkStyle} end>Home</NavLink>
+            <NavLink to={ROUTES.ABOUT} style={navLinkStyle}>About Us</NavLink>
+            <NavLink to={ROUTES.CAREERS} style={navLinkStyle}>Careers</NavLink>
+            <NavLink to={ROUTES.CONTACT} style={navLinkStyle}>Contact Us</NavLink>
+          </nav>
 
-        <div className="public-header-actions">
-          {user ? (
-            <>
-              <span style={{ fontWeight: 600, color: 'var(--color-secondary-700)' }}>{user.username}</span>
-              <button type="button" className="btn btn-outline" onClick={handleLogout}>
-                Logout
-              </button>
-            </>
-          ) : (
-            <>
-              <Link to={ROUTES.REGISTER_ROLE} className="btn btn-outline">
-                Sign Up
-              </Link>
-              <Link to={ROUTES.LOGIN} className="btn btn-primary">
-                Login
-              </Link>
-            </>
-          )}
+          <div className="public-header-actions">
+            {/* Notification bell — clients only */}
+            {isClient && (
+              <div ref={notifRef} style={{ position: 'relative' }}>
+                <button type="button" className="ph-bell-btn" aria-label="Notifications" onClick={handleOpenNotif}>
+                  <IconBell size={20} style={{ color: 'var(--color-secondary-700)' }} />
+                  {unreadCount > 0 && (
+                    <span className="ph-bell-badge">{unreadCount > 9 ? '9+' : unreadCount}</span>
+                  )}
+                </button>
+
+                {isNotifOpen && (
+                  <div className="ph-notif-dropdown animate-fade-in-up">
+                    <div className="ph-notif-header">
+                      <span className="ph-notif-title">Announcements</span>
+                      {unreadCount > 0 && (
+                        <button type="button" className="ph-notif-mark-read" onClick={markAllRead}>
+                          Mark all read
+                        </button>
+                      )}
+                    </div>
+                    {announcements.length === 0 ? (
+                      <div className="ph-notif-empty">No announcements at the moment.</div>
+                    ) : (
+                      <div className="ph-notif-list">
+                        {announcements.slice(0, 6).map((a) => {
+                          const id = getId(a);
+                          const isRead = readIds.includes(id);
+                          return (
+                            <div
+                              key={id}
+                              className={`ph-notif-item${isRead ? '' : ' ph-notif-item-unread'}`}
+                              onMouseEnter={() => markRead(id)}
+                              onClick={() => markRead(id)}
+                              role="button"
+                              tabIndex={0}
+                              onKeyDown={(e) => e.key === 'Enter' && markRead(id)}
+                            >
+                              {!isRead && <span className="ph-notif-dot" />}
+                              <div className="ph-notif-item-body">
+                                <div className="ph-notif-item-title">{a.title}</div>
+                                <div className="ph-notif-item-msg">{a.messageBody ?? a.message_body}</div>
+                                <div className="ph-notif-item-date">
+                                  {(a.publishedAt ?? a.published_at)
+                                    ? new Date(a.publishedAt ?? a.published_at).toLocaleDateString('en-LK', { day: 'numeric', month: 'short' })
+                                    : ''}
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {isClient ? (
+              <div ref={accountRef} style={{ position: 'relative' }}>
+                <button
+                  type="button"
+                  className="ph-avatar-btn"
+                  aria-label="Account menu"
+                  onClick={() => { setIsAccountOpen((v) => !v); setIsNotifOpen(false); }}
+                >
+                  <span className="ph-avatar-initials">{initials}</span>
+                  <span className="ph-avatar-name">{displayName}</span>
+                  <IconChevronDown size={14} style={{ color: 'var(--color-neutral-500)', flexShrink: 0 }} />
+                </button>
+
+                {isAccountOpen && (
+                  <div className="ph-dropdown animate-fade-in-up">
+                    <div className="ph-dropdown-header">
+                      <div className="ph-dropdown-fullname">{fullName}</div>
+                      <div className="ph-dropdown-email">{user?.email}</div>
+                    </div>
+                    <Link to={ROUTES.HOME} className="ph-dropdown-item" onClick={() => setIsAccountOpen(false)}>
+                      <IconHome size={16} /> Home
+                    </Link>
+                    <Link to={ROUTES.CLIENT_PROFILE} className="ph-dropdown-item" onClick={() => setIsAccountOpen(false)}>
+                      <IconUser size={16} /> My Profile
+                    </Link>
+                    <Link to={ROUTES.CLIENT_MY_BOOKINGS} className="ph-dropdown-item" onClick={() => setIsAccountOpen(false)}>
+                      <IconClipboardList size={16} /> My Bookings
+                    </Link>
+                    <Link to={ROUTES.CLIENT_COMPLAINTS} className="ph-dropdown-item" onClick={() => setIsAccountOpen(false)}>
+                      <IconFlag size={16} /> Complaints
+                    </Link>
+                    <div className="ph-dropdown-divider" />
+                    <button type="button" className="ph-dropdown-item ph-dropdown-logout" onClick={handleLogout}>
+                      <IconLogOut size={16} /> Logout
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : user ? (
+              <>
+                <span style={{ fontWeight: 600, color: 'var(--color-secondary-700)' }}>{user.username}</span>
+                <button type="button" className="btn btn-outline" onClick={handleLogout}>Logout</button>
+              </>
+            ) : (
+              <>
+                <Link to={ROUTES.REGISTER_ROLE} className="btn btn-outline">Sign Up</Link>
+                <Link to={ROUTES.LOGIN} className="btn btn-primary">Login</Link>
+              </>
+            )}
+          </div>
+
+          <button
+            type="button"
+            className="public-header-toggle"
+            aria-label="Toggle navigation menu"
+            aria-expanded={isMobileMenuOpen}
+            onClick={() => setIsMobileMenuOpen((open) => !open)}
+          >
+            <span /><span /><span />
+          </button>
         </div>
 
-        {/* Hamburger button - only shown on small screens via CSS. */}
-        <button
-          type="button"
-          className="public-header-toggle"
-          aria-label="Toggle navigation menu"
-          aria-expanded={isMobileMenuOpen}
-          onClick={() => setIsMobileMenuOpen((open) => !open)}
-        >
-          <span />
-          <span />
-          <span />
-        </button>
-      </div>
+        {isMobileMenuOpen && (
+          <div className="public-header-mobile-menu animate-fade-in-up">
+            <NavLink to={ROUTES.HOME} onClick={closeMobileMenu} end>Home</NavLink>
+            <NavLink to={ROUTES.ABOUT} onClick={closeMobileMenu}>About Us</NavLink>
+            <NavLink to={ROUTES.CAREERS} onClick={closeMobileMenu}>Careers</NavLink>
+            <NavLink to={ROUTES.CONTACT} onClick={closeMobileMenu}>Contact Us</NavLink>
+            <hr />
+            {isClient ? (
+              <>
+                <Link to={ROUTES.CLIENT_PROFILE} onClick={closeMobileMenu} className="btn btn-outline btn-block" style={{ marginBottom: 8 }}>My Profile</Link>
+                <Link to={ROUTES.CLIENT_MY_BOOKINGS} onClick={closeMobileMenu} className="btn btn-outline btn-block" style={{ marginBottom: 8 }}>My Bookings</Link>
+                <Link to={ROUTES.CLIENT_COMPLAINTS} onClick={closeMobileMenu} className="btn btn-outline btn-block" style={{ marginBottom: 8 }}>Complaints</Link>
+                <button type="button" className="btn btn-outline btn-block" onClick={handleLogout}>Logout</button>
+              </>
+            ) : user ? (
+              <button type="button" className="btn btn-outline btn-block" onClick={handleLogout}>Logout</button>
+            ) : (
+              <>
+                <Link to={ROUTES.REGISTER_ROLE} className="btn btn-outline btn-block" onClick={closeMobileMenu}>Sign Up</Link>
+                <Link to={ROUTES.LOGIN} className="btn btn-primary btn-block" onClick={closeMobileMenu}>Login</Link>
+              </>
+            )}
+          </div>
+        )}
+      </header>
 
-      {/* Mobile dropdown menu: same links as the desktop nav, stacked
-          vertically. Only rendered when open, and only visible on
-          small screens (the CSS hides it above the mobile breakpoint). */}
-      {isMobileMenuOpen && (
-        <div className="public-header-mobile-menu animate-fade-in-up">
-          <NavLink to={ROUTES.HOME} onClick={closeMobileMenu} end>
-            Home
-          </NavLink>
-          <NavLink to={ROUTES.ABOUT} onClick={closeMobileMenu}>
-            About Us
-          </NavLink>
-          <NavLink to={ROUTES.CAREERS} onClick={closeMobileMenu}>
-            Careers
-          </NavLink>
-          <NavLink to={ROUTES.CONTACT} onClick={closeMobileMenu}>
-            Contact Us
-          </NavLink>
-          <hr />
-          {user ? (
-            <button type="button" className="btn btn-outline btn-block" onClick={handleLogout}>
-              Logout
-            </button>
-          ) : (
-            <>
-              <Link to={ROUTES.REGISTER_ROLE} className="btn btn-outline btn-block" onClick={closeMobileMenu}>
-                Sign Up
-              </Link>
-              <Link to={ROUTES.LOGIN} className="btn btn-primary btn-block" onClick={closeMobileMenu}>
-                Login
-              </Link>
-            </>
-          )}
-        </div>
-      )}
-    </header>
+      <style>{`
+        .ph-bell-btn {
+          position: relative; background: none; border: none; cursor: pointer;
+          padding: 8px; border-radius: var(--radius-md);
+          transition: background var(--transition-base);
+          display: flex; align-items: center; justify-content: center;
+        }
+        .ph-bell-btn:hover { background: var(--color-neutral-100); }
+        .ph-bell-badge {
+          position: absolute; top: 2px; right: 2px;
+          background: #dc2626; color: white; font-size: 9px; font-weight: 700;
+          min-width: 16px; height: 16px; border-radius: 8px;
+          display: flex; align-items: center; justify-content: center;
+          padding: 0 3px; border: 2px solid white;
+        }
+        .ph-notif-dropdown {
+          position: absolute; top: calc(100% + 10px); right: 0;
+          background: white; border-radius: var(--radius-lg);
+          box-shadow: 0 12px 40px rgba(0,0,0,0.13), 0 2px 8px rgba(0,0,0,0.06);
+          border: 1px solid var(--color-neutral-150, #e8ecf0);
+          overflow: hidden; z-index: 1000; min-width: 300px; max-width: 340px;
+        }
+        .ph-notif-header {
+          display: flex; justify-content: space-between; align-items: center;
+          padding: 14px 16px; background: var(--color-primary-50);
+          border-bottom: 1px solid var(--color-neutral-100);
+        }
+        .ph-notif-title { font-weight: 700; font-size: var(--font-size-sm); color: var(--color-secondary-700); }
+        .ph-notif-mark-read {
+          background: none; border: none; cursor: pointer; font-size: var(--font-size-xs);
+          color: var(--color-primary-600); font-weight: 600; font-family: inherit; padding: 0;
+        }
+        .ph-notif-mark-read:hover { color: var(--color-primary-700); }
+        .ph-notif-empty { padding: 20px 16px; text-align: center; color: var(--color-neutral-400); font-size: var(--font-size-sm); }
+        .ph-notif-list { max-height: 320px; overflow-y: auto; }
+        .ph-notif-item {
+          display: flex; gap: 10px; align-items: flex-start;
+          padding: 12px 16px; border-bottom: 1px solid var(--color-neutral-100);
+          transition: background var(--transition-base); cursor: pointer;
+        }
+        .ph-notif-item:last-child { border-bottom: none; }
+        .ph-notif-item:hover { background: var(--color-neutral-50); }
+        .ph-notif-item-unread { background: var(--color-primary-50); }
+        .ph-notif-item-unread:hover { background: var(--color-primary-100); }
+        .ph-notif-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--color-primary-600); flex-shrink: 0; margin-top: 5px; }
+        .ph-notif-item-body { flex: 1; min-width: 0; }
+        .ph-notif-item-title { font-weight: 700; font-size: var(--font-size-sm); color: var(--color-secondary-700); margin-bottom: 2px; }
+        .ph-notif-item-msg { font-size: var(--font-size-xs); color: var(--color-neutral-600); line-height: 1.5; margin-bottom: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .ph-notif-item-date { font-size: var(--font-size-xs); color: var(--color-neutral-400); }
+        .ph-avatar-btn {
+          background: none; border: 2px solid var(--color-primary-200); cursor: pointer;
+          display: flex; align-items: center; gap: 8px;
+          padding: 4px 12px 4px 4px; border-radius: var(--radius-full);
+          transition: border-color var(--transition-base), background var(--transition-base); font-family: inherit;
+        }
+        .ph-avatar-btn:hover { border-color: var(--color-primary-500); background: var(--color-primary-50); }
+        .ph-avatar-initials {
+          width: 34px; height: 34px; border-radius: 50%;
+          background: var(--color-primary-600); color: white;
+          display: flex; align-items: center; justify-content: center;
+          font-weight: 700; font-size: var(--font-size-sm); flex-shrink: 0;
+        }
+        .ph-avatar-name {
+          font-weight: 600; font-size: var(--font-size-sm); color: var(--color-secondary-700);
+          max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .ph-dropdown {
+          position: absolute; top: calc(100% + 10px); right: 0;
+          background: white; border-radius: var(--radius-lg);
+          box-shadow: 0 12px 40px rgba(0,0,0,0.13), 0 2px 8px rgba(0,0,0,0.06);
+          border: 1px solid var(--color-neutral-150, #e8ecf0);
+          overflow: hidden; z-index: 1000; min-width: 230px;
+        }
+        .ph-dropdown-header { padding: 15px 18px; background: var(--color-primary-50); border-bottom: 1px solid var(--color-neutral-100); }
+        .ph-dropdown-fullname { font-weight: 700; font-size: var(--font-size-sm); color: var(--color-secondary-700); margin-bottom: 2px; }
+        .ph-dropdown-email { font-size: var(--font-size-xs); color: var(--color-neutral-400); }
+        .ph-dropdown-item {
+          display: flex; align-items: center; gap: 10px; padding: 12px 18px;
+          color: var(--color-neutral-700); font-size: var(--font-size-sm); font-weight: 500;
+          text-decoration: none; transition: background var(--transition-base), color var(--transition-base);
+          cursor: pointer; border: none; background: none; width: 100%;
+          text-align: left; font-family: inherit;
+        }
+        .ph-dropdown-item:hover { background: var(--color-primary-50); color: var(--color-primary-700); }
+        .ph-dropdown-item::after { display: none; }
+        .ph-dropdown-divider { height: 1px; background: var(--color-neutral-100); margin: 4px 0; }
+        .ph-dropdown-logout { color: #dc2626; }
+        .ph-dropdown-logout:hover { background: #fef2f2; color: #dc2626; }
+      `}</style>
+    </>
   );
 }

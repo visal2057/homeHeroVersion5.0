@@ -15,6 +15,11 @@ import {
   updateLocationHandler,
   changePasswordHandler,
 } from './client.controller.js';
+import {
+  submitClientComplaintHandler,
+  listClientComplaintsHandler,
+} from '../complaints/clientComplaint.controller.js';
+import { listActiveAnnouncementsHandler } from '../announcements/announcement.controller.js';
 
 const router = Router();
 
@@ -25,5 +30,10 @@ router.put('/profile', validateRequest(updateClientProfileSchema), updateProfile
 router.put('/profile/image', uploadProfileImage, updateProfileImageHandler);
 router.put('/profile/location', validateRequest(updateClientLocationSchema), updateLocationHandler);
 router.put('/profile/password', validateRequest(changeClientPasswordSchema), changePasswordHandler);
+
+router.get('/complaints', listClientComplaintsHandler);
+router.post('/complaints', submitClientComplaintHandler);
+
+router.get('/announcements', listActiveAnnouncementsHandler);
 
 export default router;

@@ -7,9 +7,8 @@ import PaymentMethodSelector from '../components/PaymentMethodSelector.jsx';
 import PayeeDetails from '../components/PayeeDetails.jsx';
 import CashPaymentConfirmation from '../components/CashPaymentConfirmation.jsx';
 import CardPaymentForm from '../components/CardPaymentForm.jsx';
+import { IconCreditCard } from '../../../../components/common/icons.jsx';
 
-// Mock data so the page still renders while the backend is not built yet.
-// (Same try-API / fall-back-to-mock pattern used in MyBookingsPage.)
 const MOCK_CONTEXT = {
   bookingId: '1',
   providerName: 'Nimal Perera',
@@ -25,39 +24,33 @@ const MOCK_CONTEXT = {
 };
 
 export default function BookingPaymentPage() {
-  // The booking id comes from the URL: /client/bookings/:bookingId/pay
   const { bookingId } = useParams();
   const navigate = useNavigate();
 
   const [context, setContext] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [method, setMethod] = useState('');   // 'CASH' | 'CARD' | ''
-  const [step, setStep] = useState('select'); // 'select' | 'cash' | 'card'
+  const [method, setMethod] = useState('');
+  const [step, setStep] = useState('select');
 
-  // Load the booking details this page needs.
   const loadContext = useCallback(async () => {
     setLoading(true);
     try {
       const res = await clientPaymentApi.getPaymentContext(bookingId);
       setContext(res.data?.data ?? res.data);
     } catch {
-      setContext(MOCK_CONTEXT); // backend not ready -> show mock so we can demo
+      setContext(MOCK_CONTEXT);
     } finally {
       setLoading(false);
     }
   }, [bookingId]);
 
-  useEffect(() => {
-    loadContext();
-  }, [loadContext]);
+  useEffect(() => { loadContext(); }, [loadContext]);
 
-  // Move from method selection into the chosen flow.
   const handleProceed = () => {
     if (method === 'CASH') setStep('cash');
     if (method === 'CARD') setStep('card');
   };
 
-  // Both flows call this once payment succeeds -> go to the review page.
   const goToReview = () => {
     navigate(ROUTES.CLIENT_BOOKING_REVIEW.replace(':bookingId', bookingId));
   };
@@ -73,60 +66,101 @@ export default function BookingPaymentPage() {
   }
 
   return (
-    <div style={{ padding: 'var(--space-2xl) 0' }}>
-      <div className="container bp-grid">
-        {/* Left: the booking facts, always visible */}
-        <PaymentSummary context={context} />
+    <div className="bp-page">
+      {/* Hero */}
+      <div className="bp-hero">
+        <div className="bp-hero-overlay" />
+        <div className="container" style={{ position: 'relative', zIndex: 1 }}>
+          <div className="bp-hero-inner">
+            <div className="bp-hero-icon">
+              <IconCreditCard size={32} style={{ color: 'white' }} />
+            </div>
+            <div>
+              <div className="hh-eyebrow" style={{ color: 'rgba(255,255,255,0.75)', marginBottom: 6 }}>Payment</div>
+              <h1 className="bp-hero-title">Complete Your Payment</h1>
+              <p className="bp-hero-sub">
+                Booking <span style={{ fontFamily: 'monospace', fontWeight: 700 }}>#{bookingId}</span>
+                {context?.providerName ? ` · ${context.providerName}` : ''}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
 
-        {/* Right: changes depending on which step we are on */}
-        <div className="bp-main">
-          {step === 'select' && (
-            <>
-              <PaymentMethodSelector value={method} onChange={setMethod} />
+      <div className="container bp-body">
+        <div className="bp-grid">
+          <PaymentSummary context={context} />
 
-              {/* Payee bank details only matter for a card payment */}
-              {method === 'CARD' && (
-                <div style={{ marginTop: 'var(--space-lg)' }}>
-                  <PayeeDetails payee={context.payee} />
-                </div>
-              )}
+          <div className="bp-main">
+            {step === 'select' && (
+              <>
+                <PaymentMethodSelector value={method} onChange={setMethod} />
+                {method === 'CARD' && (
+                  <div style={{ marginTop: 'var(--space-lg)' }}>
+                    <PayeeDetails payee={context.payee} />
+                  </div>
+                )}
+                <button
+                  type="button"
+                  className="bp-proceed"
+                  disabled={!method}
+                  onClick={handleProceed}
+                >
+                  Proceed
+                </button>
+              </>
+            )}
 
-              <button
-                type="button"
-                className="bp-proceed"
-                disabled={!method}
-                onClick={handleProceed}
-              >
-                Proceed
-              </button>
-            </>
-          )}
+            {step === 'cash' && (
+              <CashPaymentConfirmation
+                context={context}
+                onCancel={() => setStep('select')}
+                onPaid={goToReview}
+              />
+            )}
 
-          {step === 'cash' && (
-            <CashPaymentConfirmation
-              context={context}
-              onCancel={() => setStep('select')}
-              onPaid={goToReview}
-            />
-          )}
-
-          {step === 'card' && (
-            <CardPaymentForm
-              context={context}
-              onCancel={() => setStep('select')}
-              onPaid={goToReview}
-            />
-          )}
+            {step === 'card' && (
+              <CardPaymentForm
+                context={context}
+                onCancel={() => setStep('select')}
+                onPaid={goToReview}
+              />
+            )}
+          </div>
         </div>
       </div>
 
       <style>{`
+        .bp-page { padding-bottom: var(--space-2xl); }
+        .bp-hero {
+          position: relative;
+          background-image: url('https://images.unsplash.com/photo-1563013544-824ae1b704d3?auto=format&fit=crop&w=2000&q=80');
+          background-size: cover; background-position: center; padding: 56px 0;
+        }
+        .bp-hero-overlay {
+          position: absolute; inset: 0;
+          background: linear-gradient(135deg, rgba(15,45,25,0.60) 0%, rgba(21,128,61,0.42) 100%);
+        }
+        .bp-hero-inner { display: flex; align-items: center; gap: var(--space-xl); }
+        .bp-hero-icon {
+          width: 64px; height: 64px; border-radius: var(--radius-lg);
+          background: rgba(255,255,255,0.15); backdrop-filter: blur(8px);
+          display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+          border: 1px solid rgba(255,255,255,0.25);
+        }
+        .bp-hero-title { font-size: var(--font-size-3xl); font-weight: 800; color: white; margin-bottom: 6px; }
+        .bp-hero-sub { color: rgba(255,255,255,0.8); font-size: var(--font-size-lg); margin: 0; }
+        .bp-body { padding-top: var(--space-2xl); }
         .bp-grid { display: grid; grid-template-columns: 1fr 1.2fr; gap: var(--space-xl); align-items: start; }
+        @media (max-width: 800px) { .bp-grid { grid-template-columns: 1fr; } }
         .bp-main { background: white; border: 1px solid var(--color-neutral-200); border-radius: var(--radius-lg); padding: var(--space-xl); }
-        .bp-proceed { margin-top: var(--space-xl); width: 100%; padding: 12px; background: var(--color-primary-600); color: white; border: none; border-radius: var(--radius-md); font-weight: 600; font-size: var(--font-size-base); cursor: pointer; }
+        .bp-proceed {
+          margin-top: var(--space-xl); width: 100%; padding: 12px;
+          background: var(--color-primary-600); color: white; border: none;
+          border-radius: var(--radius-md); font-weight: 600; font-size: var(--font-size-base); cursor: pointer;
+        }
         .bp-proceed:hover { background: var(--color-primary-700); }
         .bp-proceed:disabled { background: var(--color-neutral-300); cursor: not-allowed; }
-        @media (max-width: 800px) { .bp-grid { grid-template-columns: 1fr; } }
       `}</style>
     </div>
   );

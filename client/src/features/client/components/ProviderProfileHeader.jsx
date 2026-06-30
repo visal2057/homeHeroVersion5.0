@@ -1,6 +1,22 @@
 import { Link } from 'react-router-dom';
 import { ROUTES } from '../../../constants/routes.js';
 import { getAssetUrl } from '../../../utils/storageUtils.js';
+import { IconMapPin, IconToolbox, IconDollarSign, IconCalendar } from '../../../components/common/icons.jsx';
+
+const CATEGORY_IMAGES = {
+  gardening:  'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?auto=format&fit=crop&w=2000&q=80',
+  cleaning:   'https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=2000&q=80',
+  'pet-care': 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&w=2000&q=80',
+  plumbing:   'https://images.unsplash.com/photo-1607472586893-edb57bdc0e39?auto=format&fit=crop&w=2000&q=80',
+  'ac-repair':'https://images.unsplash.com/photo-1621905251918-48416bd8575a?auto=format&fit=crop&w=2000&q=80',
+};
+const DEFAULT_BANNER = 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=2000&q=80';
+
+function getBannerImage(category) {
+  if (!category) return DEFAULT_BANNER;
+  const key = category.toLowerCase().replace(/\s+/g, '-');
+  return CATEGORY_IMAGES[key] ?? DEFAULT_BANNER;
+}
 
 const DISTRICTS = {
   colombo: 'Colombo', gampaha: 'Gampaha', kandy: 'Kandy', galle: 'Galle',
@@ -10,10 +26,12 @@ const DISTRICTS = {
 function StarRating({ rating, count }) {
   const filled = Math.round(rating ?? 0);
   return (
-    <span>
-      <span style={{ color: '#f59e0b', fontSize: '1.1rem' }}>{'★'.repeat(filled)}{'☆'.repeat(5 - filled)}</span>
-      <span style={{ marginLeft: 8, color: 'var(--color-neutral-500)', fontSize: 'var(--font-size-sm)' }}>
-        {rating > 0 ? `${Number(rating).toFixed(1)} (${count ?? 0} reviews)` : 'No reviews yet'}
+    <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+      <span style={{ color: '#f59e0b', letterSpacing: '-1px' }}>
+        {'★'.repeat(filled)}{'☆'.repeat(5 - filled)}
+      </span>
+      <span style={{ color: 'var(--color-neutral-500)', fontSize: 'var(--font-size-sm)' }}>
+        {rating > 0 ? `${Number(rating).toFixed(1)} (${count ?? 0})` : 'No reviews yet'}
       </span>
     </span>
   );
@@ -21,12 +39,19 @@ function StarRating({ rating, count }) {
 
 export default function ProviderProfileHeader({ provider }) {
   const bookingHref = ROUTES.CLIENT_BOOKING_CONFIRM.replace(':providerId', provider.providerId ?? provider.id);
+  const bannerImage = getBannerImage(provider.category);
+  const districtLabel = DISTRICTS[provider.district?.toLowerCase()] ?? provider.district;
 
   return (
     <div className="pph-wrap">
-      <div className="pph-banner" />
+      {/* Category-matched banner */}
+      <div className="pph-banner" style={{ backgroundImage: `url(${bannerImage})` }}>
+        <div className="pph-banner-overlay" />
+      </div>
+
       <div className="container">
         <div className="pph-card">
+          {/* Avatar overlapping banner */}
           <div className="pph-avatar-wrap">
             <div className="pph-avatar">
               {provider.profilePhoto
@@ -34,23 +59,51 @@ export default function ProviderProfileHeader({ provider }) {
                 : <span>{(provider.name ?? 'P')[0].toUpperCase()}</span>}
             </div>
             {provider.isVerified && (
-              <span className="pph-badge">✓ Verified</span>
+              <span className="pph-badge">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <path d="M20 6L9 17l-5-5"/>
+                </svg>
+                Verified
+              </span>
             )}
           </div>
+
+          {/* Info */}
           <div className="pph-info">
             <h1 className="pph-name">{provider.name}</h1>
             <div className="pph-meta">
-              <span>📍 {DISTRICTS[provider.district] ?? provider.district}</span>
-              {provider.category && <span>🛠️ {provider.category}</span>}
-              {provider.hourlyRate && <span>💰 Rs. {provider.hourlyRate}/hr</span>}
+              {districtLabel && (
+                <span className="pph-meta-item">
+                  <IconMapPin size={13} style={{ color: 'var(--color-neutral-400)' }} />
+                  {districtLabel}
+                </span>
+              )}
+              {provider.category && (
+                <span className="pph-meta-item">
+                  <IconToolbox size={13} style={{ color: 'var(--color-neutral-400)' }} />
+                  {provider.category}
+                </span>
+              )}
+              {provider.hourlyRate && (
+                <span className="pph-meta-item">
+                  <IconDollarSign size={13} style={{ color: 'var(--color-neutral-400)' }} />
+                  Rs. {provider.hourlyRate}/hr
+                </span>
+              )}
             </div>
             <StarRating rating={provider.averageRating} count={provider.reviewCount} />
-            {provider.bio && <p className="pph-bio">{provider.bio}</p>}
           </div>
+
+          {/* CTA */}
           <div className="pph-actions">
-            <Link to={bookingHref} className="btn btn-primary btn-shine pph-book-btn">
-              Book Now
-            </Link>
+            {provider.isAvailable !== false ? (
+              <Link to={bookingHref} className="btn btn-primary btn-shine pph-book-btn">
+                <IconCalendar size={16} style={{ marginRight: 6 }} />
+                Book Now
+              </Link>
+            ) : (
+              <span className="pph-unavailable">Currently Unavailable</span>
+            )}
           </div>
         </div>
       </div>
@@ -58,20 +111,21 @@ export default function ProviderProfileHeader({ provider }) {
       <style>{`
         .pph-wrap { background: white; border-bottom: 1px solid var(--color-neutral-200); }
         .pph-banner {
-          height: 160px;
-          background: linear-gradient(135deg, var(--color-secondary-700) 0%, var(--color-primary-600) 100%);
+          height: 200px; background-size: cover; background-position: center;
+          position: relative;
+        }
+        .pph-banner-overlay {
+          position: absolute; inset: 0;
+          background: linear-gradient(160deg, rgba(15,45,25,0.52) 0%, rgba(21,128,61,0.35) 100%);
         }
         .pph-card {
-          display: flex; gap: var(--space-xl); align-items: flex-end;
+          display: flex; gap: var(--space-xl); align-items: center;
           padding: 0 0 var(--space-xl);
-          flex-wrap: wrap;
         }
-        .pph-avatar-wrap {
-          position: relative; margin-top: -50px; flex-shrink: 0;
-        }
+        .pph-avatar-wrap { position: relative; margin-top: -52px; flex-shrink: 0; }
         .pph-avatar {
-          width: 120px; height: 120px; border-radius: 50%;
-          border: 4px solid white; box-shadow: var(--shadow-md);
+          width: 110px; height: 110px; border-radius: 50%;
+          border: 4px solid white; box-shadow: 0 4px 14px rgba(0,0,0,0.12);
           background: var(--color-primary-100); overflow: hidden;
           display: flex; align-items: center; justify-content: center;
           font-size: 2.5rem; font-weight: 700; color: var(--color-primary-700);
@@ -80,15 +134,22 @@ export default function ProviderProfileHeader({ provider }) {
         .pph-badge {
           position: absolute; bottom: 4px; right: 4px;
           background: var(--color-primary-600); color: white;
-          font-size: 11px; font-weight: 600; padding: 2px 8px;
+          font-size: 10px; font-weight: 700; padding: 2px 8px;
           border-radius: var(--radius-full); border: 2px solid white;
+          display: flex; align-items: center; gap: 3px;
         }
-        .pph-info { flex: 1; padding-bottom: 4px; }
+        .pph-info { flex: 1; padding-top: 8px; min-width: 0; }
         .pph-name { font-size: var(--font-size-2xl); font-weight: 800; color: var(--color-secondary-700); margin-bottom: 8px; }
-        .pph-meta { display: flex; gap: var(--space-lg); flex-wrap: wrap; font-size: var(--font-size-sm); color: var(--color-neutral-500); margin-bottom: 8px; }
-        .pph-bio { color: var(--color-neutral-600); margin-top: 10px; max-width: 600px; }
-        .pph-actions { padding-bottom: 4px; }
-        .pph-book-btn { padding: 12px 32px; font-size: var(--font-size-lg); }
+        .pph-meta { display: flex; gap: var(--space-md); flex-wrap: wrap; margin-bottom: 10px; }
+        .pph-meta-item { display: flex; align-items: center; gap: 5px; font-size: var(--font-size-sm); color: var(--color-neutral-500); }
+        .pph-actions { flex-shrink: 0; }
+        .pph-book-btn { display: flex; align-items: center; padding: 12px 28px; font-size: var(--font-size-base); }
+        .pph-unavailable { padding: 10px 20px; border-radius: var(--radius-md); background: var(--color-neutral-100); color: var(--color-neutral-500); font-size: var(--font-size-sm); font-weight: 600; }
+        @media (max-width: 640px) {
+          .pph-card { flex-wrap: wrap; }
+          .pph-actions { width: 100%; }
+          .pph-book-btn { width: 100%; justify-content: center; }
+        }
       `}</style>
     </div>
   );
