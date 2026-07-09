@@ -11,4 +11,9 @@ export const API_ENDPOINTS = {
     PROVIDER: '/registration/provider',
   },
   CONTACT: '/contact',
+  INVOICES: {
+    FORM: (bookingId) => `/invoices/${bookingId}/form`,
+    GENERATE: (bookingId) => `/invoices/${bookingId}`,
+    DOWNLOAD: (bookingId) => `/invoices/${bookingId}/download`,
+  },
 };
