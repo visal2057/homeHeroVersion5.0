@@ -63,6 +63,19 @@ export async function applyBan({ userId, imposedByUserId, banType, endsAt, reaso
   }
 }
 
+// Flips any temporary ban past its end date back out of ACTIVE, so a banned
+// user regains access without a System Admin manually unbanning them
+// (spec §3.5 / clarification #11). Permanent bans (ends_at IS NULL) never
+// match. Returns the affected rows so the caller can audit-log each one.
+export function expireDueTemporaryBans() {
+  return query(
+    `UPDATE user_bans
+     SET ban_status = 'EXPIRED'
+     WHERE ban_status = 'ACTIVE' AND ban_type = 'TEMPORARY' AND ends_at <= now()
+     RETURNING user_ban_id, user_id, ends_at, reason`,
+  );
+}
+
 export function revokeBan(userBanId, revokedByUserId) {
   return query(
     `UPDATE user_bans SET ban_status = 'REVOKED', revoked_by_user_id = $1, revoked_at = now()
