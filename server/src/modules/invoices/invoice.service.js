@@ -108,7 +108,7 @@ export async function generateInvoice(bookingId, providerUserId, input) {
       providerUserId,
       paymentMethod: booking.payment_method,
       amount,
-      pdfStoragePath: absolutePath,
+      storagePath: absolutePath,
     });
     invoice = rows[0];
   } catch (err) {
@@ -151,9 +151,9 @@ export async function getInvoiceDownload(bookingId, requestingUser) {
     throw new AppError('You do not have permission to access this invoice', 403);
   }
 
-  if (!fs.existsSync(invoice.pdf_storage_path)) {
+  if (!fs.existsSync(invoice.storage_path)) {
     throw new AppError('The invoice file could not be found', 404);
   }
 
-  return { storagePath: invoice.pdf_storage_path, fileName: `invoice-${invoice.booking_id}.pdf` };
+  return { storagePath: invoice.storage_path, fileName: `invoice-${invoice.booking_id}.pdf` };
 }
