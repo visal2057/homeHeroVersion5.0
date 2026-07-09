@@ -913,6 +913,36 @@ ALTER TABLE public.membership_pricing_rules ALTER COLUMN membership_pricing_rule
 
 
 --
+-- Name: notifications; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.notifications (
+    notification_id bigint NOT NULL,
+    recipient_user_id bigint NOT NULL,
+    title character varying(150) NOT NULL,
+    message text NOT NULL,
+    related_type character varying(40),
+    related_id bigint,
+    is_read boolean DEFAULT false NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: notifications_notification_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.notifications ALTER COLUMN notification_id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME public.notifications_notification_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
 -- Name: password_reset_tokens; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -993,6 +1023,36 @@ CREATE TABLE public.portfolio_posts (
 
 ALTER TABLE public.portfolio_posts ALTER COLUMN portfolio_post_id ADD GENERATED ALWAYS AS IDENTITY (
     SEQUENCE NAME public.portfolio_posts_portfolio_post_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: provider_earnings; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.provider_earnings (
+    provider_earning_id bigint NOT NULL,
+    booking_payment_id bigint NOT NULL,
+    provider_user_id bigint NOT NULL,
+    amount numeric(12,2) NOT NULL,
+    currency_code character(3) DEFAULT 'LKR'::bpchar NOT NULL,
+    recognized_at timestamp with time zone NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT provider_earnings_amount_check CHECK ((amount > (0)::numeric))
+);
+
+
+--
+-- Name: provider_earnings_provider_earning_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.provider_earnings ALTER COLUMN provider_earning_id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME public.provider_earnings_provider_earning_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -1777,6 +1837,14 @@ ALTER TABLE ONLY public.membership_pricing_rules
 
 
 --
+-- Name: notifications notifications_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.notifications
+    ADD CONSTRAINT notifications_pkey PRIMARY KEY (notification_id);
+
+
+--
 -- Name: password_reset_tokens password_reset_tokens_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1822,6 +1890,22 @@ ALTER TABLE ONLY public.portfolio_posts
 
 ALTER TABLE ONLY public.portfolio_posts
     ADD CONSTRAINT portfolio_posts_pkey PRIMARY KEY (portfolio_post_id);
+
+
+--
+-- Name: provider_earnings provider_earnings_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.provider_earnings
+    ADD CONSTRAINT provider_earnings_pkey PRIMARY KEY (provider_earning_id);
+
+
+--
+-- Name: provider_earnings provider_earnings_booking_payment_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.provider_earnings
+    ADD CONSTRAINT provider_earnings_booking_payment_id_key UNIQUE (booking_payment_id);
 
 
 --
@@ -2205,6 +2289,27 @@ CREATE INDEX ix_pm_grace_ends_at ON public.provider_memberships USING btree (gra
 --
 
 CREATE INDEX ix_pm_membership_status ON public.provider_memberships USING btree (membership_status);
+
+
+--
+-- Name: ix_notif_recipient_created; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_notif_recipient_created ON public.notifications USING btree (recipient_user_id, created_at);
+
+
+--
+-- Name: ix_notif_recipient_unread; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_notif_recipient_unread ON public.notifications USING btree (recipient_user_id, is_read);
+
+
+--
+-- Name: ix_pe_provider_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_pe_provider_user_id ON public.provider_earnings USING btree (provider_user_id);
 
 
 --
@@ -2706,6 +2811,14 @@ ALTER TABLE ONLY public.password_reset_tokens
 
 
 --
+-- Name: notifications notifications_recipient_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.notifications
+    ADD CONSTRAINT notifications_recipient_user_id_fkey FOREIGN KEY (recipient_user_id) REFERENCES public.users(user_id);
+
+
+--
 -- Name: portfolio_post_images portfolio_post_images_portfolio_post_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2735,6 +2848,22 @@ ALTER TABLE ONLY public.portfolio_posts
 
 ALTER TABLE ONLY public.provider_memberships
     ADD CONSTRAINT provider_memberships_membership_pricing_rule_id_fkey FOREIGN KEY (membership_pricing_rule_id) REFERENCES public.membership_pricing_rules(membership_pricing_rule_id);
+
+
+--
+-- Name: provider_earnings provider_earnings_booking_payment_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.provider_earnings
+    ADD CONSTRAINT provider_earnings_booking_payment_id_fkey FOREIGN KEY (booking_payment_id) REFERENCES public.booking_payments(booking_payment_id);
+
+
+--
+-- Name: provider_earnings provider_earnings_provider_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.provider_earnings
+    ADD CONSTRAINT provider_earnings_provider_user_id_fkey FOREIGN KEY (provider_user_id) REFERENCES public.service_provider_profiles(provider_user_id);
 
 
 --
