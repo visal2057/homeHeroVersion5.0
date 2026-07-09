@@ -36,6 +36,18 @@ export function findActiveBan(userId) {
   );
 }
 
+// One-query check used on every authenticated request (not just login) so a
+// ban or deactivation invalidates an already-issued session immediately.
+export function findSessionValidity(userId) {
+  return query(
+    `SELECT u.account_status, ub.ban_type, ub.reason, ub.ends_at
+     FROM users u
+     LEFT JOIN user_bans ub ON ub.user_id = u.user_id AND ub.ban_status = 'ACTIVE'
+     WHERE u.user_id = $1`,
+    [userId],
+  );
+}
+
 export function findRoleIdByCode(roleCode) {
   return query(`SELECT role_id FROM roles WHERE role_code = $1`, [roleCode]);
 }
