@@ -37,6 +37,7 @@ import CreateInvoicePage         from '../features/provider/pages/CreateInvoiceP
 
 import SystemAdminDashboardPage from '../features/admin/system/pages/SystemAdminDashboardPage.jsx';
 import BookingManagementPage from '../features/admin/system/pages/BookingManagementPage.jsx';
+import SPTrackingPage from '../features/admin/system/pages/SPTrackingPage.jsx';
 import UserManagementPage from '../features/admin/system/pages/UserManagementPage.jsx';
 import ContentManagementPage from '../features/admin/system/pages/ContentManagementPage.jsx';
 import AnnouncementsPage from '../features/admin/system/pages/AnnouncementsPage.jsx';
@@ -128,6 +129,7 @@ export default function AppRouter() {
 
           <Route path={ROUTES.SYSTEM_ADMIN_DASHBOARD}     element={<SystemAdminDashboardPage />} />
           <Route path={ROUTES.SYSTEM_ADMIN_BOOKINGS}       element={<BookingManagementPage />} />
+          <Route path={ROUTES.SYSTEM_ADMIN_SP_TRACKING}    element={<SPTrackingPage />} />
           <Route path={ROUTES.SYSTEM_ADMIN_USERS}          element={<UserManagementPage />} />
           <Route path={ROUTES.SYSTEM_ADMIN_CONTENT}        element={<ContentManagementPage />} />
           <Route path={ROUTES.SYSTEM_ADMIN_ANNOUNCEMENTS}  element={<AnnouncementsPage />} />

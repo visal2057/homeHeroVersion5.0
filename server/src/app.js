@@ -27,6 +27,7 @@ import paymentSettingsRoutes from './modules/payment-settings/paymentSettings.ro
 import membershipRoutes from './modules/memberships/membership.routes.js';
 import notificationRoutes from './modules/notifications/notification.routes.js';
 import invoiceRoutes from './modules/invoices/invoice.routes.js';
+import spTrackingRoutes from './modules/sp-tracking/sp-tracking.routes.js';
 import { Router } from 'express';
 import { authenticate } from './middleware/authenticate.js';
 import { requireSystemAdmin } from './middleware/requireSystemAdmin.js';
@@ -70,6 +71,7 @@ app.use('/api/system-admin/bookings', adminBookingRoutes);
 app.use('/api/system-admin/users', userRoutes);
 app.use('/api/system-admin/bans', banRoutes);
 app.use('/api/system-admin/reports', reportRoutes);
+app.use('/api/system-admin/sp-tracking', spTrackingRoutes);
 
 app.use('/api/verification-admin/verification', verificationAdminRoutes);
 app.use('/api/verification-admin/complaints', complaintRoutes);

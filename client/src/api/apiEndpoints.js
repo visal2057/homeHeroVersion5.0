@@ -33,6 +33,7 @@ export const API_ENDPOINTS = {
     APPLY_BAN: '/system-admin/bans',
     REMOVE_BAN: (userBanId) => `/system-admin/bans/${userBanId}`,
     EARNINGS_REPORT: '/system-admin/reports/earnings',
+    SP_TRACKING: '/system-admin/sp-tracking',
   },
 
   VERIFICATION_ADMIN: {
