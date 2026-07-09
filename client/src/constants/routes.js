@@ -36,6 +36,7 @@ export const ROUTES = {
   PROVIDER_SUBSCRIPTIONS: '/provider/subscriptions',
   PROVIDER_PROFILE: '/provider/profile',
   PROVIDER_COMPLAINTS: '/provider/complaints',
+  PROVIDER_INVOICE: '/provider/completed/:bookingId/invoice',
 
   // System Admin
   SYSTEM_ADMIN_DASHBOARD: '/admin/system/dashboard',

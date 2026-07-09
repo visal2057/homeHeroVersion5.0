@@ -61,5 +61,8 @@ export const API_ENDPOINTS = {
     PORTFOLIO_DELETE:   (id) => `/provider/portfolio/${id}`,
     COMPLAINTS:         '/provider/complaints',
     ANNOUNCEMENTS:      '/provider/announcements',
+    INVOICE_FORM:       (bookingId) => `/provider/invoices/${bookingId}/form`,
+    INVOICE_GENERATE:   (bookingId) => `/provider/invoices/${bookingId}`,
+    INVOICE_DOWNLOAD:   (bookingId) => `/provider/invoices/${bookingId}/download`,
   },
 };

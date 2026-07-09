@@ -33,6 +33,7 @@ import ProviderCompletedJobsPage from '../features/provider/pages/ProviderComple
 import ProviderSubscriptionsPage from '../features/provider/pages/ProviderSubscriptionsPage.jsx';
 import ProviderProfilePage       from '../features/provider/pages/ProviderProfilePage.jsx';
 import ProviderComplaintsPage    from '../features/provider/pages/ProviderComplaintsPage.jsx';
+import CreateInvoicePage         from '../features/provider/pages/CreateInvoicePage.jsx';
 
 import SystemAdminDashboardPage from '../features/admin/system/pages/SystemAdminDashboardPage.jsx';
 import BookingManagementPage from '../features/admin/system/pages/BookingManagementPage.jsx';
@@ -97,6 +98,7 @@ export default function AppRouter() {
           <Route path={ROUTES.PROVIDER_SUBSCRIPTIONS} element={<ProviderSubscriptionsPage />} />
           <Route path={ROUTES.PROVIDER_PROFILE}       element={<ProviderProfilePage />} />
           <Route path={ROUTES.PROVIDER_COMPLAINTS}    element={<ProviderComplaintsPage />} />
+          <Route path={ROUTES.PROVIDER_INVOICE}       element={<CreateInvoicePage />} />
         </Route>
       </Route>
 
