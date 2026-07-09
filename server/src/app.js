@@ -25,6 +25,7 @@ import paymentRoutes from './modules/payments/payment.routes.js';
 import reviewRoutes from './modules/reviews/review.routes.js';
 import paymentSettingsRoutes from './modules/payment-settings/paymentSettings.routes.js';
 import membershipRoutes from './modules/memberships/membership.routes.js';
+import notificationRoutes from './modules/notifications/notification.routes.js';
 import { Router } from 'express';
 import { authenticate } from './middleware/authenticate.js';
 import { requireSystemAdmin } from './middleware/requireSystemAdmin.js';
@@ -60,6 +61,7 @@ app.use('/api/reviews', reviewRoutes);
 app.use('/api/payment-settings', paymentSettingsRoutes);
 app.use('/api/memberships', membershipRoutes);
 app.use('/api/reference', referenceRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 app.use('/api/system-admin/dashboard', dashboardRoutes);
 app.use('/api/system-admin/bookings', adminBookingRoutes);

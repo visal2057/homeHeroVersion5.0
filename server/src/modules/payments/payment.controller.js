@@ -19,3 +19,15 @@ export const payCardHandler = asyncHandler(async (req, res) => {
   const data = await paymentService.payWithCard(req.body, req.user.userId);
   sendSuccess(res, data, 201);
 });
+
+// GET /api/payments/provider/earnings/total
+export const getProviderTotalEarningsHandler = asyncHandler(async (req, res) => {
+  const data = await paymentService.getProviderTotalEarningsSummary(req.user.userId);
+  sendSuccess(res, data);
+});
+
+// GET /api/payments/booking/:bookingId/card-amount
+export const getCardPaymentAmountHandler = asyncHandler(async (req, res) => {
+  const data = await paymentService.getCardPaymentAmount(req.params.bookingId, req.user.userId);
+  sendSuccess(res, data);
+});

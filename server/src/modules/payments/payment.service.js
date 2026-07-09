@@ -5,7 +5,11 @@ import {
   getBookingPaymentContext,
   insertBookingPayment,
   insertCommissionRevenue,
+  insertProviderEarning,
+  getProviderTotalEarnings,
+  getCardPaymentAmountForBooking,
 } from './payment.queries.js';
+import { createNotification } from '../notifications/notification.service.js';
 
 // Shared checks: the booking must exist, belong to this client, be Accepted,
 // and not already be paid. Used by both the cash and card flows.
@@ -121,7 +125,28 @@ export async function payWithCard(input, clientUserId) {
       await insertCommissionRevenue(client, payment.booking_payment_id, payment.platform_fee);
     }
 
+    // The service amount (not the fee) is what the provider actually earns.
+    await insertProviderEarning(client, {
+      bookingPaymentId: payment.booking_payment_id,
+      providerUserId: ctx.provider_user_id,
+      amount: payment.service_amount,
+    });
+
     await client.query('COMMIT');
+
+    // Notify the provider after the payment is safely committed. A
+    // notification failure must never undo a successful payment.
+    try {
+      await createNotification({
+        recipientUserId: ctx.provider_user_id,
+        title: 'Payment received',
+        message: `You received LKR ${payment.service_amount} for booking #${bookingId}.`,
+        relatedType: 'BOOKING',
+        relatedId: bookingId,
+      });
+    } catch (notifyErr) {
+      console.error('Failed to send payment-received notification:', notifyErr);
+    }
 
     return {
       bookingPaymentId: payment.booking_payment_id,
@@ -137,4 +162,31 @@ export async function payWithCard(input, clientUserId) {
   } finally {
     client.release();
   }
+}
+
+// Sum of all Card-payment earnings for the logged-in provider -- the
+// "Total Earnings via HomeHero" figure Maheli's dashboard displays.
+export async function getProviderTotalEarningsSummary(providerUserId) {
+  const { rows } = await getProviderTotalEarnings(providerUserId);
+  return { totalEarnings: Number(rows[0].total_earnings) };
+}
+
+// The locked Card-payment amount for a booking, for Dinuka's invoice module
+// to autofill. Restricted to the provider who owns the booking.
+export async function getCardPaymentAmount(bookingId, providerUserId) {
+  const { rows } = await getCardPaymentAmountForBooking(bookingId);
+  const row = rows[0];
+  if (!row) throw new AppError('No payment found for this booking', 404);
+  if (Number(row.provider_user_id) !== Number(providerUserId)) {
+    throw new AppError('You can only view your own bookings', 403);
+  }
+  if (row.payment_method !== 'CARD') {
+    throw new AppError('This booking was not paid by Card', 404);
+  }
+
+  return {
+    bookingId: row.booking_id,
+    amount: Number(row.service_amount),
+    paymentMethod: row.payment_method,
+  };
 }
