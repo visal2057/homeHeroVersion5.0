@@ -25,6 +25,14 @@ export const API_ENDPOINTS = {
     MARK_READ: (id) => `/announcements/${id}/read`,
   },
 
+  // Combined announcements + personal-notification feed for the Client and
+  // Service Provider notification bells (owned by Vihas, consumed by
+  // Tharinsa's and Maheli's header components).
+  NOTIFICATIONS: {
+    FEED: '/notifications/feed',
+    MARK_READ: (type, id) => `/notifications/feed/${type}/${id}/read`,
+  },
+
   SYSTEM_ADMIN: {
     DASHBOARD_OVERVIEW: '/system-admin/dashboard/overview',
     BOOKINGS: '/system-admin/bookings',
