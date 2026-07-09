@@ -5,8 +5,15 @@ import PasswordInput from '../../../components/common/PasswordInput.jsx';
 import { useAuth } from '../../../hooks/useAuth.js';
 import { useAlert } from '../../../hooks/useAlert.js';
 import { extractErrorMessage } from '../../../api/apiErrorHandler.js';
-import { ROLE_HOME_ROUTE } from '../../../constants/roles.js';
+import { ROLE_HOME_ROUTE, ROLES } from '../../../constants/roles.js';
 import { ROUTES } from '../../../constants/routes.js';
+
+function resolveRedirect(user, fromPath) {
+  if (user.role === ROLES.SERVICE_PROVIDER && user.verificationStatus !== 'APPROVED') {
+    return user.verificationStatus === 'REJECTED' ? ROUTES.APPLICATION_REJECTED : ROUTES.VERIFICATION_PENDING;
+  }
+  return fromPath || ROLE_HOME_ROUTE[user.role] || ROUTES.HOME;
+}
 
 export default function LoginForm() {
   const [identifier, setIdentifier] = useState('');
@@ -30,7 +37,7 @@ export default function LoginForm() {
     try {
       const user = await login(identifier, password);
       showSuccess('Logged in successfully.');
-      const redirectTo = location.state?.from?.pathname || ROLE_HOME_ROUTE[user.role] || ROUTES.HOME;
+      const redirectTo = resolveRedirect(user, location.state?.from?.pathname);
       navigate(redirectTo, { replace: true });
     } catch (error) {
       showError(extractErrorMessage(error));

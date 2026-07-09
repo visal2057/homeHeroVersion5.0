@@ -43,6 +43,8 @@ function toPublicUser(user) {
     userToken: user.user_token,
     accountStatus: user.account_status,
     profileImageUrl: user.profile_image_url,
+    // Only meaningful for Service Providers; null for every other role.
+    verificationStatus: user.verification_status ?? null,
   };
 }
 
@@ -53,6 +55,7 @@ function signSession(user) {
       username: user.username,
       role: user.role_code,
       accountStatus: user.account_status,
+      verificationStatus: user.verification_status ?? null,
     },
     env.authSecret,
     { expiresIn: `${env.sessionExpiryDays}d` },

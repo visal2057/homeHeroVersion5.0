@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { authenticate } from '../../middleware/authenticate.js';
 import { requireClient } from '../../middleware/requireClient.js';
 import { requireProvider } from '../../middleware/requireProvider.js';
+import { checkProviderVerification } from '../../middleware/checkProviderVerification.js';
 import { validateRequest } from '../../middleware/validateRequest.js';
 import { cashPaymentSchema, cardPaymentSchema } from './payment.validation.js';
 import {
@@ -22,7 +23,7 @@ router.post('/card', requireClient, validateRequest(cardPaymentSchema), payCardH
 
 // Provider-facing reads: Total Earnings via HomeHero, and the locked
 // Card-payment amount Dinuka's invoice module autofills from.
-router.get('/provider/earnings/total', requireProvider, getProviderTotalEarningsHandler);
-router.get('/booking/:bookingId/card-amount', requireProvider, getCardPaymentAmountHandler);
+router.get('/provider/earnings/total', requireProvider, checkProviderVerification, getProviderTotalEarningsHandler);
+router.get('/booking/:bookingId/card-amount', requireProvider, checkProviderVerification, getCardPaymentAmountHandler);
 
 export default router;
