@@ -148,6 +148,8 @@ function toProviderRowShape(row) {
     status: row.booking_status.toLowerCase(),
     rating: row.rating,
     review_text: row.review_text,
+    payment_method: row.payment_method,
+    has_invoice: row.has_invoice,
   };
 }
 
