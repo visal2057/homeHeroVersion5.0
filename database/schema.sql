@@ -858,7 +858,7 @@ CREATE TABLE public.invoices (
     provider_user_id bigint NOT NULL,
     payment_method public.payment_method NOT NULL,
     amount numeric(12,2) NOT NULL,
-    pdf_storage_path text NOT NULL,
+    storage_path text NOT NULL,
     generated_at timestamp with time zone DEFAULT now() NOT NULL,
     CONSTRAINT invoices_amount_check CHECK ((amount > (0)::numeric))
 );

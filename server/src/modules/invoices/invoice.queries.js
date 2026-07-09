@@ -27,12 +27,12 @@ export function findInvoiceByBookingId(bookingId) {
   return query('SELECT * FROM invoices WHERE booking_id = $1', [bookingId]);
 }
 
-export function insertInvoice({ bookingId, providerUserId, paymentMethod, amount, pdfStoragePath }) {
+export function insertInvoice({ bookingId, providerUserId, paymentMethod, amount, storagePath }) {
   return query(
-    `INSERT INTO invoices (booking_id, provider_user_id, payment_method, amount, pdf_storage_path)
+    `INSERT INTO invoices (booking_id, provider_user_id, payment_method, amount, storage_path)
      VALUES ($1, $2, $3, $4, $5)
      RETURNING *`,
-    [bookingId, providerUserId, paymentMethod, amount, pdfStoragePath],
+    [bookingId, providerUserId, paymentMethod, amount, storagePath],
   );
 }
 
