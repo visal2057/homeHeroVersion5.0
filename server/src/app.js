@@ -53,10 +53,15 @@ app.use('/api/contact', contactRoutes);
 app.use('/api/announcements', announcementRoutes);
 app.use('/api/content', contentRoutes);
 app.use('/api/client', clientRoutes);
+// Registered before the broader /api/provider mounts below: those routers
+// each carry a blanket router.use(authenticate, requireProvider, ...) gate
+// with no sub-path restriction, which would otherwise intercept and reject
+// /api/provider/invoices/*  requests (including the System-Admin-authorized
+// download route) before invoiceRoutes's own authorizeRoles check ever runs.
+app.use('/api/provider/invoices', invoiceRoutes);
 app.use('/api/provider', providerRouter);
 app.use('/api/provider', providerBookingRouter);
 app.use('/api/provider', availabilityRoutes);
-app.use('/api/provider/invoices', invoiceRoutes);
 app.use('/api/providers', providerPublicRouter);
 app.use('/api/bookings', clientBookingRouter);
 app.use('/api/payments', paymentRoutes);
