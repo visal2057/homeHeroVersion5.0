@@ -6,6 +6,7 @@ import { errorHandler } from './middleware/errorHandler.js';
 import authRoutes from './modules/auth/auth.routes.js';
 import registrationRoutes from './modules/registration/registration.routes.js';
 import contactRoutes from './modules/contact/contact.routes.js';
+import invoiceRoutes from './modules/invoices/invoice.routes.js';
 
 const app = express();
 
@@ -19,6 +20,7 @@ app.get('/api/health', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/registration', registrationRoutes);
 app.use('/api/contact', contactRoutes);
+app.use('/api/invoices', invoiceRoutes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);
