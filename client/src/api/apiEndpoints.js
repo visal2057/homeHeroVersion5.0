@@ -62,4 +62,11 @@ export const API_ENDPOINTS = {
     COMPLAINTS:         '/provider/complaints',
     ANNOUNCEMENTS:      '/provider/announcements',
   },
+
+  INVOICES: {
+    MINE:     '/invoices/mine',
+    STATUS:   (bookingId) => `/invoices/booking/${bookingId}`,
+    GENERATE: (bookingId) => `/invoices/booking/${bookingId}/generate`,
+    DOWNLOAD: (bookingId) => `/invoices/booking/${bookingId}/download`,
+  },
 };

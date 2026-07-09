@@ -5,6 +5,8 @@ import CompletedJobsTable from '../components/CompletedJobsTable.jsx';
 import ProviderReviews   from '../components/ProviderReviews.jsx';
 import ProviderPageHero  from '../components/ProviderPageHero.jsx';
 import CreatePortfolioPostModal from '../components/CreatePortfolioPostModal.jsx';
+import GenerateInvoiceModal from '../../invoices/components/GenerateInvoiceModal.jsx';
+import { invoiceApi } from '../../invoices/invoiceApi.js';
 import { IconAlertCircle } from '../../../components/common/icons.jsx';
 
 const HERO_IMAGE = 'https://images.unsplash.com/photo-1650216600469-bb05741a636f?auto=format&fit=crop&w=1600&q=80';
@@ -18,14 +20,18 @@ export default function ProviderCompletedJobsPage() {
   const [postBookingId, setPostBookingId] = useState(null);
   const [posting, setPosting] = useState(false);
   const [postError, setPostError] = useState('');
+  const [invoicedBookingIds, setInvoicedBookingIds] = useState(new Set());
+  const [invoiceBookingId, setInvoiceBookingId] = useState(null);
+  const [invoiceError, setInvoiceError] = useState('');
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [jobsRes, reviewsRes, portfolioRes] = await Promise.allSettled([
+      const [jobsRes, reviewsRes, portfolioRes, invoicesRes] = await Promise.allSettled([
         axiosClient.get(API_ENDPOINTS.PROVIDER.COMPLETED_JOBS),
         axiosClient.get(API_ENDPOINTS.PROVIDER.REVIEWS),
         axiosClient.get(API_ENDPOINTS.PROVIDER.PORTFOLIO),
+        invoiceApi.listMine(),
       ]);
       if (jobsRes.status === 'fulfilled') {
         const list = jobsRes.value.data?.data ?? jobsRes.value.data ?? [];
@@ -38,6 +44,10 @@ export default function ProviderCompletedJobsPage() {
       if (portfolioRes.status === 'fulfilled') {
         const list = portfolioRes.value.data?.data ?? portfolioRes.value.data ?? [];
         setPostedBookingIds(new Set((Array.isArray(list) ? list : []).map((p) => p.bookingId)));
+      }
+      if (invoicesRes.status === 'fulfilled') {
+        const list = invoicesRes.value.data?.data ?? invoicesRes.value.data ?? [];
+        setInvoicedBookingIds(new Set(Array.isArray(list) ? list : []));
       }
     } finally {
       setLoading(false);
@@ -71,6 +81,21 @@ export default function ProviderCompletedJobsPage() {
     }
   }
 
+  async function handleDownloadInvoice(bookingId) {
+    setInvoiceError('');
+    try {
+      const res = await invoiceApi.download(bookingId);
+      const url = window.URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `invoice-booking-${bookingId}.pdf`;
+      link.click();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      setInvoiceError(err.response?.data?.message ?? 'Could not download the invoice.');
+    }
+  }
+
   return (
     <div className="provider-page">
       <ProviderPageHero
@@ -82,6 +107,11 @@ export default function ProviderCompletedJobsPage() {
       {postError && (
         <div className="provider-alert error" style={{ marginBottom: 'var(--space-lg)' }}>
           <IconAlertCircle size={16} /> {postError}
+        </div>
+      )}
+      {invoiceError && (
+        <div className="provider-alert error" style={{ marginBottom: 'var(--space-lg)' }}>
+          <IconAlertCircle size={16} /> {invoiceError}
         </div>
       )}
 
@@ -112,6 +142,9 @@ export default function ProviderCompletedJobsPage() {
               jobs={jobs}
               postedBookingIds={postedBookingIds}
               onCreatePost={(bookingId) => { setPostError(''); setPostBookingId(bookingId); }}
+              invoicedBookingIds={invoicedBookingIds}
+              onGenerateInvoice={(bookingId) => { setInvoiceError(''); setInvoiceBookingId(bookingId); }}
+              onDownloadInvoice={handleDownloadInvoice}
             />
           ) : (
             <div className="provider-card-body">
@@ -127,6 +160,17 @@ export default function ProviderCompletedJobsPage() {
           onClose={() => setPostBookingId(null)}
           onSave={handleCreatePost}
           saving={posting}
+        />
+      )}
+
+      {invoiceBookingId && (
+        <GenerateInvoiceModal
+          bookingId={invoiceBookingId}
+          onClose={() => setInvoiceBookingId(null)}
+          onGenerated={async () => {
+            setInvoiceBookingId(null);
+            await load();
+          }}
         />
       )}
     </div>

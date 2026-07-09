@@ -1,4 +1,5 @@
 import { IconCheckCircle, IconStar, IconImage } from '../../../components/common/icons.jsx';
+import InvoiceRowMenu from '../../invoices/components/InvoiceRowMenu.jsx';
 
 function StarRow({ value }) {
   return (
@@ -10,7 +11,10 @@ function StarRow({ value }) {
   );
 }
 
-export default function CompletedJobsTable({ jobs, postedBookingIds, onCreatePost }) {
+export default function CompletedJobsTable({
+  jobs, postedBookingIds, onCreatePost,
+  invoicedBookingIds, onGenerateInvoice, onDownloadInvoice,
+}) {
   if (!jobs?.length) {
     return (
       <div className="provider-empty-state">
@@ -35,11 +39,13 @@ export default function CompletedJobsTable({ jobs, postedBookingIds, onCreatePos
             <th>Rating</th>
             <th>Review</th>
             <th>Post</th>
+            <th>Invoice</th>
           </tr>
         </thead>
         <tbody>
           {jobs.map((j) => {
             const hasPost = postedBookingIds?.has(j.id);
+            const hasInvoice = invoicedBookingIds?.has(j.id);
             return (
               <tr key={j.id}>
                 <td>#{j.id}</td>
@@ -71,6 +77,13 @@ export default function CompletedJobsTable({ jobs, postedBookingIds, onCreatePos
                       Create Post
                     </button>
                   )}
+                </td>
+                <td>
+                  <InvoiceRowMenu
+                    hasInvoice={hasInvoice}
+                    onGenerate={() => onGenerateInvoice(j.id)}
+                    onDownload={() => onDownloadInvoice(j.id)}
+                  />
                 </td>
               </tr>
             );
