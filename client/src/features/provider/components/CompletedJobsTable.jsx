@@ -1,4 +1,5 @@
 import { IconCheckCircle, IconStar, IconImage } from '../../../components/common/icons.jsx';
+import InvoiceRowAction from './InvoiceRowAction.jsx';
 
 function StarRow({ value }) {
   return (
@@ -35,6 +36,7 @@ export default function CompletedJobsTable({ jobs, postedBookingIds, onCreatePos
             <th>Rating</th>
             <th>Review</th>
             <th>Post</th>
+            <th>Invoice</th>
           </tr>
         </thead>
         <tbody>
@@ -71,6 +73,13 @@ export default function CompletedJobsTable({ jobs, postedBookingIds, onCreatePos
                       Create Post
                     </button>
                   )}
+                </td>
+                <td>
+                  <InvoiceRowAction
+                    bookingId={j.id}
+                    paymentMethod={j.payment_method}
+                    hasInvoice={j.has_invoice}
+                  />
                 </td>
               </tr>
             );

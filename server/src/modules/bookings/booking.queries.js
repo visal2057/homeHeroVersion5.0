@@ -93,12 +93,16 @@ export function listProviderBookingsByStatuses(providerUserId, statuses, limit) 
             cu.full_name AS client_name, cu.phone AS client_phone, cu.email AS client_email, cu.user_token AS client_token,
             sc.category_name AS service_category,
             bl.latitude_snapshot, bl.longitude_snapshot,
-            r.rating, r.review_text
+            r.rating, r.review_text,
+            bp.payment_method,
+            (inv.invoice_id IS NOT NULL) AS has_invoice
      FROM bookings b
      JOIN users cu ON cu.user_id = b.client_user_id
      JOIN service_categories sc ON sc.service_category_id = b.service_category_id
      LEFT JOIN booking_locations bl ON bl.booking_id = b.booking_id
      LEFT JOIN reviews r ON r.booking_id = b.booking_id
+     LEFT JOIN booking_payments bp ON bp.booking_id = b.booking_id
+     LEFT JOIN invoices inv ON inv.booking_id = b.booking_id
      WHERE b.provider_user_id = $1 AND b.booking_status = ANY($2::booking_status[])
      ORDER BY b.requested_at DESC
      LIMIT $3`,
