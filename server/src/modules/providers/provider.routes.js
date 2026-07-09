@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { authenticate } from '../../middleware/authenticate.js';
 import { requireProvider } from '../../middleware/requireProvider.js';
+import { checkProviderVerification } from '../../middleware/checkProviderVerification.js';
 import { validateRequest } from '../../middleware/validateRequest.js';
 import { uploadProfileImage, uploadPortfolioImages } from '../../middleware/uploadFiles.js';
 import { updateProviderProfileSchema, changeProviderPasswordSchema } from './provider.validation.js';
@@ -27,7 +28,7 @@ import {
 
 // Authenticated Service Provider self-service: mounted at /api/provider
 export const providerRouter = Router();
-providerRouter.use(authenticate, requireProvider);
+providerRouter.use(authenticate, requireProvider, checkProviderVerification);
 providerRouter.get('/profile', getProfileHandler);
 providerRouter.put('/profile', validateRequest(updateProviderProfileSchema), updateProfileHandler);
 providerRouter.put('/profile/image', uploadProfileImage, updateProfileImageHandler);

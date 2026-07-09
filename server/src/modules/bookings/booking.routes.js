@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { authenticate } from '../../middleware/authenticate.js';
 import { requireClient } from '../../middleware/requireClient.js';
 import { requireProvider } from '../../middleware/requireProvider.js';
+import { checkProviderVerification } from '../../middleware/checkProviderVerification.js';
 import { validateRequest } from '../../middleware/validateRequest.js';
 import { uploadBookingImages } from '../../middleware/uploadFiles.js';
 import { createBookingSchema, cancelBookingSchema } from './booking.validation.js';
@@ -33,7 +34,7 @@ clientBookingRouter.patch('/:bookingId/cancel', validateRequest(cancelBookingSch
 
 // Provider-facing booking actions: mounted at /api/provider
 export const providerBookingRouter = Router();
-providerBookingRouter.use(authenticate, requireProvider);
+providerBookingRouter.use(authenticate, requireProvider, checkProviderVerification);
 providerBookingRouter.get('/bookings', listRequestsHandler);
 providerBookingRouter.get('/jobs', listJobsHandler);
 providerBookingRouter.get('/completed-jobs', listCompletedJobsHandler);

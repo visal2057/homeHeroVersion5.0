@@ -2,9 +2,10 @@ import { query } from '../../db/query.js';
 
 export function findUserByUsernameOrEmail(identifier) {
   return query(
-    `SELECT u.*, r.role_code
+    `SELECT u.*, r.role_code, spp.verification_status
      FROM users u
      JOIN roles r ON r.role_id = u.role_id
+     LEFT JOIN service_provider_profiles spp ON spp.provider_user_id = u.user_id
      WHERE u.username = $1 OR u.email = $1`,
     [identifier],
   );
@@ -19,7 +20,11 @@ export function findUserByEmail(email) {
 
 export function findUserById(userId) {
   return query(
-    `SELECT u.*, r.role_code FROM users u JOIN roles r ON r.role_id = u.role_id WHERE u.user_id = $1`,
+    `SELECT u.*, r.role_code, spp.verification_status
+     FROM users u
+     JOIN roles r ON r.role_id = u.role_id
+     LEFT JOIN service_provider_profiles spp ON spp.provider_user_id = u.user_id
+     WHERE u.user_id = $1`,
     [userId],
   );
 }
