@@ -7,6 +7,7 @@ import SystemAdminLayout       from '../layouts/SystemAdminLayout.jsx';
 import VerificationAdminLayout from '../layouts/VerificationAdminLayout.jsx';
 import GuestRoute      from '../components/routing/GuestRoute.jsx';
 import ProtectedRoute  from '../components/routing/ProtectedRoute.jsx';
+import PublicRoute     from '../components/routing/PublicRoute.jsx';
 import { ROUTES }      from '../constants/routes.js';
 import { ROLES }       from '../constants/roles.js';
 
@@ -67,10 +68,12 @@ export default function AppRouter() {
     <Routes>
       {/* ── Public layout ─────────────────────────────────────────────────── */}
       <Route element={<PublicLayout />}>
-        <Route path={ROUTES.HOME}                  element={<LandingPage />} />
-        <Route path={ROUTES.ABOUT}                 element={<AboutUsPage />} />
-        <Route path={ROUTES.CAREERS}               element={<CareersPage />} />
-        <Route path={ROUTES.CONTACT}               element={<ContactUsPage />} />
+        <Route element={<PublicRoute />}>
+          <Route path={ROUTES.HOME}    element={<LandingPage />} />
+          <Route path={ROUTES.ABOUT}   element={<AboutUsPage />} />
+          <Route path={ROUTES.CAREERS} element={<CareersPage />} />
+          <Route path={ROUTES.CONTACT} element={<ContactUsPage />} />
+        </Route>
         <Route path={ROUTES.VERIFICATION_PENDING}  element={<VerificationPendingPage />} />
         <Route path={ROUTES.APPLICATION_REJECTED}  element={<ApplicationRejectedPage />} />
 
