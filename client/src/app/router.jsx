@@ -7,6 +7,7 @@ import SystemAdminLayout       from '../layouts/SystemAdminLayout.jsx';
 import VerificationAdminLayout from '../layouts/VerificationAdminLayout.jsx';
 import GuestRoute      from '../components/routing/GuestRoute.jsx';
 import ProtectedRoute  from '../components/routing/ProtectedRoute.jsx';
+import PublicRoute     from '../components/routing/PublicRoute.jsx';
 import { ROUTES }      from '../constants/routes.js';
 import { ROLES }       from '../constants/roles.js';
 
@@ -37,6 +38,7 @@ import CreateInvoicePage         from '../features/provider/pages/CreateInvoiceP
 
 import SystemAdminDashboardPage from '../features/admin/system/pages/SystemAdminDashboardPage.jsx';
 import BookingManagementPage from '../features/admin/system/pages/BookingManagementPage.jsx';
+import SPTrackingPage from '../features/admin/system/pages/SPTrackingPage.jsx';
 import UserManagementPage from '../features/admin/system/pages/UserManagementPage.jsx';
 import ContentManagementPage from '../features/admin/system/pages/ContentManagementPage.jsx';
 import AnnouncementsPage from '../features/admin/system/pages/AnnouncementsPage.jsx';
@@ -66,10 +68,12 @@ export default function AppRouter() {
     <Routes>
       {/* ── Public layout ─────────────────────────────────────────────────── */}
       <Route element={<PublicLayout />}>
-        <Route path={ROUTES.HOME}                  element={<LandingPage />} />
-        <Route path={ROUTES.ABOUT}                 element={<AboutUsPage />} />
-        <Route path={ROUTES.CAREERS}               element={<CareersPage />} />
-        <Route path={ROUTES.CONTACT}               element={<ContactUsPage />} />
+        <Route element={<PublicRoute />}>
+          <Route path={ROUTES.HOME}    element={<LandingPage />} />
+          <Route path={ROUTES.ABOUT}   element={<AboutUsPage />} />
+          <Route path={ROUTES.CAREERS} element={<CareersPage />} />
+          <Route path={ROUTES.CONTACT} element={<ContactUsPage />} />
+        </Route>
         <Route path={ROUTES.VERIFICATION_PENDING}  element={<VerificationPendingPage />} />
         <Route path={ROUTES.APPLICATION_REJECTED}  element={<ApplicationRejectedPage />} />
 
@@ -128,6 +132,7 @@ export default function AppRouter() {
 
           <Route path={ROUTES.SYSTEM_ADMIN_DASHBOARD}     element={<SystemAdminDashboardPage />} />
           <Route path={ROUTES.SYSTEM_ADMIN_BOOKINGS}       element={<BookingManagementPage />} />
+          <Route path={ROUTES.SYSTEM_ADMIN_SP_TRACKING}    element={<SPTrackingPage />} />
           <Route path={ROUTES.SYSTEM_ADMIN_USERS}          element={<UserManagementPage />} />
           <Route path={ROUTES.SYSTEM_ADMIN_CONTENT}        element={<ContentManagementPage />} />
           <Route path={ROUTES.SYSTEM_ADMIN_ANNOUNCEMENTS}  element={<AnnouncementsPage />} />

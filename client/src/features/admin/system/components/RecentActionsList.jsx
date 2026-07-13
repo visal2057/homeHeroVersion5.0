@@ -13,6 +13,7 @@ const ACTION_STYLES = {
   SITE_IMAGE_UPDATED: { icon: '🖼️', color: '#64748b' },
   EARNINGS_REPORT_GENERATED: { icon: '📄', color: '#0f5132' },
   COMPLAINT_VERDICT_RECORDED: { icon: '⚖️', color: '#d97706' },
+  INVOICE_GENERATED: { icon: '🧾', color: '#0f5132' },
   DEFAULT: { icon: '•', color: '#64748b' },
 };
 

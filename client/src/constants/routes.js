@@ -41,6 +41,7 @@ export const ROUTES = {
   // System Admin
   SYSTEM_ADMIN_DASHBOARD: '/admin/system/dashboard',
   SYSTEM_ADMIN_BOOKINGS: '/admin/system/bookings',
+  SYSTEM_ADMIN_SP_TRACKING: '/admin/system/sp-tracking',
   SYSTEM_ADMIN_USERS: '/admin/system/users',
   SYSTEM_ADMIN_CONTENT: '/admin/system/content',
   SYSTEM_ADMIN_ANNOUNCEMENTS: '/admin/system/announcements',

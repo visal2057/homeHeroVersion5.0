@@ -1,12 +1,16 @@
 import 'dotenv/config';
 import app from './app.js';
 import { startMembershipExpiryJob } from './jobs/membershipExpiry.job.js';
+import { startTemporaryBanExpiryJob } from './jobs/temporaryBanExpiry.job.js';
+import { startScheduledAnnouncementsJob } from './jobs/scheduledAnnouncements.job.js';
 
 const PORT = process.env.PORT || 5000;
 
 const server = app.listen(PORT, () => {
   console.log(`Server listening on http://localhost:${PORT}`);
   startMembershipExpiryJob();
+  startTemporaryBanExpiryJob();
+  startScheduledAnnouncementsJob();
 });
 
 server.on('error', (err) => {
