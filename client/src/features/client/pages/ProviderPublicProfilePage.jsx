@@ -16,7 +16,7 @@ const MOCK_PROVIDER = {
   hourlyRate: 1500,
   bio: 'Experienced gardening professional with over 10 years in lawn care, pruning, and landscape design. Served over 200+ happy clients across Colombo and Gampaha districts.',
   isVerified: true, isAvailable: true, averageRating: 4.8, reviewCount: 42,
-  workImages: [], providerToken: 'NPR4X2',
+  portfolioPosts: [], providerToken: 'NPR4X2',
 };
 
 const MOCK_REVIEWS = [
@@ -70,7 +70,7 @@ export default function ProviderPublicProfilePage() {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
         <div className="ep-spinner" />
-        <style>{`.ep-spinner { border: 3px solid var(--color-neutral-200); border-top-color: var(--color-primary-500); border-radius: 50%; width: 48px; height: 48px; animation: spin 0.7s linear infinite; } @keyframes spin { to { transform: rotate(360deg); } }`}</style>
+        <style>{`.ep-spinner { border: 3px solid var(--color-neutral-200); border-top-color: var(--color-primary-500); border-radius: 50%; width: 58px; height: 58px; animation: spin 0.7s linear infinite; } @keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </div>
     );
   }
@@ -90,7 +90,7 @@ export default function ProviderPublicProfilePage() {
 
   const tabs = [
     { key: 'about',   label: 'About' },
-    { key: 'gallery', label: `Previous Work (${provider.workImages?.length ?? 0})` },
+    { key: 'gallery', label: `Previous Work (${provider.portfolioPosts?.length ?? 0})` },
     { key: 'reviews', label: `Reviews (${provider.reviewCount ?? reviews.length})` },
   ];
 
@@ -131,13 +131,13 @@ export default function ProviderPublicProfilePage() {
               {activeTab === 'gallery' && (
                 <div className="pp-card">
                   <h3 className="pp-card-title">Previous Work</h3>
-                  {(provider.workImages?.length ?? 0) === 0 ? (
+                  {(provider.portfolioPosts?.length ?? 0) === 0 ? (
                     <div style={{ textAlign: 'center', padding: 'var(--space-xl)', color: 'var(--color-neutral-400)' }}>
-                      <IconToolbox size={40} style={{ color: 'var(--color-neutral-300)', marginBottom: 12 }} />
+                      <IconToolbox size={48} style={{ color: 'var(--color-neutral-300)', marginBottom: 14 }} />
                       <p>No portfolio images yet.</p>
                     </div>
                   ) : (
-                    <PreviousWorkGallery images={provider.workImages} />
+                    <PreviousWorkGallery posts={provider.portfolioPosts} />
                   )}
                 </div>
               )}
@@ -163,7 +163,7 @@ export default function ProviderPublicProfilePage() {
                 {token && (
                   <div className="pp-detail-item">
                     <span className="pp-detail-label">
-                      <IconUser size={14} style={{ color: 'var(--color-neutral-400)' }} />
+                      <IconUser size={17} style={{ color: 'var(--color-neutral-400)' }} />
                       Provider Token
                     </span>
                     <span className="pp-detail-value pp-token">{token}</span>
@@ -171,14 +171,14 @@ export default function ProviderPublicProfilePage() {
                 )}
                 <div className="pp-detail-item">
                   <span className="pp-detail-label">
-                    <IconToolbox size={14} style={{ color: 'var(--color-neutral-400)' }} />
+                    <IconToolbox size={17} style={{ color: 'var(--color-neutral-400)' }} />
                     Category
                   </span>
                   <span className="pp-detail-value">{provider.category ?? 'N/A'}</span>
                 </div>
                 <div className="pp-detail-item">
                   <span className="pp-detail-label">
-                    <IconMapPin size={14} style={{ color: 'var(--color-neutral-400)' }} />
+                    <IconMapPin size={17} style={{ color: 'var(--color-neutral-400)' }} />
                     District
                   </span>
                   <span className="pp-detail-value" style={{ textTransform: 'capitalize' }}>
@@ -188,7 +188,7 @@ export default function ProviderPublicProfilePage() {
                 {provider.hourlyRate && (
                   <div className="pp-detail-item">
                     <span className="pp-detail-label">
-                      <IconDollarSign size={14} style={{ color: 'var(--color-neutral-400)' }} />
+                      <IconDollarSign size={17} style={{ color: 'var(--color-neutral-400)' }} />
                       Hourly Rate
                     </span>
                     <span className="pp-detail-value">Rs. {provider.hourlyRate}/hr</span>
@@ -196,7 +196,7 @@ export default function ProviderPublicProfilePage() {
                 )}
                 <div className="pp-detail-item">
                   <span className="pp-detail-label">
-                    <IconShield size={14} style={{ color: 'var(--color-neutral-400)' }} />
+                    <IconShield size={17} style={{ color: 'var(--color-neutral-400)' }} />
                     Verified
                   </span>
                   <span className={`pp-detail-value pp-verified-chip ${provider.isVerified ? 'pp-verified-yes' : 'pp-verified-no'}`}>
@@ -206,7 +206,7 @@ export default function ProviderPublicProfilePage() {
                 {provider.averageRating > 0 && (
                   <div className="pp-detail-item">
                     <span className="pp-detail-label">
-                      <IconStar size={14} style={{ color: 'var(--color-neutral-400)' }} />
+                      <IconStar size={17} style={{ color: 'var(--color-neutral-400)' }} />
                       Rating
                     </span>
                     <span className="pp-detail-value" style={{ color: '#d97706', fontWeight: 700 }}>
@@ -225,7 +225,7 @@ export default function ProviderPublicProfilePage() {
             <div className="pp-cta-overlay" />
             <div className="pp-cta-inner">
               <div className="pp-cta-glass">
-                <IconCalendar size={32} style={{ color: 'white', marginBottom: 12 }} />
+                <IconCalendar size={38} style={{ color: 'white', marginBottom: 14 }} />
                 <h2 className="pp-cta-title">Ready to Book {provider.name}?</h2>
                 <p className="pp-cta-text">
                   {provider.name} is currently accepting bookings.
@@ -260,7 +260,7 @@ export default function ProviderPublicProfilePage() {
           margin-bottom: var(--space-lg);
         }
         .pp-tab {
-          padding: 11px 22px; background: none; border: none; cursor: pointer;
+          padding: 13px 26px; background: none; border: none; cursor: pointer;
           font-family: inherit; font-size: var(--font-size-sm); font-weight: 600;
           color: var(--color-neutral-500); border-bottom: 2px solid transparent;
           margin-bottom: -2px; transition: color 0.2s, border-color 0.2s; white-space: nowrap;
@@ -280,7 +280,7 @@ export default function ProviderPublicProfilePage() {
         .pp-detail-list { display: flex; flex-direction: column; }
         .pp-detail-item {
           display: flex; justify-content: space-between; align-items: center;
-          padding: 11px 0; border-bottom: 1px solid var(--color-neutral-100);
+          padding: 13px 0; border-bottom: 1px solid var(--color-neutral-100);
           font-size: var(--font-size-sm); gap: var(--space-md);
         }
         .pp-detail-item:last-child { border-bottom: none; }
@@ -309,7 +309,7 @@ export default function ProviderPublicProfilePage() {
         .pp-cta-inner {
           position: relative; z-index: 1;
           display: flex; align-items: center; justify-content: center;
-          padding: 64px 40px;
+          padding: 77px 48px;
         }
         .pp-cta-glass {
           background: rgba(255,255,255,0.10);
@@ -317,9 +317,9 @@ export default function ProviderPublicProfilePage() {
           -webkit-backdrop-filter: blur(20px);
           border: 1px solid rgba(255,255,255,0.28);
           border-radius: var(--radius-xl);
-          padding: 40px 48px;
+          padding: 48px 58px;
           text-align: center;
-          max-width: 520px;
+          max-width: 624px;
           box-shadow: 0 8px 32px rgba(0,0,0,0.18);
         }
         .pp-cta-title {
@@ -332,7 +332,7 @@ export default function ProviderPublicProfilePage() {
         }
         .pp-cta-btn {
           display: inline-flex; align-items: center; justify-content: center;
-          padding: 14px 36px; font-size: var(--font-size-base); font-weight: 700;
+          padding: 17px 43px; font-size: var(--font-size-base); font-weight: 700;
           background: white; color: var(--color-primary-700);
           border-radius: var(--radius-md); text-decoration: none;
           transition: transform 0.15s, box-shadow 0.15s;

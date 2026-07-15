@@ -118,7 +118,7 @@ export default function ExploreServicePage() {
         <div className="container">
           <div className="ep-hero-inner">
             <div className="ep-hero-icon-wrap">
-              <HeroIcon size={36} style={{ color: 'white' }} />
+              <HeroIcon size={43} style={{ color: 'white' }} />
             </div>
             <div>
               <div className="hh-eyebrow" style={{ color: 'rgba(255,255,255,0.75)', marginBottom: 6 }}>Explore Services</div>
@@ -139,7 +139,7 @@ export default function ExploreServicePage() {
         {/* Filters */}
         <div className="ep-filters">
           <div className="ep-search-wrap">
-            <IconSearch size={16} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-neutral-400)', pointerEvents: 'none' }} />
+            <IconSearch size={19} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-neutral-400)', pointerEvents: 'none' }} />
             <input
               type="text"
               placeholder={`Search ${meta.label} providers...`}
@@ -172,7 +172,7 @@ export default function ExploreServicePage() {
           </div>
         ) : displayed.length === 0 ? (
           <div className="ep-empty">
-            <HeroIcon size={48} style={{ color: 'var(--color-neutral-300)', marginBottom: 'var(--space-md)' }} />
+            <HeroIcon size={58} style={{ color: 'var(--color-neutral-300)', marginBottom: 'var(--space-md)' }} />
             <h3>No providers found</h3>
             <p>Try adjusting your filters or district selection.</p>
           </div>
@@ -187,7 +187,7 @@ export default function ExploreServicePage() {
         .explore-page { padding-bottom: var(--space-2xl); }
         .ep-hero {
           position: relative; background-size: cover; background-position: center;
-          padding: 72px 0;
+          padding: 86px 0;
         }
         .ep-hero-overlay {
           position: absolute; inset: 0;
@@ -195,7 +195,7 @@ export default function ExploreServicePage() {
         }
         .ep-hero-inner { display: flex; align-items: center; gap: var(--space-xl); position: relative; z-index: 1; }
         .ep-hero-icon-wrap {
-          width: 72px; height: 72px; border-radius: var(--radius-lg);
+          width: 86px; height: 86px; border-radius: var(--radius-lg);
           background: rgba(255,255,255,0.15); backdrop-filter: blur(8px);
           display: flex; align-items: center; justify-content: center; flex-shrink: 0;
           border: 1px solid rgba(255,255,255,0.25);
@@ -206,16 +206,16 @@ export default function ExploreServicePage() {
           display: flex; gap: var(--space-md); flex-wrap: wrap;
           margin: var(--space-xl) 0; align-items: center;
         }
-        .ep-search-wrap { flex: 1; min-width: 200px; position: relative; }
+        .ep-search-wrap { flex: 1; min-width: 240px; position: relative; }
         .ep-search {
-          width: 100%; padding: 10px 14px 10px 38px;
+          width: 100%; padding: 12px 17px 12px 46px;
           border: 1.5px solid var(--color-neutral-200); border-radius: var(--radius-md);
           font-size: var(--font-size-base); font-family: inherit; outline: none;
           transition: border-color var(--transition-base); box-sizing: border-box;
         }
         .ep-search:focus { border-color: var(--color-primary-500); }
         .ep-select {
-          padding: 10px 14px; border: 1.5px solid var(--color-neutral-200);
+          padding: 12px 17px; border: 1.5px solid var(--color-neutral-200);
           border-radius: var(--radius-md); font-size: var(--font-size-base);
           font-family: inherit; outline: none; background: white; cursor: pointer;
           transition: border-color var(--transition-base);
@@ -224,10 +224,10 @@ export default function ExploreServicePage() {
         .ep-results-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-lg); }
         .ep-results-title { font-size: var(--font-size-xl); color: var(--color-secondary-700); font-weight: 700; margin: 0; }
         .ep-results-count { color: var(--color-neutral-500); font-size: var(--font-size-sm); }
-        .ep-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: var(--space-lg); }
+        .ep-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: var(--space-lg); }
         .ep-loading { text-align: center; padding: var(--space-2xl); color: var(--color-neutral-500); }
         .ep-spinner {
-          width: 40px; height: 40px; border: 3px solid var(--color-neutral-200);
+          width: 48px; height: 48px; border: 3px solid var(--color-neutral-200);
           border-top-color: var(--color-primary-500); border-radius: 50%;
           animation: spin 0.7s linear infinite; margin: 0 auto var(--space-md);
         }

@@ -156,7 +156,7 @@ export default function BookingForm({ provider, client }) {
           {/* Date */}
           <div className="bf-group">
             <label className="bf-label">
-              <IconCalendar size={14} style={{ marginRight: 6 }} />
+              <IconCalendar size={17} style={{ marginRight: 6 }} />
               Service Date <span className="bf-required">*</span>
             </label>
             <input type="date" name="serviceDate" min={today} value={form.serviceDate} onChange={handleChange} className="bf-input" required />
@@ -165,7 +165,7 @@ export default function BookingForm({ provider, client }) {
           {/* Time */}
           <div className="bf-group">
             <label className="bf-label">
-              <IconClock size={14} style={{ marginRight: 6 }} />
+              <IconClock size={17} style={{ marginRight: 6 }} />
               Service Time <span className="bf-required">*</span>
             </label>
             <div className="bf-time-row">
@@ -185,7 +185,7 @@ export default function BookingForm({ provider, client }) {
           {/* Location */}
           <div className="bf-group bf-group-full">
             <label className="bf-label">
-              <IconMapPin size={14} style={{ marginRight: 6 }} />
+              <IconMapPin size={17} style={{ marginRight: 6 }} />
               Service Location
             </label>
 
@@ -202,7 +202,7 @@ export default function BookingForm({ provider, client }) {
                   className="bf-loc-alt-btn"
                   onClick={() => { setUseCustomLoc(true); setLocSaved(false); }}
                 >
-                  <IconMapPin size={12} style={{ marginRight: 4 }} />
+                  <IconMapPin size={14} style={{ marginRight: 4 }} />
                   Use Different Location
                 </button>
               )}
@@ -222,7 +222,7 @@ export default function BookingForm({ provider, client }) {
                 <MapPicker
                   latitude={profileLocation?.latitude}
                   longitude={profileLocation?.longitude}
-                  height={260}
+                  height={312}
                   draggable
                   onChange={(coords) => setCustomCoords(coords)}
                 />
@@ -269,7 +269,7 @@ export default function BookingForm({ provider, client }) {
           {/* Photos — styled upload button + thumbnails */}
           <div className="bf-group bf-group-full">
             <label className="bf-label">
-              <IconImage size={14} style={{ marginRight: 6 }} />
+              <IconImage size={17} style={{ marginRight: 6 }} />
               Job Photos <span style={{ color: 'var(--color-neutral-400)', fontWeight: 400 }}>(up to 3, optional)</span>
             </label>
             <input
@@ -285,7 +285,7 @@ export default function BookingForm({ provider, client }) {
               className="bf-upload-btn"
               onClick={() => fileInputRef.current?.click()}
             >
-              <IconImage size={16} style={{ color: 'var(--color-primary-600)' }} />
+              <IconImage size={19} style={{ color: 'var(--color-primary-600)' }} />
               {photos.length > 0 ? `${photos.length} photo${photos.length > 1 ? 's' : ''} selected — click to change` : 'Choose Photos'}
             </button>
 
@@ -329,9 +329,9 @@ export default function BookingForm({ provider, client }) {
             border-bottom: 1px solid var(--color-neutral-200);
           }
           .bps-avatar {
-            width: 52px; height: 52px; border-radius: 50%; overflow: hidden; flex-shrink: 0;
+            width: 62px; height: 62px; border-radius: 50%; overflow: hidden; flex-shrink: 0;
             background: var(--color-primary-200); display: flex; align-items: center;
-            justify-content: center; font-size: 1.25rem; font-weight: 700; color: var(--color-primary-700);
+            justify-content: center; font-size: 1.5rem; font-weight: 700; color: var(--color-primary-700);
           }
           .bps-avatar img { width: 100%; height: 100%; object-fit: cover; }
           .booking-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-lg); padding: var(--space-xl); }
@@ -340,37 +340,37 @@ export default function BookingForm({ provider, client }) {
           .bf-label { display: flex; align-items: center; font-weight: 600; color: var(--color-secondary-700); margin-bottom: 6px; font-size: var(--font-size-sm); }
           .bf-required { color: var(--color-error); margin-left: 2px; }
           .bf-input {
-            width: 100%; padding: 10px 14px; border: 1.5px solid var(--color-neutral-200);
+            width: 100%; padding: 12px 17px; border: 1.5px solid var(--color-neutral-200);
             border-radius: var(--radius-md); font-size: var(--font-size-base); font-family: inherit;
             outline: none; transition: border-color var(--transition-base);
             background: white; color: var(--color-text); box-sizing: border-box;
           }
           .bf-input:focus { border-color: var(--color-primary-500); }
           .bf-textarea { resize: vertical; }
-          .bf-time-row { display: flex; gap: 8px; }
-          .bf-select { flex: 1; padding-left: 10px; padding-right: 10px; cursor: pointer; }
-          .bf-select-ampm { flex: 0 0 70px; font-weight: 600; }
+          .bf-time-row { display: flex; gap: 10px; }
+          .bf-select { flex: 1; padding-left: 12px; padding-right: 12px; cursor: pointer; }
+          .bf-select-ampm { flex: 0 0 84px; font-weight: 600; }
           .bf-hint { margin-top: 4px; font-size: var(--font-size-xs); color: var(--color-neutral-500); text-align: right; }
           .bf-hint-warn { color: var(--color-error); }
 
           /* Location */
           .bf-location-display {
             display: flex; align-items: center; justify-content: space-between;
-            gap: 12px; padding: 10px 14px;
+            gap: 14px; padding: 12px 17px;
             background: var(--color-neutral-50); border: 1.5px solid var(--color-neutral-200);
             border-radius: var(--radius-md); flex-wrap: wrap;
           }
           .bf-location-display.bf-location-warn { background: #fffbeb; border-color: #fde68a; }
           .bf-location-text { font-size: var(--font-size-sm); color: var(--color-neutral-600); flex: 1; }
           .bf-loc-alt-btn {
-            display: flex; align-items: center; padding: 5px 12px;
+            display: flex; align-items: center; padding: 6px 14px;
             background: var(--color-primary-600); color: white; border: none;
             border-radius: var(--radius-md); font-size: var(--font-size-xs); font-weight: 600;
             cursor: pointer; white-space: nowrap; font-family: inherit;
           }
           .bf-loc-alt-btn:hover { background: var(--color-primary-700); }
           .bf-loc-cancel-btn {
-            padding: 5px 12px; background: none; border: 1.5px solid var(--color-neutral-300);
+            padding: 6px 14px; background: none; border: 1.5px solid var(--color-neutral-300);
             border-radius: var(--radius-md); font-size: var(--font-size-xs); font-weight: 600;
             color: var(--color-neutral-600); cursor: pointer; white-space: nowrap; font-family: inherit;
           }
@@ -385,8 +385,8 @@ export default function BookingForm({ provider, client }) {
 
           /* Upload button */
           .bf-upload-btn {
-            display: flex; align-items: center; gap: 8px;
-            padding: 10px 18px; background: var(--color-primary-50);
+            display: flex; align-items: center; gap: 10px;
+            padding: 12px 22px; background: var(--color-primary-50);
             border: 1.5px dashed var(--color-primary-300); border-radius: var(--radius-md);
             font-size: var(--font-size-sm); font-weight: 600; color: var(--color-primary-700);
             cursor: pointer; font-family: inherit; transition: background 0.15s, border-color 0.15s;
@@ -395,18 +395,18 @@ export default function BookingForm({ provider, client }) {
           .bf-upload-btn:hover { background: var(--color-primary-100); border-color: var(--color-primary-500); }
 
           /* Photo previews */
-          .bf-photo-previews { display: flex; gap: 12px; margin-top: 12px; flex-wrap: wrap; }
+          .bf-photo-previews { display: flex; gap: 14px; margin-top: 14px; flex-wrap: wrap; }
           .bf-photo-thumb {
-            position: relative; width: 90px; height: 90px;
+            position: relative; width: 108px; height: 108px;
             border-radius: var(--radius-md); overflow: hidden;
             border: 2px solid var(--color-primary-200);
           }
           .bf-photo-thumb img { width: 100%; height: 100%; object-fit: cover; }
           .bf-photo-remove {
-            position: absolute; top: 3px; right: 3px;
-            width: 20px; height: 20px; border-radius: 50%;
+            position: absolute; top: 4px; right: 4px;
+            width: 24px; height: 24px; border-radius: 50%;
             background: rgba(0,0,0,0.65); color: white;
-            border: none; font-size: 14px; line-height: 1; cursor: pointer;
+            border: none; font-size: 17px; line-height: 1; cursor: pointer;
             display: flex; align-items: center; justify-content: center;
           }
 
@@ -420,7 +420,7 @@ export default function BookingForm({ provider, client }) {
         <div className="bf-modal-overlay" onClick={() => setShowConfirm(false)}>
           <div className="bf-modal" onClick={(e) => e.stopPropagation()}>
             <div className="bf-modal-icon">
-              <IconCheckCircle size={40} style={{ color: 'var(--color-primary-600)' }} />
+              <IconCheckCircle size={48} style={{ color: 'var(--color-primary-600)' }} />
             </div>
             <h2 className="bf-modal-title">Confirm Your Booking</h2>
             <div className="bf-modal-details">
@@ -462,7 +462,7 @@ export default function BookingForm({ provider, client }) {
         }
         .bf-modal {
           background: white; border-radius: var(--radius-xl);
-          padding: var(--space-2xl); max-width: 460px; width: 100%;
+          padding: var(--space-2xl); max-width: 552px; width: 100%;
           box-shadow: 0 20px 60px rgba(0,0,0,0.2);
         }
         .bf-modal-icon { display: flex; justify-content: center; margin-bottom: var(--space-lg); }

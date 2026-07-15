@@ -1,6 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import BookingDetailPreview from './BookingDetailPreview.jsx';
 import { IconInbox, IconMapPin } from '../../../components/common/icons.jsx';
+import { rowPreviewPosition } from '../rowPreviewPosition.js';
+
+const MIN_ROWS = 6;
+const COLUMN_COUNT = 9;
 
 function statusBadge(status) {
   return <span className={`provider-badge ${status}`}>{status.charAt(0).toUpperCase() + status.slice(1)}</span>;
@@ -12,6 +16,17 @@ export default function ProviderRequestTable({ requests, onAccept, onReject, loa
 
   const hoveredBooking = requests?.find((r) => r.id === hoveredId);
 
+  useEffect(() => {
+    if (hoveredId == null) return undefined;
+    function close() { setHoveredId(null); }
+    window.addEventListener('scroll', close, true);
+    window.addEventListener('resize', close);
+    return () => {
+      window.removeEventListener('scroll', close, true);
+      window.removeEventListener('resize', close);
+    };
+  }, [hoveredId]);
+
   if (!requests?.length) {
     return (
       <div className="provider-empty-state">
@@ -22,18 +37,16 @@ export default function ProviderRequestTable({ requests, onAccept, onReject, loa
     );
   }
 
+  const fillerRowCount = Math.max(0, MIN_ROWS - requests.length);
+
   function handleMouseEnter(e, id) {
     const rect = e.currentTarget.getBoundingClientRect();
-    const tableRect = e.currentTarget.closest('.provider-table-wrap').getBoundingClientRect();
     setHoveredId(id);
-    setPreviewPos({
-      top: rect.bottom - tableRect.top + 4,
-      left: 0,
-    });
+    setPreviewPos(rowPreviewPosition(rect));
   }
 
   return (
-    <div className="provider-table-wrap" style={{ position: 'relative' }}>
+    <div className="provider-table-wrap">
       <table className="provider-table">
         <thead>
           <tr>
@@ -98,6 +111,11 @@ export default function ProviderRequestTable({ requests, onAccept, onReject, loa
                   </div>
                 )}
               </td>
+            </tr>
+          ))}
+          {Array.from({ length: fillerRowCount }).map((_, i) => (
+            <tr className="provider-table-filler-row" key={`filler-${i}`}>
+              <td colSpan={COLUMN_COUNT}>&nbsp;</td>
             </tr>
           ))}
         </tbody>

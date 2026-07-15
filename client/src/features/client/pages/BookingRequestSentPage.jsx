@@ -11,7 +11,7 @@ export default function BookingRequestSentPage() {
       <div className="container">
         <div className="brs-card">
           <div className="brs-icon">
-            <IconCheckCircle size={64} style={{ color: 'var(--color-primary-600)' }} />
+            <IconCheckCircle size={77} style={{ color: 'var(--color-primary-600)' }} />
           </div>
           <h1 className="brs-title">Booking Request Sent!</h1>
           <p className="brs-sub">
@@ -54,11 +54,11 @@ export default function BookingRequestSentPage() {
 
           <div className="brs-actions">
             <Link to={ROUTES.CLIENT_MY_BOOKINGS} className="btn btn-primary btn-shine">
-              <IconClipboardList size={16} style={{ marginRight: 6 }} />
+              <IconClipboardList size={19} style={{ marginRight: 6 }} />
               View My Bookings
             </Link>
             <Link to={ROUTES.HOME} className="btn btn-outline">
-              <IconHome size={16} style={{ marginRight: 6 }} />
+              <IconHome size={19} style={{ marginRight: 6 }} />
               Back to Home
             </Link>
           </div>
@@ -68,7 +68,7 @@ export default function BookingRequestSentPage() {
       <style>{`
         .brs-page { padding: var(--space-2xl) 0; display: flex; align-items: center; min-height: 60vh; }
         .brs-card {
-          max-width: 560px; margin: 0 auto; text-align: center;
+          max-width: 672px; margin: 0 auto; text-align: center;
           background: white; border-radius: var(--radius-lg); padding: var(--space-2xl);
           border: 1px solid var(--color-neutral-200); box-shadow: var(--shadow-md);
         }
@@ -85,9 +85,9 @@ export default function BookingRequestSentPage() {
         .brs-ref-hint { font-size: var(--font-size-xs); color: var(--color-neutral-400); }
         .brs-steps { text-align: left; margin-bottom: var(--space-xl); }
         .brs-step { display: flex; gap: var(--space-md); align-items: flex-start; }
-        .brs-step-line { width: 2px; height: 24px; background: var(--color-neutral-200); margin-left: 18px; }
+        .brs-step-line { width: 2px; height: 29px; background: var(--color-neutral-200); margin-left: 21px; }
         .brs-step-dot {
-          width: 36px; height: 36px; border-radius: 50%;
+          width: 43px; height: 43px; border-radius: 50%;
           background: var(--color-neutral-100); border: 2px solid var(--color-neutral-300);
           display: flex; align-items: center; justify-content: center;
           font-weight: 700; font-size: var(--font-size-sm); color: var(--color-neutral-500); flex-shrink: 0;

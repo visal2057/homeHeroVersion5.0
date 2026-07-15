@@ -11,7 +11,7 @@ export default function JobsToDoTable({ bookings = [] }) {
   if (!bookings.length) {
     return (
       <div className="bt-empty">
-        <IconToolbox size={40} style={{ color: 'var(--color-neutral-300)', marginBottom: 'var(--space-md)' }} />
+        <IconToolbox size={48} style={{ color: 'var(--color-neutral-300)', marginBottom: 'var(--space-md)' }} />
         <h3>No upcoming jobs</h3>
         <p>Your accepted bookings will appear here.</p>
         <style>{`.bt-empty { text-align: center; padding: var(--space-2xl); color: var(--color-neutral-400); display: flex; flex-direction: column; align-items: center; } .bt-empty h3 { color: var(--color-neutral-600); margin-bottom: 6px; }`}</style>
@@ -71,7 +71,7 @@ export default function JobsToDoTable({ bookings = [] }) {
                         className="bt-pay-btn-disabled"
                         title={b.scheduledAt ? `Available after ${new Date(b.scheduledAt).toLocaleString('en-LK', { dateStyle: 'short', timeStyle: 'short' })}` : 'Awaiting job date'}
                       >
-                        <IconClock size={12} style={{ marginRight: 4 }} />
+                        <IconClock size={14} style={{ marginRight: 4 }} />
                         Awaiting
                       </span>
                     )}
@@ -85,17 +85,17 @@ export default function JobsToDoTable({ bookings = [] }) {
       <style>{`
         .bt-table-wrap { overflow-x: auto; }
         .bt-table { width: 100%; border-collapse: collapse; font-size: var(--font-size-sm); }
-        .bt-table th { background: var(--color-neutral-50); padding: 10px 14px; text-align: left; color: var(--color-neutral-600); font-weight: 600; border-bottom: 2px solid var(--color-neutral-200); white-space: nowrap; }
-        .bt-table td { padding: 12px 14px; border-bottom: 1px solid var(--color-neutral-100); color: var(--color-neutral-700); vertical-align: middle; }
+        .bt-table th { background: var(--color-neutral-50); padding: 12px 17px; text-align: left; color: var(--color-neutral-600); font-weight: 600; border-bottom: 2px solid var(--color-neutral-200); white-space: nowrap; }
+        .bt-table td { padding: 14px 17px; border-bottom: 1px solid var(--color-neutral-100); color: var(--color-neutral-700); vertical-align: middle; }
         .bt-table tr:hover td { background: var(--color-neutral-50); }
-        .bt-provider-cell { display: flex; align-items: center; gap: 8px; }
-        .bt-provider-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--color-primary-100); display: flex; align-items: center; justify-content: center; color: var(--color-primary-700); font-weight: 700; flex-shrink: 0; }
-        .bt-status { padding: 3px 10px; border-radius: var(--radius-full); font-size: var(--font-size-xs); font-weight: 600; white-space: nowrap; }
+        .bt-provider-cell { display: flex; align-items: center; gap: 10px; }
+        .bt-provider-avatar { width: 38px; height: 38px; border-radius: 50%; background: var(--color-primary-100); display: flex; align-items: center; justify-content: center; color: var(--color-primary-700); font-weight: 700; flex-shrink: 0; }
+        .bt-status { padding: 4px 12px; border-radius: var(--radius-full); font-size: var(--font-size-xs); font-weight: 600; white-space: nowrap; }
         .bt-id { font-family: monospace; font-size: var(--font-size-xs); color: var(--color-neutral-500); }
-        .bt-token { font-family: monospace; font-size: var(--font-size-xs); background: var(--color-primary-50); color: var(--color-primary-700); padding: 2px 6px; border-radius: var(--radius-sm); letter-spacing: 0.05em; }
-        .bt-pay-btn { padding: 6px 14px; background: var(--color-primary-600); color: white; border: none; border-radius: var(--radius-md); font-size: var(--font-size-xs); font-weight: 600; cursor: pointer; white-space: nowrap; }
+        .bt-token { font-family: monospace; font-size: var(--font-size-xs); background: var(--color-primary-50); color: var(--color-primary-700); padding: 2px 7px; border-radius: var(--radius-sm); letter-spacing: 0.05em; }
+        .bt-pay-btn { padding: 7px 17px; background: var(--color-primary-600); color: white; border: none; border-radius: var(--radius-md); font-size: var(--font-size-xs); font-weight: 600; cursor: pointer; white-space: nowrap; }
         .bt-pay-btn:hover { background: var(--color-primary-700); }
-        .bt-pay-btn-disabled { display: inline-flex; align-items: center; padding: 6px 10px; background: var(--color-neutral-100); color: var(--color-neutral-400); border-radius: var(--radius-md); font-size: var(--font-size-xs); font-weight: 600; white-space: nowrap; cursor: default; }
+        .bt-pay-btn-disabled { display: inline-flex; align-items: center; padding: 7px 12px; background: var(--color-neutral-100); color: var(--color-neutral-400); border-radius: var(--radius-md); font-size: var(--font-size-xs); font-weight: 600; white-space: nowrap; cursor: default; }
       `}</style>
     </div>
   );

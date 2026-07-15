@@ -26,7 +26,7 @@ export default function TopProvidersSection({ providers = [], category }) {
       <div className="tps-header">
         <div className="tps-header-left">
           <div className="tps-trophy-wrap">
-            <IconTrophy size={22} style={{ color: '#d97706' }} />
+            <IconTrophy size={26} style={{ color: '#d97706' }} />
           </div>
           <div>
             <h2 className="tps-title">Top Providers in {category}</h2>
@@ -41,7 +41,7 @@ export default function TopProvidersSection({ providers = [], category }) {
             <Link key={p.providerId ?? p.id} to={href} className={`tps-card${idx === 0 ? ' tps-card-first' : ''}`}>
               {idx === 0 && (
                 <div className="tps-rank-badge tps-rank-1">
-                  <IconTrophy size={12} style={{ color: '#d97706' }} />
+                  <IconTrophy size={14} style={{ color: '#d97706' }} />
                 </div>
               )}
               {idx > 0 && <div className="tps-rank-badge">#{idx + 1}</div>}
@@ -65,13 +65,13 @@ export default function TopProvidersSection({ providers = [], category }) {
         .tps-header { margin-bottom: var(--space-xl); }
         .tps-header-left { display: flex; align-items: center; gap: var(--space-md); }
         .tps-trophy-wrap {
-          width: 44px; height: 44px; border-radius: var(--radius-md);
+          width: 53px; height: 53px; border-radius: var(--radius-md);
           background: #fffbeb; border: 1px solid #fde68a;
           display: flex; align-items: center; justify-content: center; flex-shrink: 0;
         }
         .tps-title { font-size: var(--font-size-xl); color: var(--color-secondary-700); margin-bottom: 4px; font-weight: 700; }
         .tps-sub { color: var(--color-neutral-500); font-size: var(--font-size-sm); margin: 0; }
-        .tps-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: var(--space-lg); }
+        .tps-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(192px, 1fr)); gap: var(--space-lg); }
         .tps-card {
           display: flex; flex-direction: column; align-items: center;
           text-align: center; padding: var(--space-lg);
@@ -85,25 +85,25 @@ export default function TopProvidersSection({ providers = [], category }) {
         .tps-card-first { border-color: #fde68a; background: linear-gradient(160deg, #fffbeb 0%, white 60%); }
         .tps-card-first:hover { border-color: #d97706; }
         .tps-rank-badge {
-          position: absolute; top: 10px; right: 10px;
+          position: absolute; top: 12px; right: 12px;
           background: var(--color-neutral-100); color: var(--color-neutral-500);
-          font-size: 10px; font-weight: 700; padding: 2px 7px;
+          font-size: 12px; font-weight: 700; padding: 2px 8px;
           border-radius: var(--radius-full);
         }
-        .tps-rank-1 { background: #fffbeb; color: #d97706; padding: 4px 7px; }
+        .tps-rank-1 { background: #fffbeb; color: #d97706; padding: 5px 8px; }
         .tps-avatar {
-          position: relative; width: 80px; height: 80px; border-radius: 50%;
+          position: relative; width: 96px; height: 96px; border-radius: 50%;
           background: var(--color-primary-100); overflow: hidden;
           display: flex; align-items: center; justify-content: center;
-          font-size: 2rem; font-weight: 700; color: var(--color-primary-700);
+          font-size: 2.4rem; font-weight: 700; color: var(--color-primary-700);
           border: 3px solid var(--color-primary-200);
         }
         .tps-avatar img { width: 100%; height: 100%; object-fit: cover; }
         .tps-badge {
-          position: absolute; bottom: 2px; right: 2px; width: 18px; height: 18px;
+          position: absolute; bottom: 2px; right: 2px; width: 22px; height: 22px;
           background: var(--color-primary-600); color: white; border-radius: 50%;
           display: flex; align-items: center; justify-content: center;
-          font-size: 10px; border: 2px solid white;
+          font-size: 12px; border: 2px solid white;
         }
         .tps-name { font-weight: 700; color: var(--color-secondary-700); font-size: var(--font-size-sm); }
         .tps-reviews { font-size: var(--font-size-xs); color: var(--color-neutral-400); }

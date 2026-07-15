@@ -1,12 +1,27 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import BookingDetailPreview from './BookingDetailPreview.jsx';
 import { IconWrench, IconMapPin } from '../../../components/common/icons.jsx';
+import { rowPreviewPosition } from '../rowPreviewPosition.js';
+
+const MIN_ROWS = 6;
+const COLUMN_COUNT = 8;
 
 export default function ProviderJobsTable({ jobs }) {
   const [hoveredId, setHoveredId] = useState(null);
   const [previewPos, setPreviewPos] = useState({ top: 0, left: 0 });
 
   const hoveredBooking = jobs?.find((j) => j.id === hoveredId);
+
+  useEffect(() => {
+    if (hoveredId == null) return undefined;
+    function close() { setHoveredId(null); }
+    window.addEventListener('scroll', close, true);
+    window.addEventListener('resize', close);
+    return () => {
+      window.removeEventListener('scroll', close, true);
+      window.removeEventListener('resize', close);
+    };
+  }, [hoveredId]);
 
   if (!jobs?.length) {
     return (
@@ -18,18 +33,16 @@ export default function ProviderJobsTable({ jobs }) {
     );
   }
 
+  const fillerRowCount = Math.max(0, MIN_ROWS - jobs.length);
+
   function handleMouseEnter(e, id) {
     const rect = e.currentTarget.getBoundingClientRect();
-    const tableRect = e.currentTarget.closest('.provider-table-wrap').getBoundingClientRect();
     setHoveredId(id);
-    setPreviewPos({
-      top: rect.bottom - tableRect.top + 4,
-      left: 0,
-    });
+    setPreviewPos(rowPreviewPosition(rect));
   }
 
   return (
-    <div className="provider-table-wrap" style={{ position: 'relative' }}>
+    <div className="provider-table-wrap">
       <table className="provider-table">
         <thead>
           <tr>
@@ -73,6 +86,11 @@ export default function ProviderJobsTable({ jobs }) {
               <td>
                 <span className="provider-badge active">Accepted</span>
               </td>
+            </tr>
+          ))}
+          {Array.from({ length: fillerRowCount }).map((_, i) => (
+            <tr className="provider-table-filler-row" key={`filler-${i}`}>
+              <td colSpan={COLUMN_COUNT}>&nbsp;</td>
             </tr>
           ))}
         </tbody>

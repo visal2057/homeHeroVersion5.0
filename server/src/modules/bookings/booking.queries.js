@@ -92,7 +92,7 @@ export function listProviderBookingsByStatuses(providerUserId, statuses, limit) 
     `SELECT b.booking_id, b.job_description, b.scheduled_at, b.requested_at, b.completed_at, b.booking_status,
             cu.full_name AS client_name, cu.phone AS client_phone, cu.email AS client_email, cu.user_token AS client_token,
             sc.category_name AS service_category,
-            bl.latitude_snapshot, bl.longitude_snapshot,
+            bl.address_snapshot, bl.latitude_snapshot, bl.longitude_snapshot,
             r.rating, r.review_text,
             bp.payment_method,
             (inv.invoice_id IS NOT NULL) AS has_invoice
