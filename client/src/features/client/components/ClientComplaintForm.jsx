@@ -109,7 +109,7 @@ export default function ClientComplaintForm({ onSuccess }) {
       {error && <div className="cf-error">{error}</div>}
 
       <button type="submit" className="btn btn-primary btn-shine" disabled={submitting} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-        <IconSend size={16} />
+        <IconSend size={19} />
         {submitting ? 'Submitting…' : 'Submit Complaint'}
       </button>
 
@@ -118,14 +118,14 @@ export default function ClientComplaintForm({ onSuccess }) {
         .cf-group { display: flex; flex-direction: column; gap: 6px; }
         .cf-label { font-weight: 600; color: var(--color-secondary-700); font-size: var(--font-size-sm); }
         .cf-input {
-          padding: 10px 14px; border: 1.5px solid var(--color-neutral-200);
+          padding: 12px 17px; border: 1.5px solid var(--color-neutral-200);
           border-radius: var(--radius-md); font-size: var(--font-size-base); font-family: inherit;
           outline: none; transition: border-color var(--transition-base); background: white; color: var(--color-text);
         }
         .cf-input:focus { border-color: var(--color-primary-500); }
         .cf-token { font-family: monospace; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 600; }
         .cf-textarea { resize: vertical; }
-        .cf-error { padding: 10px 14px; background: var(--color-error-bg); color: var(--color-error); border-radius: var(--radius-md); font-size: var(--font-size-sm); }
+        .cf-error { padding: 12px 17px; background: var(--color-error-bg); color: var(--color-error); border-radius: var(--radius-md); font-size: var(--font-size-sm); }
       `}</style>
     </form>
   );

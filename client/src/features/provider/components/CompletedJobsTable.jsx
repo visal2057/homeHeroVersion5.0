@@ -1,6 +1,9 @@
 import { IconCheckCircle, IconStar, IconImage } from '../../../components/common/icons.jsx';
 import InvoiceRowAction from './InvoiceRowAction.jsx';
 
+const MIN_ROWS = 6;
+const COLUMN_COUNT = 10;
+
 function StarRow({ value }) {
   return (
     <span style={{ display: 'inline-flex', gap: 1, color: '#fbbf24' }}>
@@ -21,6 +24,8 @@ export default function CompletedJobsTable({ jobs, postedBookingIds, onCreatePos
       </div>
     );
   }
+
+  const fillerRowCount = Math.max(0, MIN_ROWS - jobs.length);
 
   return (
     <div className="provider-table-wrap">
@@ -84,6 +89,11 @@ export default function CompletedJobsTable({ jobs, postedBookingIds, onCreatePos
               </tr>
             );
           })}
+          {Array.from({ length: fillerRowCount }).map((_, i) => (
+            <tr className="provider-table-filler-row" key={`filler-${i}`}>
+              <td colSpan={COLUMN_COUNT}>&nbsp;</td>
+            </tr>
+          ))}
         </tbody>
       </table>
     </div>

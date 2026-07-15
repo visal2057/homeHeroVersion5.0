@@ -1,10 +1,11 @@
+import { createPortal } from 'react-dom';
 import { getAssetUrl } from '../../../utils/storageUtils.js';
 import { IconCalendar, IconMapPin } from '../../../components/common/icons.jsx';
 
 export default function BookingDetailPreview({ booking, style }) {
   if (!booking) return null;
 
-  return (
+  return createPortal(
     <div className="provider-row-preview" style={style}>
       <div className="provider-row-preview-title">{booking.service_title ?? 'Booking Details'}</div>
 
@@ -40,6 +41,7 @@ export default function BookingDetailPreview({ booking, style }) {
           ))}
         </div>
       )}
-    </div>
+    </div>,
+    document.body
   );
 }

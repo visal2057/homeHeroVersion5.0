@@ -942,8 +942,9 @@
 .provider-table-wrap {
   width: 100%;
   overflow-x: auto;
-  border: 2px solid var(--color-secondary-600);
   border-radius: var(--radius-md);
+  background: var(--color-neutral-0);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.10), 0 1px 2px rgba(15, 23, 42, 0.06);
 }
 
 .provider-table {
@@ -1010,16 +1011,17 @@
    Booking detail hover preview
    -------------------------------------------------------------------------- */
 .provider-row-preview {
-  position: absolute;
-  z-index: 400;
-  left: 0;
-  top: 100%;
-  width: 320px;
+  position: fixed;
+  z-index: 1000;
+  width: 340px;
+  max-width: calc(100vw - 24px);
+  max-height: min(420px, calc(100vh - 24px));
+  overflow-y: auto;
   background: var(--color-neutral-0);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-lg);
-  padding: var(--space-md);
+  padding: var(--space-md) var(--space-lg);
   pointer-events: none;
   animation: hh-fade-in 0.15s ease both;
 }
@@ -1027,14 +1029,16 @@
 .provider-row-preview-title {
   font-weight: 700;
   color: var(--color-secondary-700);
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-base);
   margin-bottom: var(--space-sm);
 }
 
 .provider-row-preview-desc {
   font-size: var(--font-size-sm);
+  line-height: 1.5;
   color: var(--color-text-muted);
   margin-bottom: var(--space-sm);
+  white-space: pre-wrap;
 }
 
 .provider-row-preview-images {
@@ -1044,11 +1048,23 @@
 }
 
 .provider-row-preview-images img {
-  width: 60px;
-  height: 60px;
+  width: 68px;
+  height: 68px;
   object-fit: cover;
   border-radius: var(--radius-sm);
   border: 1px solid var(--color-border);
+}
+
+/* --------------------------------------------------------------------------
+   Filler rows — keep short tables from looking collapsed
+   -------------------------------------------------------------------------- */
+.provider-table-filler-row td {
+  height: 44px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.provider-table tbody tr.provider-table-filler-row:hover {
+  background: transparent;
 }
 
 /* --------------------------------------------------------------------------

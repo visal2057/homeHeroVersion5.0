@@ -26,7 +26,7 @@ export default function BookingTabs({ activeTab, onTabChange }) {
           flex-wrap: wrap;
         }
         .bt-tab {
-          flex: 1; min-width: 120px; padding: 10px 20px;
+          flex: 1; min-width: 144px; padding: 12px 24px;
           background: none; border: none; cursor: pointer;
           border-radius: calc(var(--radius-lg) - 4px);
           transition: background 0.2s, color 0.2s;

@@ -54,15 +54,15 @@ export default function ReviewsSection({ reviews = [], averageRating, reviewCoun
           background: var(--color-primary-50); border-radius: var(--radius-lg);
           padding: var(--space-lg); margin-bottom: var(--space-xl);
         }
-        .reviews-avg { font-size: 3rem; font-weight: 800; color: var(--color-primary-700); }
+        .reviews-avg { font-size: 3.6rem; font-weight: 800; color: var(--color-primary-700); }
         .reviews-list { display: flex; flex-direction: column; gap: var(--space-md); }
         .review-card {
           background: white; border: 1px solid var(--color-neutral-200);
           border-radius: var(--radius-md); padding: var(--space-lg);
         }
-        .review-header { display: flex; gap: var(--space-md); align-items: center; margin-bottom: 10px; }
+        .review-header { display: flex; gap: var(--space-md); align-items: center; margin-bottom: 12px; }
         .review-avatar {
-          width: 40px; height: 40px; border-radius: 50%;
+          width: 48px; height: 48px; border-radius: 50%;
           background: var(--color-primary-600); color: white;
           display: flex; align-items: center; justify-content: center;
           font-weight: 700; font-size: var(--font-size-sm); flex-shrink: 0;
@@ -71,7 +71,7 @@ export default function ReviewsSection({ reviews = [], averageRating, reviewCoun
         .review-date { color: var(--color-neutral-400); font-size: var(--font-size-xs); }
         .review-comment { color: var(--color-neutral-700); margin: 0; }
         .reviews-empty { text-align: center; padding: var(--space-2xl); color: var(--color-neutral-400); }
-        .reviews-empty span { font-size: 2rem; }
+        .reviews-empty span { font-size: 2.4rem; }
       `}</style>
     </div>
   );

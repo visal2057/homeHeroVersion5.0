@@ -45,7 +45,7 @@ export default function MyBookingsPage() {
         <div className="container" style={{ position: 'relative', zIndex: 1 }}>
           <div className="mb-hero-inner">
             <div className="mb-hero-icon">
-              <IconClipboardList size={32} style={{ color: 'white' }} />
+              <IconClipboardList size={38} style={{ color: 'white' }} />
             </div>
             <div>
               <div className="hh-eyebrow" style={{ color: 'rgba(255,255,255,0.75)', marginBottom: 6 }}>Your Account</div>
@@ -96,7 +96,7 @@ export default function MyBookingsPage() {
         .mb-page { padding-bottom: var(--space-2xl); }
         .mb-hero {
           position: relative; background-image: url('https://images.unsplash.com/photo-1506784365847-bbad939e9335?auto=format&fit=crop&w=2000&q=80');
-          background-size: cover; background-position: center; padding: 64px 0;
+          background-size: cover; background-position: center; padding: 77px 0;
         }
         .mb-hero-overlay {
           position: absolute; inset: 0;
@@ -104,7 +104,7 @@ export default function MyBookingsPage() {
         }
         .mb-hero-inner { display: flex; align-items: center; gap: var(--space-xl); }
         .mb-hero-icon {
-          width: 64px; height: 64px; border-radius: var(--radius-lg);
+          width: 77px; height: 77px; border-radius: var(--radius-lg);
           background: rgba(255,255,255,0.15); backdrop-filter: blur(8px);
           display: flex; align-items: center; justify-content: center; flex-shrink: 0;
           border: 1px solid rgba(255,255,255,0.25);
@@ -114,7 +114,7 @@ export default function MyBookingsPage() {
         .mb-body { padding-top: var(--space-2xl); }
         .mb-summary { display: flex; gap: var(--space-md); margin-bottom: var(--space-xl); flex-wrap: wrap; }
         .mb-chip {
-          display: flex; align-items: center; gap: 10px; padding: 12px 20px;
+          display: flex; align-items: center; gap: 12px; padding: 14px 24px;
           border-radius: var(--radius-md); background: white;
           border: 1px solid var(--color-neutral-200);
           font-size: var(--font-size-sm); font-weight: 600; color: var(--color-neutral-700);
@@ -124,7 +124,7 @@ export default function MyBookingsPage() {
         .mb-chip-upcoming .mb-chip-num { color: var(--color-primary-600); }
         .mb-chip-done .mb-chip-num { color: var(--color-secondary-700); }
         .mb-table-wrap { background: white; border-radius: var(--radius-lg); border: 1px solid var(--color-neutral-200); overflow: hidden; }
-        .mb-spinner { width: 40px; height: 40px; border: 3px solid var(--color-neutral-200); border-top-color: var(--color-primary-500); border-radius: 50%; animation: spin 0.7s linear infinite; margin: 0 auto var(--space-md); }
+        .mb-spinner { width: 48px; height: 48px; border: 3px solid var(--color-neutral-200); border-top-color: var(--color-primary-500); border-radius: 50%; animation: spin 0.7s linear infinite; margin: 0 auto var(--space-md); }
         @keyframes spin { to { transform: rotate(360deg); } }
       `}</style>
     </div>

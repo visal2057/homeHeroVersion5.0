@@ -74,19 +74,19 @@ export default function ProviderProfileHeader({ provider }) {
             <div className="pph-meta">
               {districtLabel && (
                 <span className="pph-meta-item">
-                  <IconMapPin size={13} style={{ color: 'var(--color-neutral-400)' }} />
+                  <IconMapPin size={16} style={{ color: 'var(--color-neutral-400)' }} />
                   {districtLabel}
                 </span>
               )}
               {provider.category && (
                 <span className="pph-meta-item">
-                  <IconToolbox size={13} style={{ color: 'var(--color-neutral-400)' }} />
+                  <IconToolbox size={16} style={{ color: 'var(--color-neutral-400)' }} />
                   {provider.category}
                 </span>
               )}
               {provider.hourlyRate && (
                 <span className="pph-meta-item">
-                  <IconDollarSign size={13} style={{ color: 'var(--color-neutral-400)' }} />
+                  <IconDollarSign size={16} style={{ color: 'var(--color-neutral-400)' }} />
                   Rs. {provider.hourlyRate}/hr
                 </span>
               )}
@@ -98,7 +98,7 @@ export default function ProviderProfileHeader({ provider }) {
           <div className="pph-actions">
             {provider.isAvailable !== false ? (
               <Link to={bookingHref} className="btn btn-primary btn-shine pph-book-btn">
-                <IconCalendar size={16} style={{ marginRight: 6 }} />
+                <IconCalendar size={19} style={{ marginRight: 6 }} />
                 Book Now
               </Link>
             ) : (
@@ -111,7 +111,7 @@ export default function ProviderProfileHeader({ provider }) {
       <style>{`
         .pph-wrap { background: white; border-bottom: 1px solid var(--color-neutral-200); }
         .pph-banner {
-          height: 200px; background-size: cover; background-position: center;
+          height: 240px; background-size: cover; background-position: center;
           position: relative;
         }
         .pph-banner-overlay {
@@ -122,19 +122,19 @@ export default function ProviderProfileHeader({ provider }) {
           display: flex; gap: var(--space-xl); align-items: center;
           padding: 0 0 var(--space-xl);
         }
-        .pph-avatar-wrap { position: relative; margin-top: -52px; flex-shrink: 0; }
+        .pph-avatar-wrap { position: relative; margin-top: -62px; flex-shrink: 0; }
         .pph-avatar {
-          width: 110px; height: 110px; border-radius: 50%;
+          width: 132px; height: 132px; border-radius: 50%;
           border: 4px solid white; box-shadow: 0 4px 14px rgba(0,0,0,0.12);
           background: var(--color-primary-100); overflow: hidden;
           display: flex; align-items: center; justify-content: center;
-          font-size: 2.5rem; font-weight: 700; color: var(--color-primary-700);
+          font-size: 3rem; font-weight: 700; color: var(--color-primary-700);
         }
         .pph-avatar img { width: 100%; height: 100%; object-fit: cover; }
         .pph-badge {
           position: absolute; bottom: 4px; right: 4px;
           background: var(--color-primary-600); color: white;
-          font-size: 10px; font-weight: 700; padding: 2px 8px;
+          font-size: 12px; font-weight: 700; padding: 2px 8px;
           border-radius: var(--radius-full); border: 2px solid white;
           display: flex; align-items: center; gap: 3px;
         }
@@ -143,8 +143,8 @@ export default function ProviderProfileHeader({ provider }) {
         .pph-meta { display: flex; gap: var(--space-md); flex-wrap: wrap; margin-bottom: 10px; }
         .pph-meta-item { display: flex; align-items: center; gap: 5px; font-size: var(--font-size-sm); color: var(--color-neutral-500); }
         .pph-actions { flex-shrink: 0; }
-        .pph-book-btn { display: flex; align-items: center; padding: 12px 28px; font-size: var(--font-size-base); }
-        .pph-unavailable { padding: 10px 20px; border-radius: var(--radius-md); background: var(--color-neutral-100); color: var(--color-neutral-500); font-size: var(--font-size-sm); font-weight: 600; }
+        .pph-book-btn { display: flex; align-items: center; padding: 14px 34px; font-size: var(--font-size-base); }
+        .pph-unavailable { padding: 12px 24px; border-radius: var(--radius-md); background: var(--color-neutral-100); color: var(--color-neutral-500); font-size: var(--font-size-sm); font-weight: 600; }
         @media (max-width: 640px) {
           .pph-card { flex-wrap: wrap; }
           .pph-actions { width: 100%; }

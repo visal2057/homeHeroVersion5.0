@@ -73,7 +73,7 @@ export default function ClientProfilePage() {
                 <span>{initials}</span>
               )}
               <div className="cp-avatar-overlay">
-                <IconDocumentEdit size={18} style={{ color: 'white' }} />
+                <IconDocumentEdit size={22} style={{ color: 'white' }} />
               </div>
               <input id="profile-img-input" type="file" accept="image/jpeg,image/png" onChange={handleImageChange} style={{ display: 'none' }} />
             </div>
@@ -82,7 +82,7 @@ export default function ClientProfilePage() {
               <div className="cp-hero-email">{profile?.email}</div>
               {profile?.userToken && (
                 <div className="cp-hero-token">
-                  <IconShield size={12} style={{ marginRight: 4 }} />
+                  <IconShield size={14} style={{ marginRight: 4 }} />
                   Token: <strong style={{ letterSpacing: '0.1em', marginLeft: 4 }}>{profile.userToken}</strong>
                 </div>
               )}
@@ -96,7 +96,7 @@ export default function ClientProfilePage() {
           {/* Edit profile */}
           <div className="cp-card">
             <div className="cp-card-title">
-              <IconDocumentEdit size={18} style={{ color: 'var(--color-primary-600)' }} />
+              <IconDocumentEdit size={22} style={{ color: 'var(--color-primary-600)' }} />
               Edit Profile
             </div>
             {loading ? (
@@ -115,7 +115,7 @@ export default function ClientProfilePage() {
           {/* Change password */}
           <div className="cp-card">
             <div className="cp-card-title">
-              <IconLock size={18} style={{ color: 'var(--color-primary-600)' }} />
+              <IconLock size={22} style={{ color: 'var(--color-primary-600)' }} />
               Change Password
             </div>
             <ChangePasswordForm />
@@ -124,7 +124,7 @@ export default function ClientProfilePage() {
           {/* Location map */}
           <div className="cp-card cp-card-full">
             <div className="cp-card-title">
-              <IconMapPin size={18} style={{ color: 'var(--color-primary-600)' }} />
+              <IconMapPin size={22} style={{ color: 'var(--color-primary-600)' }} />
               Location
             </div>
             <p style={{ color: 'var(--color-neutral-500)', marginBottom: 'var(--space-md)', fontSize: 'var(--font-size-sm)' }}>
@@ -134,6 +134,7 @@ export default function ClientProfilePage() {
               latitude={location?.latitude ?? profile?.location?.latitude}
               longitude={location?.longitude ?? profile?.location?.longitude}
               onChange={setLocation}
+              height={384}
             />
             {locationMessage && (
               <p style={{ marginTop: 'var(--space-sm)', fontSize: 'var(--font-size-sm)', color: locationMessage.includes('success') ? '#059669' : 'var(--color-error)' }}>
@@ -154,7 +155,7 @@ export default function ClientProfilePage() {
         .cp-hero {
           position: relative;
           background-image: url('https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&w=2000&q=80');
-          background-size: cover; background-position: center; padding: 60px 0;
+          background-size: cover; background-position: center; padding: 72px 0;
         }
         .cp-hero-overlay {
           position: absolute; inset: 0;
@@ -162,10 +163,10 @@ export default function ClientProfilePage() {
         }
         .cp-hero-inner { display: flex; align-items: center; gap: var(--space-xl); }
         .cp-hero-avatar {
-          width: 90px; height: 90px; border-radius: 50%; flex-shrink: 0;
+          width: 108px; height: 108px; border-radius: 50%; flex-shrink: 0;
           background: linear-gradient(135deg, var(--color-primary-400), var(--color-secondary-700));
           display: flex; align-items: center; justify-content: center;
-          font-size: 2rem; font-weight: 700; color: white;
+          font-size: 2.4rem; font-weight: 700; color: white;
           border: 4px solid rgba(255,255,255,0.4); cursor: pointer;
           position: relative; overflow: hidden;
         }

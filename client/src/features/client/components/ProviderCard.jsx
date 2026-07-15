@@ -56,7 +56,7 @@ export default function ProviderCard({ provider }) {
             {provider.hourlyRate && (
               <span className="pc-rate">Rs. {provider.hourlyRate}/hr</span>
             )}
-            <Link to={profileHref} className="btn btn-primary" style={{ padding: '6px 14px', fontSize: 'var(--font-size-sm)' }}>
+            <Link to={profileHref} className="btn btn-primary" style={{ padding: '7px 17px', fontSize: 'var(--font-size-sm)' }}>
               View Profile
             </Link>
           </div>
@@ -83,18 +83,18 @@ export default function ProviderCard({ provider }) {
         .provider-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
         .pc-inner { display: flex; gap: var(--space-md); }
         .pc-avatar {
-          position: relative; width: 72px; height: 72px; border-radius: 50%;
+          position: relative; width: 86px; height: 86px; border-radius: 50%;
           overflow: hidden; flex-shrink: 0; background: var(--color-primary-100);
           display: flex; align-items: center; justify-content: center;
-          font-size: 1.75rem; font-weight: 700; color: var(--color-primary-700);
+          font-size: 2.1rem; font-weight: 700; color: var(--color-primary-700);
           border: 3px solid var(--color-primary-200);
         }
         .pc-avatar img { width: 100%; height: 100%; object-fit: cover; }
         .pc-verified {
-          position: absolute; bottom: 2px; right: 2px; width: 18px; height: 18px;
+          position: absolute; bottom: 2px; right: 2px; width: 22px; height: 22px;
           background: var(--color-primary-600); color: white; border-radius: 50%;
           display: flex; align-items: center; justify-content: center;
-          font-size: 10px; border: 2px solid white;
+          font-size: 12px; border: 2px solid white;
         }
         .pc-body { flex: 1; min-width: 0; }
         .pc-name { font-size: var(--font-size-lg); font-weight: 700; color: var(--color-secondary-700); margin-bottom: 4px; }
@@ -106,9 +106,9 @@ export default function ProviderCard({ provider }) {
           position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
           background: white; border-radius: var(--radius-md); box-shadow: var(--shadow-lg);
           border: 1px solid var(--color-neutral-200); padding: var(--space-md);
-          z-index: 20; width: 240px; margin-top: 8px;
+          z-index: 20; width: 288px; margin-top: 8px;
         }
-        .pc-preview-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+        .pc-preview-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }
         .pc-preview-grid img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: var(--radius-sm); }
       `}</style>
     </div>

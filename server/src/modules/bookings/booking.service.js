@@ -67,7 +67,17 @@ export async function createBooking(clientUserId, input, files = []) {
     throw new AppError('This time slot was just booked, please choose another time', 409);
   }
 
-  const location = locationRows[0];
+  const profileLocation = locationRows[0];
+  const hasCustomLocation = input.locationLatitude != null && input.locationLongitude != null;
+  const location = hasCustomLocation
+    ? {
+        address_text: input.locationAddress?.trim()
+          || `${input.locationLatitude}, ${input.locationLongitude}`,
+        latitude: input.locationLatitude,
+        longitude: input.locationLongitude,
+      }
+    : profileLocation;
+
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
@@ -144,7 +154,8 @@ function toProviderRowShape(row) {
     service_date: row.scheduled_at,
     completed_at: row.completed_at,
     location:
-      row.latitude_snapshot != null ? `${row.latitude_snapshot},${row.longitude_snapshot}` : null,
+      row.address_snapshot
+      ?? (row.latitude_snapshot != null ? `${row.latitude_snapshot},${row.longitude_snapshot}` : null),
     status: row.booking_status.toLowerCase(),
     rating: row.rating,
     review_text: row.review_text,
