@@ -24,7 +24,13 @@ export function findBookingDetailForInvoice(bookingId) {
 }
 
 export function findInvoiceByBookingId(bookingId) {
-  return query('SELECT * FROM invoices WHERE booking_id = $1', [bookingId]);
+  return query(
+    `SELECT inv.*, b.client_user_id
+     FROM invoices inv
+     JOIN bookings b ON b.booking_id = inv.booking_id
+     WHERE inv.booking_id = $1`,
+    [bookingId],
+  );
 }
 
 export function insertInvoice({ bookingId, providerUserId, paymentMethod, amount, storagePath }) {

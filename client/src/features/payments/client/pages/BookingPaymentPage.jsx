@@ -1,27 +1,15 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { clientPaymentApi } from '../clientPaymentApi.js';
+import { extractErrorMessage } from '../../../../api/apiErrorHandler.js';
 import { ROUTES } from '../../../../constants/routes.js';
 import PaymentSummary from '../components/PaymentSummary.jsx';
 import PaymentMethodSelector from '../components/PaymentMethodSelector.jsx';
 import PayeeDetails from '../components/PayeeDetails.jsx';
 import CashPaymentConfirmation from '../components/CashPaymentConfirmation.jsx';
 import CardPaymentForm from '../components/CardPaymentForm.jsx';
-import { IconCreditCard } from '../../../../components/common/icons.jsx';
-
-const MOCK_CONTEXT = {
-  bookingId: '1',
-  providerName: 'Nimal Perera',
-  categoryName: 'Gardening',
-  status: 'ACCEPTED',
-  alreadyPaid: false,
-  payee: {
-    accountHolderName: 'Nimal Perera',
-    bankName: 'Commercial Bank',
-    branchName: 'Nugegoda',
-    accountLastFour: '4521',
-  },
-};
+import EmptyState from '../../../../components/common/EmptyState.jsx';
+import { IconCreditCard, IconAlertCircle } from '../../../../components/common/icons.jsx';
 
 export default function BookingPaymentPage() {
   const { bookingId } = useParams();
@@ -29,16 +17,19 @@ export default function BookingPaymentPage() {
 
   const [context, setContext] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [method, setMethod] = useState('');
   const [step, setStep] = useState('select');
 
   const loadContext = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
       const res = await clientPaymentApi.getPaymentContext(bookingId);
       setContext(res.data?.data ?? res.data);
-    } catch {
-      setContext(MOCK_CONTEXT);
+    } catch (err) {
+      setContext(null);
+      setError(extractErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -61,6 +52,21 @@ export default function BookingPaymentPage() {
         <div className="bp-spinner" />
         <p style={{ color: 'var(--color-neutral-500)' }}>Loading payment details…</p>
         <style>{`.bp-spinner { width: 40px; height: 40px; margin: 0 auto var(--space-md); border: 3px solid var(--color-neutral-200); border-top-color: var(--color-primary-500); border-radius: 50%; animation: spin 0.7s linear infinite; } @keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      </div>
+    );
+  }
+
+  if (error || !context) {
+    return (
+      <div className="container" style={{ paddingTop: 'var(--space-2xl)', paddingBottom: 'var(--space-2xl)' }}>
+        <EmptyState
+          icon={IconAlertCircle}
+          tone="error"
+          title="Couldn't load payment details"
+          message={error || 'Something went wrong loading this booking.'}
+          actionLabel="Try Again"
+          onAction={loadContext}
+        />
       </div>
     );
   }

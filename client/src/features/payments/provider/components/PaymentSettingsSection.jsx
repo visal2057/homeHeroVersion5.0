@@ -3,6 +3,7 @@ import { paymentSettingsApi } from '../paymentSettingsApi.js';
 import { extractErrorMessage } from '../../../../api/apiErrorHandler.js';
 import FormInput from '../../../../components/common/FormInput.jsx';
 import AlertMessage from '../../../../components/common/AlertMessage.jsx';
+import ConfirmModal from '../../../../components/common/ConfirmModal.jsx';
 import { IconCreditCard } from '../../../../components/common/icons.jsx';
 
 // The provider's bank details form. I own this component; Maheli places it
@@ -20,6 +21,7 @@ export default function PaymentSettingsSection() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [feedback, setFeedback] = useState(null); // { type, message }
+  const [showConfirm, setShowConfirm] = useState(false);
 
   // Load any details the provider has already saved.
   const load = useCallback(async () => {
@@ -60,13 +62,18 @@ export default function PaymentSettingsSection() {
     return next;
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
     setFeedback(null);
     const found = validate();
     setErrors(found);
     if (Object.keys(found).length > 0) return;
 
+    setShowConfirm(true);
+  };
+
+  const handleConfirmedSave = async () => {
+    setShowConfirm(false);
     setSaving(true);
     try {
       const res = await paymentSettingsApi.save(form);
@@ -116,6 +123,15 @@ export default function PaymentSettingsSection() {
       <button type="submit" className="btn btn-primary" disabled={saving}>
         {saving ? 'Saving…' : 'Save payment settings'}
       </button>
+
+      <ConfirmModal
+        isOpen={showConfirm}
+        title="Confirm payment settings"
+        message="Save these changes to your payment account details? Future card payments from clients will be sent to this account."
+        confirmLabel="Save Changes"
+        onConfirm={handleConfirmedSave}
+        onCancel={() => setShowConfirm(false)}
+      />
 
       <style>{`
         .pset { background: white; border: 1px solid var(--color-neutral-200); border-radius: var(--radius-lg); padding: var(--space-xl); }

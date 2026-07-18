@@ -25,10 +25,12 @@ router.post(
   generateInvoiceHandler,
 );
 
-// Also reachable by System Admin, for the SP Tracking page's View Invoice action.
+// Also reachable by System Admin (SP Tracking's View Invoice action) and by the
+// owning Client (My Bookings > Completed Jobs > Download Invoice). Ownership for
+// both the provider and the client is enforced in invoice.service.js.
 router.get(
   '/:bookingId/download',
-  authorizeRoles('SERVICE_PROVIDER', 'SYSTEM_ADMIN'),
+  authorizeRoles('SERVICE_PROVIDER', 'SYSTEM_ADMIN', 'CLIENT'),
   checkProviderVerification,
   downloadInvoiceHandler,
 );

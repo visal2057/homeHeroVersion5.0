@@ -34,6 +34,11 @@ export default function ProviderReviews({ reviews }) {
           </div>
           <StarRow value={r.rating} />
           <p className="provider-review-text">{r.comment ?? ''}</p>
+          {r.booking_id && (
+            <p className="provider-review-booking">
+              Booking #{r.booking_id}{r.service_category ? ` · ${r.service_category}` : ''}
+            </p>
+          )}
         </div>
       ))}
     </div>

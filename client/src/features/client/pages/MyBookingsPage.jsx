@@ -1,29 +1,28 @@
 import { useEffect, useState, useCallback } from 'react';
 import { bookingApi } from '../bookingApi.js';
+import { extractErrorMessage } from '../../../api/apiErrorHandler.js';
 import BookingTabs from '../components/BookingTabs.jsx';
 import RequestsTable from '../components/RequestsTable.jsx';
 import JobsToDoTable from '../components/JobsToDoTable.jsx';
 import CompletedJobsTable from '../components/CompletedJobsTable.jsx';
-import { IconClipboardList } from '../../../components/common/icons.jsx';
-
-const MOCK_BOOKINGS = [
-  { id: '1', bookingId: '1', providerName: 'Nimal Perera', providerToken: 'NPR4X2', category: 'Gardening', scheduledAt: '2026-07-10T09:00:00.000Z', status: 'ACCEPTED' },
-  { id: '2', bookingId: '2', providerName: 'Kamal Silva', providerToken: 'KSL7Y9', category: 'Cleaning', scheduledAt: '2026-07-15T10:00:00.000Z', status: 'PENDING' },
-  { id: '3', bookingId: '3', providerName: 'Sitha Fernando', providerToken: 'SFN2M1', category: 'Pet Care', completedAt: '2026-06-20T14:00:00.000Z', paymentMethod: 'CARD', status: 'COMPLETED' },
-];
+import EmptyState from '../../../components/common/EmptyState.jsx';
+import { IconClipboardList, IconAlertCircle } from '../../../components/common/icons.jsx';
 
 export default function MyBookingsPage() {
   const [activeTab, setActiveTab] = useState('requests');
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const fetchBookings = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
       const res = await bookingApi.getMyBookings();
       setBookings(res.data?.data ?? res.data ?? []);
-    } catch {
-      setBookings(MOCK_BOOKINGS);
+    } catch (err) {
+      setBookings([]);
+      setError(extractErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -33,7 +32,7 @@ export default function MyBookingsPage() {
     fetchBookings();
   }, [fetchBookings]);
 
-  const requests = bookings.filter((b) => ['PENDING', 'ACCEPTED', 'REJECTED', 'CANCELLED'].includes(b.status));
+  const requests = bookings.filter((b) => ['PENDING', 'REJECTED', 'CANCELLED'].includes(b.status));
   const jobs = bookings.filter((b) => b.status === 'ACCEPTED');
   const completed = bookings.filter((b) => b.status === 'COMPLETED');
 
@@ -83,10 +82,21 @@ export default function MyBookingsPage() {
             <div className="mb-spinner" />
             <p>Loading your bookings...</p>
           </div>
+        ) : error ? (
+          <div className="mb-table-wrap">
+            <EmptyState
+              icon={IconAlertCircle}
+              tone="error"
+              title="Couldn't load your bookings"
+              message={error}
+              actionLabel="Try Again"
+              onAction={fetchBookings}
+            />
+          </div>
         ) : (
           <div className="mb-table-wrap">
             {activeTab === 'requests' && <RequestsTable bookings={requests} onRefresh={fetchBookings} />}
-            {activeTab === 'jobs' && <JobsToDoTable bookings={jobs} />}
+            {activeTab === 'jobs' && <JobsToDoTable bookings={jobs} onRefresh={fetchBookings} />}
             {activeTab === 'completed' && <CompletedJobsTable bookings={completed} onRefresh={fetchBookings} />}
           </div>
         )}

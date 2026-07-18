@@ -15,7 +15,7 @@ async function findUserByToken(token) {
 }
 
 export const submitClientComplaintHandler = asyncHandler(async (req, res) => {
-  const { token, description, complaintType } = req.body;
+  const { token, description, complaintType, bookingId } = req.body;
   const complainantUserId = req.user.userId;
 
   if (!token || !description) {
@@ -34,15 +34,27 @@ export const submitClientComplaintHandler = asyncHandler(async (req, res) => {
     throw new AppError('You cannot submit a complaint against yourself', 422);
   }
 
+  let relatedBookingId = null;
+  if (bookingId) {
+    const { rows: bookingRows } = await query(
+      `SELECT booking_id FROM bookings WHERE booking_id = $1 AND client_user_id = $2 AND provider_user_id = $3`,
+      [Number(bookingId), complainantUserId, target.user_id],
+    );
+    if (bookingRows.length === 0) {
+      throw new AppError('That booking ID does not match a booking between you and this provider', 422);
+    }
+    relatedBookingId = bookingRows[0].booking_id;
+  }
+
   const complaintDetails = complaintType
     ? `[${complaintType}] ${description.trim()}`
     : description.trim();
 
   const { rows } = await query(
-    `INSERT INTO complaints (complainant_user_id, target_user_id, complaint_details)
-     VALUES ($1, $2, $3)
+    `INSERT INTO complaints (complainant_user_id, target_user_id, complaint_details, related_booking_id)
+     VALUES ($1, $2, $3, $4)
      RETURNING complaint_id, complaint_status, submitted_at`,
-    [complainantUserId, target.user_id, complaintDetails],
+    [complainantUserId, target.user_id, complaintDetails, relatedBookingId],
   );
 
   sendSuccess(res, { complaintId: rows[0].complaint_id, status: rows[0].complaint_status }, 201);

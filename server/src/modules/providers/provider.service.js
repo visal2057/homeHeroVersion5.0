@@ -1,7 +1,7 @@
 import { pool } from '../../db/pool.js';
 import { AppError } from '../../utils/AppError.js';
 import { hashPassword, verifyPassword } from '../../utils/passwordUtils.js';
-import { findUserById, updateUserPassword } from '../auth/auth.queries.js';
+import { findUserById, updateUserPassword, findUserByUsernameOrEmail } from '../auth/auth.queries.js';
 import {
   getProviderCoreProfile,
   getProviderCategories,
@@ -88,11 +88,16 @@ export async function getProviderProfile(userId) {
 }
 
 export async function updateProviderProfile(userId, input) {
+  const { rows: existing } = await findUserByUsernameOrEmail(input.username);
+  if (existing.length > 0 && Number(existing[0].user_id) !== Number(userId)) {
+    throw new AppError('Username is already taken', 409);
+  }
+
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
 
-    await updateProviderBasicInfo(client, userId, { fullName: input.fullName, phone: input.phone });
+    await updateProviderBasicInfo(client, userId, { username: input.username, fullName: input.fullName, phone: input.phone });
     const { rows: detailRows } = await updateProviderDetails(client, userId, {
       bio: input.bio,
       workHoursDetails: input.workHoursDetails,

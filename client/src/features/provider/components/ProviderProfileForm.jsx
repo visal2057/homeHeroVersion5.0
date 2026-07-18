@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { providerApi } from '../providerApi.js';
 import { getAssetUrl } from '../../../utils/storageUtils.js';
-import { IconAlertCircle, IconCheckCircle, IconCheck, IconImage } from '../../../components/common/icons.jsx';
+import { IconCheck, IconImage } from '../../../components/common/icons.jsx';
+import AlertMessage from '../../../components/common/AlertMessage.jsx';
 
 function ChangePasswordSection() {
   const [open, setOpen] = useState(false);
@@ -44,8 +45,8 @@ function ChangePasswordSection() {
       {open && (
         <div className="provider-card-body">
           <form onSubmit={handleSubmit}>
-            {error && <div className="provider-alert error"><IconAlertCircle size={16} /> {error}</div>}
-            {success && <div className="provider-alert success"><IconCheckCircle size={16} /> {success}</div>}
+            {error && <AlertMessage type="error" message={error} />}
+            {success && <AlertMessage type="success" message={success} />}
 
             <div className="provider-form-grid">
               <div className="provider-form-group full">
@@ -83,6 +84,7 @@ export default function ProviderProfileForm({ profile, onSave, onImageUploaded, 
   const [imageError, setImageError] = useState('');
   const fileInputRef = useRef(null);
   const [form, setForm] = useState({
+    username: '',
     fullName: '',
     phone: '',
     bio: '',
@@ -105,6 +107,7 @@ export default function ProviderProfileForm({ profile, onSave, onImageUploaded, 
   useEffect(() => {
     if (profile) {
       setForm({
+        username: profile.username ?? '',
         fullName: profile.fullName ?? '',
         phone: profile.phone ?? '',
         bio: profile.bio ?? '',
@@ -196,18 +199,25 @@ export default function ProviderProfileForm({ profile, onSave, onImageUploaded, 
           </div>
         </div>
 
-        {error && (
-          <div className="provider-alert error">
-            <IconAlertCircle size={16} /> {error}
-          </div>
-        )}
-        {success && (
-          <div className="provider-alert success">
-            <IconCheckCircle size={16} /> {success}
-          </div>
-        )}
+        {error && <AlertMessage type="error" message={error} />}
+        {success && <AlertMessage type="success" message={success} />}
 
         <div className="provider-form-grid">
+          <div className="provider-form-group">
+            <label className="provider-form-label" htmlFor="pf-username">
+              Username <span className="required">*</span>
+            </label>
+            <input
+              id="pf-username"
+              name="username"
+              className="provider-form-input"
+              value={form.username}
+              onChange={handleChange}
+              required
+            />
+            <span className="provider-form-hint">3-30 characters: letters, numbers or underscore.</span>
+          </div>
+
           <div className="provider-form-group">
             <label className="provider-form-label" htmlFor="pf-name">
               Full Name <span className="required">*</span>

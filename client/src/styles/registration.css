@@ -1,0 +1,554 @@
+/* =========================================================================
+   Registration pages (client + provider sign-up)
+   A full-bleed, fixed photo backdrop of a green-toned home interior sits
+   behind a soft neutral vignette (no color-tinted wash - the room's own
+   greenery/furniture supplies the brand color), with the form fields
+   living inside true frosted-glass tiles floating on top. Purely
+   presentational - the underlying form components, field names, state,
+   and validation are untouched. Built only with the approved palette
+   already defined in variables.css.
+   ========================================================================= */
+
+.register-page {
+  position: relative;
+  padding: var(--space-2xl) 0 var(--space-2xl);
+  overflow: hidden;
+}
+
+.register-page-bg {
+  position: fixed;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  /* A light blur keeps the room's green walls/plants recognizable while
+     giving it a soft depth-of-field feel, so it reads as a backdrop
+     rather than competing with the glass tiles in front. The slight
+     scale-up hides the blur's edge falloff. */
+  filter: blur(4px) saturate(1.08) brightness(0.97);
+  transform: scale(1.06);
+  z-index: -2;
+}
+
+.register-page-overlay {
+  position: fixed;
+  inset: 0;
+  /* Neutral slate scrim only - darker at the very top (heading legibility)
+     and bottom (grounding), lighter through the middle band where the
+     glass tiles sit so the green room glows through them instead of
+     being washed out by a color tint. */
+  background: linear-gradient(
+    180deg,
+    rgba(8, 15, 13, 0.5) 0%,
+    rgba(8, 15, 13, 0.22) 24%,
+    rgba(8, 15, 13, 0.16) 60%,
+    rgba(8, 15, 13, 0.42) 100%
+  );
+  z-index: -1;
+}
+
+.register-page-inner {
+  position: relative;
+  z-index: 1;
+}
+
+.register-page-heading {
+  margin-bottom: var(--space-2xl);
+}
+
+.register-page-title {
+  font-size: var(--font-size-4xl);
+  color: var(--color-neutral-0);
+  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.4);
+}
+
+.register-page-subtitle {
+  color: var(--color-neutral-0);
+  opacity: 0.92;
+  font-size: var(--font-size-lg);
+  max-width: 560px;
+  margin: 0 auto;
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.35);
+}
+
+@media (max-width: 640px) {
+  .register-page-title {
+    font-size: var(--font-size-3xl);
+  }
+}
+
+/* -------------------------------------------------------------------------
+   The two-box glass grid + centered submit CTA beneath it
+   ------------------------------------------------------------------------- */
+.register-glass-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-xl);
+  align-items: stretch;
+  max-width: 1080px;
+  margin: 0 auto;
+}
+
+.register-glass-box {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  /* Tinted glass slab - a slightly desaturated dark emerald tint (not
+     full-strength green) so the panel reads as smoked glass rather than
+     a solid color card. The border is a light-catching gradient (bright
+     top-left fading to a soft mint at bottom-right) painted into the
+     border-box layer beneath the fill, giving the edge a thin, beveled
+     3D glass look instead of a flat single-tone outline. */
+  background: linear-gradient(160deg, rgba(7, 70, 56, 0.55), rgba(5, 39, 34, 0.7)) padding-box,
+    linear-gradient(135deg, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.08) 45%, rgba(167, 232, 205, 0.4) 100%)
+      border-box;
+  backdrop-filter: blur(32px) saturate(130%);
+  -webkit-backdrop-filter: blur(32px) saturate(130%);
+  border: 1.5px solid transparent;
+  border-radius: var(--radius-lg);
+  box-shadow: 0 24px 60px rgba(3, 42, 32, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  padding: var(--space-xl);
+  text-align: left;
+  transition: transform var(--transition-slow), box-shadow var(--transition-slow);
+}
+
+.register-glass-box:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 32px 76px rgba(3, 42, 32, 0.58), 0 0 44px rgba(16, 185, 129, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22);
+}
+
+.register-glass-box-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  margin-bottom: var(--space-lg);
+  padding-bottom: var(--space-md);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+.register-glass-box-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  /* A glowing emerald orb rather than a flat tint circle, so it reads
+     clearly against the dark tinted glass instead of blending in. */
+  background: linear-gradient(135deg, rgba(52, 211, 153, 0.95), rgba(5, 150, 105, 0.85));
+  border: 1px solid rgba(167, 232, 205, 0.5);
+  color: var(--color-neutral-0);
+  box-shadow: 0 0 18px rgba(16, 185, 129, 0.45);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.register-glass-box-header h3 {
+  margin-bottom: 2px;
+  font-size: var(--font-size-lg);
+  color: var(--color-neutral-0);
+}
+
+.register-glass-box-header p {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-neutral-300);
+}
+
+/* The address box's map field group flexes to fill any leftover height
+   from the grid's equal-height stretch, keeping the two boxes visually
+   balanced regardless of field-count differences, with the map centered
+   in whatever space remains rather than pinned awkwardly to the top. */
+.register-map-group {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  margin-bottom: 0 !important;
+}
+
+/* Pro-tip callout - a nested, lighter-tinted glass strip that sits at
+   the bottom of a box via margin-top: auto, so it naturally absorbs any
+   leftover space in a shorter box (e.g. the provider account-details box
+   next to the longer service-details box) instead of leaving it empty. */
+.register-tip-panel {
+  margin-top: auto;
+  background: rgba(52, 211, 153, 0.12);
+  border: 1px solid rgba(52, 211, 153, 0.35);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+}
+
+.register-tip-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  color: var(--color-primary-400);
+  font-weight: 700;
+  font-size: var(--font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: var(--space-xs);
+}
+
+.register-tip-panel p {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-neutral-200);
+  line-height: 1.5;
+}
+
+/* -------------------------------------------------------------------------
+   Role-picker cards (client vs. provider) - the same glass slab as the
+   sign-up boxes, but the whole tile is a clickable link rather than a
+   form, so it gets link resets plus a bottom-anchored "Get Started" cue.
+   ------------------------------------------------------------------------- */
+.register-role-card {
+  text-decoration: none;
+  cursor: pointer;
+}
+
+/* Neutralize the site-wide plain-text-link hover treatment (a growing
+   underline + color shift from global.css's `a:not(.btn):not(.card)`
+   rule) - it's meant for inline text links, not a full glass tile
+   acting as a link, and its :not() chain out-specifies a plain class
+   selector, hence the !important. */
+.register-role-card::after {
+  content: none !important;
+}
+
+.register-role-card:hover {
+  color: inherit !important;
+}
+
+.register-role-desc {
+  margin: 0;
+  font-size: var(--font-size-base);
+  color: var(--color-neutral-200);
+  line-height: 1.6;
+}
+
+.register-role-cta {
+  margin-top: auto;
+  padding-top: var(--space-lg);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-weight: 700;
+  font-size: var(--font-size-base);
+  color: var(--color-primary-400);
+}
+
+.register-role-arrow {
+  display: inline-block;
+  transition: transform var(--transition-base);
+}
+
+.register-role-card:hover .register-role-arrow {
+  transform: translateX(4px);
+}
+
+/* -------------------------------------------------------------------------
+   Login page - side by side on the same full-bleed backdrop as the rest
+   of the auth flow: a left column with the "Welcome Back" heading and a
+   slate-grey "tip" glass panel, and the green-tinted login form box
+   fixed to a comfortable form width on the right, vertically centered
+   against each other.
+   ------------------------------------------------------------------------- */
+.login-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 440px);
+  gap: var(--space-2xl);
+  align-items: center;
+  max-width: 1080px;
+  margin: 0 auto;
+}
+
+.login-intro-col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xl);
+}
+
+.login-intro-title {
+  text-align: left;
+}
+
+.login-intro-subtitle {
+  text-align: left;
+  margin: 0;
+  max-width: 480px;
+}
+
+/* Cool slate-grey glass slab - the same dual-layer tint + light-catching
+   gradient border + blur construction as .register-glass-box, just in
+   neutral slate tones instead of emerald, so the tip panel reads as a
+   distinct "info" note beside the green login form rather than another
+   form field. */
+.login-tip-box {
+  background: linear-gradient(160deg, rgba(51, 65, 85, 0.55), rgba(15, 23, 42, 0.72)) padding-box,
+    linear-gradient(135deg, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0.06) 45%, rgba(203, 213, 225, 0.4) 100%)
+      border-box;
+  backdrop-filter: blur(28px) saturate(120%);
+  -webkit-backdrop-filter: blur(28px) saturate(120%);
+  border: 1.5px solid transparent;
+  border-radius: var(--radius-lg);
+  box-shadow: 0 20px 50px rgba(2, 6, 23, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  padding: var(--space-lg);
+}
+
+.login-tip-box .register-glass-box-header {
+  margin-bottom: var(--space-sm);
+  padding-bottom: var(--space-sm);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.login-tip-box p {
+  margin: 0;
+  color: var(--color-neutral-200);
+  font-size: var(--font-size-sm);
+  line-height: 1.6;
+}
+
+.login-forgot-row {
+  text-align: right;
+  margin-bottom: var(--space-lg);
+}
+
+.login-forgot-row a {
+  color: var(--color-neutral-0);
+  font-weight: 600;
+}
+
+@media (max-width: 900px) {
+  .login-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-xl);
+  }
+
+  /* The form is the primary action for a returning visitor, so it leads
+     on narrow screens even though the intro column comes first in the
+     source order (which is what a keyboard/screen-reader user hits
+     first, so that order stays untouched - only the visual position
+     moves). */
+  .login-glass-box {
+    order: -1;
+  }
+
+  .login-intro-title,
+  .login-intro-subtitle {
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .login-intro-col {
+    text-align: center;
+    align-items: center;
+  }
+}
+
+/* -------------------------------------------------------------------------
+   Frosted-glass form fields
+   The slab itself is dark tinted glass, so labels/values flip to light
+   text; inputs get their own lighter glass fill (a translucent white
+   veil, not a solid card) so they read as inset panes of the same glass
+   rather than opaque paper dropped on top of it.
+   ------------------------------------------------------------------------- */
+.register-glass-box .form-label {
+  color: var(--color-neutral-0);
+  font-weight: 700;
+}
+
+.register-glass-box .form-control {
+  background-color: rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  color: var(--color-neutral-0);
+}
+
+.register-glass-box .form-control::placeholder {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.register-glass-box .form-control:focus {
+  background-color: rgba(255, 255, 255, 0.22);
+  border-color: var(--color-primary-400);
+  box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.3);
+}
+
+.register-glass-box .form-control.has-error {
+  background-color: rgba(220, 38, 38, 0.16);
+  border-color: #f87171;
+}
+
+.register-glass-box .form-error {
+  color: #fca5a5;
+}
+
+.register-glass-box .form-hint {
+  color: var(--color-neutral-300);
+  opacity: 0.85;
+}
+
+.register-glass-box .password-toggle-btn {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.register-glass-box .form-group > .form-label {
+  display: block;
+}
+
+/* Checkbox rows (e.g. the provider "accept the Terms" field) - the label
+   text has no color of its own in forms.css, so it inherits the page's
+   default dark body text unless overridden here for the dark glass. */
+.register-glass-box .form-checkbox {
+  color: var(--color-neutral-0);
+}
+
+/* Category-selector chips (service categories) render as `.card` labels
+   with inline styles for the selected state; themed here to sit as
+   translucent glass chips rather than opaque white cards. */
+.register-glass-box .card {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.25);
+  color: var(--color-neutral-0);
+}
+
+.register-submit-row {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: var(--space-md);
+  margin-top: var(--space-lg);
+}
+
+.register-submit-row .btn-primary {
+  min-width: 340px;
+  padding: 0.95rem 2rem;
+  font-size: var(--font-size-lg);
+}
+
+/* The "Back" button on the provider verification step sits next to the
+   primary submit button, so it gets its own glass treatment instead of
+   the default ghost button's dark-on-transparent style (which would be
+   invisible against the page's dark backdrop). */
+.register-submit-row .btn-ghost {
+  min-width: 140px;
+  padding: 0.95rem 1.6rem;
+  font-size: var(--font-size-lg);
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.32);
+  color: var(--color-neutral-0);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.register-submit-row .btn-ghost:hover:not(:disabled) {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.register-submit-hint {
+  margin-top: var(--space-lg);
+  color: var(--color-neutral-0);
+  opacity: 0.85;
+  font-size: var(--font-size-sm);
+  text-align: center;
+}
+
+.register-submit-hint a {
+  color: var(--color-neutral-0);
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+@media (max-width: 900px) {
+  .register-glass-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .register-glass-box {
+    height: auto;
+  }
+
+  .register-submit-row {
+    flex-direction: column;
+  }
+
+  .register-submit-row .btn-primary,
+  .register-submit-row .btn-ghost {
+    min-width: 100%;
+  }
+}
+
+@media (max-width: 640px) {
+  .register-glass-box {
+    padding: var(--space-lg);
+  }
+}
+
+/* -------------------------------------------------------------------------
+   Single-panel status pages (e.g. verification-pending) - one centered
+   glass slab instead of the two-box grid, for a message + single CTA
+   rather than a form.
+   ------------------------------------------------------------------------- */
+.register-status-card {
+  max-width: 620px;
+  margin: 0 auto;
+  align-items: center;
+  text-align: center;
+  padding: var(--space-2xl) var(--space-xl);
+}
+
+/* Informational, not clickable - skip the link/box hover lift so it
+   doesn't imply the card itself is interactive. */
+.register-status-card:hover {
+  transform: none;
+}
+
+.register-status-icon {
+  width: 72px;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  margin: 0 auto var(--space-lg);
+  background: linear-gradient(135deg, rgba(52, 211, 153, 0.95), rgba(5, 150, 105, 0.85));
+  border: 1px solid rgba(167, 232, 205, 0.5);
+  color: var(--color-neutral-0);
+  box-shadow: 0 0 26px rgba(16, 185, 129, 0.5);
+  animation: register-pulse 2.6s ease-in-out infinite;
+}
+
+@keyframes register-pulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 26px rgba(16, 185, 129, 0.5); }
+  50% { transform: scale(1.06); box-shadow: 0 0 34px rgba(16, 185, 129, 0.7); }
+}
+
+.register-status-title {
+  color: var(--color-neutral-0);
+  font-size: var(--font-size-2xl);
+  margin-bottom: var(--space-md);
+}
+
+.register-status-message {
+  color: var(--color-neutral-200);
+  font-size: var(--font-size-base);
+  line-height: 1.7;
+  margin-bottom: var(--space-xl);
+}
+
+.register-status-btn {
+  min-width: 220px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .register-status-icon {
+    animation: none;
+  }
+}

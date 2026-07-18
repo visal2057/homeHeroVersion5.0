@@ -1,12 +1,27 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '../../../constants/routes.js';
+import { bookingApi } from '../bookingApi.js';
 import { IconToolbox, IconClock } from '../../../components/common/icons.jsx';
 
-export default function JobsToDoTable({ bookings = [] }) {
+export default function JobsToDoTable({ bookings = [], onRefresh }) {
   const navigate = useNavigate();
+  const [cancelling, setCancelling] = useState(null);
 
   const goToPayment = (bookingId) =>
     navigate(ROUTES.CLIENT_BOOKING_PAY.replace(':bookingId', bookingId));
+
+  async function handleCancel(bookingId) {
+    setCancelling(bookingId);
+    try {
+      await bookingApi.cancelBooking(bookingId);
+      onRefresh?.();
+    } catch {
+      alert('Failed to cancel booking. Please try again.');
+    } finally {
+      setCancelling(null);
+    }
+  }
 
   if (!bookings.length) {
     return (
@@ -67,13 +82,24 @@ export default function JobsToDoTable({ bookings = [] }) {
                         Pay &amp; Review
                       </button>
                     ) : (
-                      <span
-                        className="bt-pay-btn-disabled"
-                        title={b.scheduledAt ? `Available after ${new Date(b.scheduledAt).toLocaleString('en-LK', { dateStyle: 'short', timeStyle: 'short' })}` : 'Awaiting job date'}
-                      >
-                        <IconClock size={14} style={{ marginRight: 4 }} />
-                        Awaiting
-                      </span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                        <span
+                          className="bt-pay-btn-disabled"
+                          title={b.scheduledAt ? `Available after ${new Date(b.scheduledAt).toLocaleString('en-LK', { dateStyle: 'short', timeStyle: 'short' })}` : 'Awaiting job date'}
+                        >
+                          <IconClock size={14} style={{ marginRight: 4 }} />
+                          Awaiting
+                        </span>
+                        <button
+                          type="button"
+                          className="btn btn-outline"
+                          style={{ padding: '5px 14px', fontSize: 'var(--font-size-xs)' }}
+                          disabled={cancelling === b.id}
+                          onClick={() => handleCancel(b.id)}
+                        >
+                          {cancelling === b.id ? '…' : 'Cancel'}
+                        </button>
+                      </div>
                     )}
                   </td>
                 </tr>

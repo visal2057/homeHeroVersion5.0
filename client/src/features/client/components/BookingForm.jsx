@@ -1,8 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { ROUTES } from '../../../constants/routes.js';
 import { bookingApi } from '../bookingApi.js';
-import MapPicker from '../../../components/common/MapPicker.jsx';
 import { IconCalendar, IconClock, IconMapPin, IconCheckCircle, IconImage } from '../../../components/common/icons.jsx';
 
 const HOURS = Array.from({ length: 12 }, (_, i) => String(i + 1));
@@ -27,19 +26,12 @@ export default function BookingForm({ provider, client }) {
   const [submitting, setSubmitting] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
-  // Custom location state (for this booking only — does NOT change profile)
-  const [useCustomLoc, setUseCustomLoc] = useState(false);
-  const [customCoords, setCustomCoords] = useState(null);
-  const [customAddress, setCustomAddress] = useState('');
-  const [locSaved, setLocSaved] = useState(false);
-
   const profileLocation = client?.location;
   const hasProfileLocation = profileLocation?.latitude != null;
 
-  // Effective location shown / submitted
-  const effectiveLocation = useCustomLoc && locSaved && customCoords
-    ? { ...customCoords, addressText: customAddress.trim() || `${customCoords.latitude.toFixed(5)}, ${customCoords.longitude.toFixed(5)}` }
-    : profileLocation;
+  // Location is read-only here — sourced directly from the client's profile.
+  // To change it, the client must update their Client Profile.
+  const effectiveLocation = profileLocation;
   const hasEffectiveLocation = effectiveLocation?.latitude != null;
 
   // Revoke object URLs when photos change to avoid memory leaks
@@ -64,23 +56,6 @@ export default function BookingForm({ provider, client }) {
     setPhotoUrls((u) => u.filter((_, i) => i !== idx));
   }
 
-  function handleSaveCustomLocation() {
-    if (!customCoords) {
-      setError('Please click the map to pin your location first.');
-      return;
-    }
-    setLocSaved(true);
-    setUseCustomLoc(true);
-    setError('');
-  }
-
-  function handleCancelCustomLocation() {
-    setUseCustomLoc(false);
-    setLocSaved(false);
-    setCustomCoords(null);
-    setCustomAddress('');
-  }
-
   function handleRequestConfirm(e) {
     e.preventDefault();
     setError('');
@@ -93,7 +68,7 @@ export default function BookingForm({ provider, client }) {
       return;
     }
     if (!hasEffectiveLocation) {
-      setError('Please set your location in your profile or choose a different location below.');
+      setError('Please set your location in your Client Profile before booking.');
       return;
     }
     setShowConfirm(true);
@@ -152,6 +127,12 @@ export default function BookingForm({ provider, client }) {
           )}
         </div>
 
+        {client?.fullName && (
+          <div className="booking-client-strip">
+            Booking as <strong>{client.fullName}</strong>{client.username ? ` (${client.username})` : ''}
+          </div>
+        )}
+
         <div className="booking-form-grid">
           {/* Date */}
           <div className="bf-group">
@@ -189,63 +170,18 @@ export default function BookingForm({ provider, client }) {
               Service Location
             </label>
 
-            {/* Profile location display */}
+            {/* Read-only profile location display */}
             <div className={`bf-location-display${hasEffectiveLocation ? '' : ' bf-location-warn'}`}>
               <div className="bf-location-text">
                 {hasEffectiveLocation
                   ? (effectiveLocation.addressText ?? `${effectiveLocation.latitude?.toFixed(5)}, ${effectiveLocation.longitude?.toFixed(5)}`)
-                  : 'No location set — please update your Profile or use a different location below.'}
+                  : 'No location set — please add your location in your Client Profile.'}
               </div>
-              {hasProfileLocation && !useCustomLoc && (
-                <button
-                  type="button"
-                  className="bf-loc-alt-btn"
-                  onClick={() => { setUseCustomLoc(true); setLocSaved(false); }}
-                >
-                  <IconMapPin size={14} style={{ marginRight: 4 }} />
-                  Use Different Location
-                </button>
-              )}
-              {useCustomLoc && locSaved && (
-                <button type="button" className="bf-loc-cancel-btn" onClick={handleCancelCustomLocation}>
-                  Use Profile Location
-                </button>
-              )}
+              <Link to={ROUTES.CLIENT_PROFILE} className="bf-loc-alt-btn">
+                <IconMapPin size={14} style={{ marginRight: 4 }} />
+                {hasProfileLocation ? 'Change in Profile' : 'Set Location in Profile'}
+              </Link>
             </div>
-
-            {/* Inline map for custom location (expanded when button clicked) */}
-            {useCustomLoc && !locSaved && (
-              <div className="bf-custom-loc">
-                <p className="bf-custom-loc-hint">
-                  Pin the exact location for this booking. This will not change your profile location.
-                </p>
-                <MapPicker
-                  latitude={profileLocation?.latitude}
-                  longitude={profileLocation?.longitude}
-                  height={312}
-                  draggable
-                  onChange={(coords) => setCustomCoords(coords)}
-                />
-                <div className="bf-custom-loc-addr">
-                  <label className="bf-label" style={{ marginBottom: 6 }}>Address / Landmark</label>
-                  <input
-                    type="text"
-                    value={customAddress}
-                    onChange={(e) => setCustomAddress(e.target.value)}
-                    className="bf-input"
-                    placeholder="e.g. 14 Flower Road, Colombo 03"
-                  />
-                </div>
-                <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
-                  <button type="button" className="btn btn-primary" onClick={handleSaveCustomLocation}>
-                    Save This Location
-                  </button>
-                  <button type="button" className="btn btn-outline" onClick={handleCancelCustomLocation}>
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            )}
           </div>
 
           {/* Job description */}
@@ -334,6 +270,12 @@ export default function BookingForm({ provider, client }) {
             justify-content: center; font-size: 1.5rem; font-weight: 700; color: var(--color-primary-700);
           }
           .bps-avatar img { width: 100%; height: 100%; object-fit: cover; }
+          .booking-client-strip {
+            padding: 10px var(--space-lg); background: var(--color-neutral-50);
+            border-bottom: 1px solid var(--color-neutral-200);
+            font-size: var(--font-size-sm); color: var(--color-neutral-600);
+          }
+          .booking-client-strip strong { color: var(--color-secondary-700); }
           .booking-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-lg); padding: var(--space-xl); }
           @media (max-width: 600px) { .booking-form-grid { grid-template-columns: 1fr; } }
           .bf-group-full { grid-column: 1 / -1; }
@@ -366,22 +308,9 @@ export default function BookingForm({ provider, client }) {
             display: flex; align-items: center; padding: 6px 14px;
             background: var(--color-primary-600); color: white; border: none;
             border-radius: var(--radius-md); font-size: var(--font-size-xs); font-weight: 600;
-            cursor: pointer; white-space: nowrap; font-family: inherit;
+            cursor: pointer; white-space: nowrap; font-family: inherit; text-decoration: none;
           }
           .bf-loc-alt-btn:hover { background: var(--color-primary-700); }
-          .bf-loc-cancel-btn {
-            padding: 6px 14px; background: none; border: 1.5px solid var(--color-neutral-300);
-            border-radius: var(--radius-md); font-size: var(--font-size-xs); font-weight: 600;
-            color: var(--color-neutral-600); cursor: pointer; white-space: nowrap; font-family: inherit;
-          }
-          .bf-loc-cancel-btn:hover { border-color: var(--color-primary-400); color: var(--color-primary-700); }
-          .bf-custom-loc {
-            margin-top: var(--space-md); padding: var(--space-lg);
-            background: var(--color-neutral-50); border: 1.5px solid var(--color-primary-200);
-            border-radius: var(--radius-md);
-          }
-          .bf-custom-loc-hint { font-size: var(--font-size-xs); color: var(--color-neutral-500); margin-bottom: var(--space-md); }
-          .bf-custom-loc-addr { margin-top: var(--space-md); }
 
           /* Upload button */
           .bf-upload-btn {
@@ -422,7 +351,7 @@ export default function BookingForm({ provider, client }) {
             <div className="bf-modal-icon">
               <IconCheckCircle size={48} style={{ color: 'var(--color-primary-600)' }} />
             </div>
-            <h2 className="bf-modal-title">Confirm Your Booking</h2>
+            <h2 className="bf-modal-title">Are you sure you want to confirm this booking request?</h2>
             <div className="bf-modal-details">
               <div className="bf-modal-row"><span>Provider</span><strong>{provider.name}</strong></div>
               <div className="bf-modal-row"><span>Service</span><strong>{provider.category}</strong></div>

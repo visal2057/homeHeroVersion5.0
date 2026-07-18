@@ -3,6 +3,7 @@ import { AppError } from '../../utils/AppError.js';
 import { processCardPayment } from '../payments/paymentGateway.service.js';
 import { getMembershipQuote } from './membershipPricing.service.js';
 import { sendMembershipConfirmationEmail, sendMembershipExpiryEmail } from './membershipEmails.js';
+import { logAction } from '../audit/audit.service.js';
 import {
   getCurrentMembership,
   getMembershipHistory,
@@ -14,6 +15,7 @@ import {
   insertMembershipRevenue,
   expireCurrentMemberships,
   forceOfflineAfterGrace,
+  restoreOnlineIfForcedOffline,
 } from './membership.queries.js';
 
 // Turn a history row into the shape the table on the page expects.
@@ -122,6 +124,11 @@ export async function purchaseMembership(input, providerUserId) {
     // The full membership fee is HomeHero revenue.
     await insertMembershipRevenue(client, paymentRows[0].membership_payment_id, quote.amount);
 
+    // If this renewal is what's ending a Forced Offline period, restore the
+    // provider's online status automatically (spec: "Forced Offline is
+    // removed... Go Online function becomes usable again").
+    await restoreOnlineIfForcedOffline(client, providerUserId);
+
     await client.query('COMMIT');
 
     // 4. Email the provider their confirmation (after the data is safely saved).
@@ -133,6 +140,15 @@ export async function purchaseMembership(input, providerUserId) {
         expiresAt: membership.expires_at,
       });
     }
+
+    await logAction({
+      actorUserId: providerUserId,
+      actionCode: 'MEMBERSHIP_PURCHASED',
+      entityType: 'provider_membership',
+      entityId: membership.membership_id,
+      description: `${contactRows[0]?.full_name ?? 'A Service Provider'} ${quote.paymentType === 'RENEWAL' ? 'renewed their' : 'purchased a new'} membership`,
+      metadata: { amount: quote.amount, paymentType: quote.paymentType },
+    });
 
     return {
       membershipId: membership.membership_id,

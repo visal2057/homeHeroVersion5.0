@@ -8,6 +8,7 @@ import {
   updateClientProfileImage,
   upsertClientLocation,
 } from './client.queries.js';
+import { findReviewableBookingForClientAndProvider } from '../bookings/booking.queries.js';
 
 function toProfileResponse(row) {
   return {
@@ -63,6 +64,13 @@ export async function updateClientLocation(userId, { addressText, latitude, long
     addressText: rows[0].address_text,
     updatedAt: rows[0].updated_at,
   };
+}
+
+export async function getReviewEligibility(clientUserId, providerUserId) {
+  const { rows } = await findReviewableBookingForClientAndProvider(clientUserId, providerUserId);
+  return rows.length > 0
+    ? { eligible: true, bookingId: rows[0].booking_id }
+    : { eligible: false, bookingId: null };
 }
 
 export async function changeClientPassword(userId, { currentPassword, newPassword }) {

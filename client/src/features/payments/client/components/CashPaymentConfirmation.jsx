@@ -3,6 +3,7 @@ import { clientPaymentApi } from '../clientPaymentApi.js';
 import { extractErrorMessage } from '../../../../api/apiErrorHandler.js';
 import ConfirmModal from '../../../../components/common/ConfirmModal.jsx';
 import AlertMessage from '../../../../components/common/AlertMessage.jsx';
+import { useAlert } from '../../../../hooks/useAlert.js';
 
 // Cash flow: the client pays the provider directly, so HomeHero collects
 // nothing and the commission is zero. We only record that it happened.
@@ -10,6 +11,7 @@ export default function CashPaymentConfirmation({ context, onCancel, onPaid }) {
   const [showConfirm, setShowConfirm] = useState(false); // is the popup open?
   const [submitting, setSubmitting] = useState(false);    // waiting on the API?
   const [error, setError] = useState('');
+  const { showSuccess } = useAlert();
 
   // Runs when the client confirms inside the popup.
   const handleConfirm = async () => {
@@ -17,6 +19,7 @@ export default function CashPaymentConfirmation({ context, onCancel, onPaid }) {
     setError('');
     try {
       await clientPaymentApi.confirmCashPayment(context.bookingId);
+      showSuccess('Your work is done. Please submit a review for the job.');
       onPaid(); // success -> parent sends us to the review page
     } catch (err) {
       setError(extractErrorMessage(err));

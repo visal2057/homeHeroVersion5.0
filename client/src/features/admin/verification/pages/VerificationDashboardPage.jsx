@@ -16,7 +16,7 @@ export default function VerificationDashboardPage() {
     Promise.all([fetchPendingApplications(), fetchComplaints()])
       .then(([appsRes, complaintsRes]) => {
         setApplications(appsRes.data.data.applications);
-        setComplaints(complaintsRes.data.data.complaints);
+        setComplaints(complaintsRes.data.data.complaints.filter((c) => c.status === 'SUBMITTED'));
       })
       .catch((error) => showError(extractErrorMessage(error)))
       .finally(() => setIsLoading(false));

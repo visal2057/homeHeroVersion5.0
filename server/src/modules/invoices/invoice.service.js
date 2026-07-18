@@ -145,9 +145,11 @@ export async function getInvoiceDownload(bookingId, requestingUser) {
   const invoice = rows[0];
   const isOwningProvider =
     requestingUser.role === 'SERVICE_PROVIDER' && Number(requestingUser.userId) === Number(invoice.provider_user_id);
+  const isOwningClient =
+    requestingUser.role === 'CLIENT' && Number(requestingUser.userId) === Number(invoice.client_user_id);
   const isSystemAdmin = requestingUser.role === 'SYSTEM_ADMIN';
 
-  if (!isOwningProvider && !isSystemAdmin) {
+  if (!isOwningProvider && !isOwningClient && !isSystemAdmin) {
     throw new AppError('You do not have permission to access this invoice', 403);
   }
 

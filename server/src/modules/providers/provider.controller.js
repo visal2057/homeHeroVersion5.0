@@ -64,6 +64,8 @@ export const getMyReviewsHandler = asyncHandler(async (req, res) => {
       comment: r.comment,
       created_at: r.createdAt,
       client_name: r.clientName,
+      booking_id: r.bookingId,
+      service_category: r.serviceCategory,
     })),
   );
 });

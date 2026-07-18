@@ -1,6 +1,7 @@
 import path from 'path';
 import { pool } from '../../db/pool.js';
 import { AppError } from '../../utils/AppError.js';
+import { logAction } from '../audit/audit.service.js';
 import {
   findClientLocation,
   findProviderBookability,
@@ -32,6 +33,7 @@ function toClientBookingShape(row) {
     paymentStatus: row.payment_status,
     requestedAt: row.requested_at,
     completedAt: row.completed_at,
+    hasInvoice: row.has_invoice ?? false,
   };
 }
 
@@ -110,6 +112,15 @@ export async function createBooking(clientUserId, input, files = []) {
     }
 
     await client.query('COMMIT');
+
+    await logAction({
+      actorUserId: clientUserId,
+      actionCode: 'BOOKING_CREATED',
+      entityType: 'booking',
+      entityId: booking.booking_id,
+      description: `A new booking request (#${booking.booking_id}) was submitted`,
+    });
+
     return { bookingId: booking.booking_id, status: booking.booking_status };
   } catch (err) {
     await client.query('ROLLBACK');
@@ -210,6 +221,15 @@ async function assertOwnedPendingBooking(bookingId, providerUserId) {
 export async function acceptBooking(bookingId, providerUserId) {
   await assertOwnedPendingBooking(bookingId, providerUserId);
   const { rows } = await updateBookingStatus(bookingId, 'ACCEPTED', 'accepted_at');
+
+  await logAction({
+    actorUserId: providerUserId,
+    actionCode: 'BOOKING_ACCEPTED',
+    entityType: 'booking',
+    entityId: rows[0].booking_id,
+    description: `Booking #${rows[0].booking_id} was accepted by the Service Provider`,
+  });
+
   return { bookingId: rows[0].booking_id, status: rows[0].booking_status.toLowerCase() };
 }
 

@@ -2,11 +2,13 @@ import { useEffect, useState, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ROUTES } from '../../../constants/routes.js';
 import { clientApi } from '../clientApi.js';
+import { extractErrorMessage } from '../../../api/apiErrorHandler.js';
 import ProviderCard from '../components/ProviderCard.jsx';
 import TopProvidersSection from '../components/TopProvidersSection.jsx';
+import EmptyState from '../../../components/common/EmptyState.jsx';
 import {
   IconLeaf, IconSparkle, IconPaw, IconWrench, IconSnowflake,
-  IconToolbox, IconSearch,
+  IconToolbox, IconSearch, IconAlertCircle,
 } from '../../../components/common/icons.jsx';
 
 const CATEGORY_META = {
@@ -56,21 +58,6 @@ const SORT_OPTIONS = [
   { value: 'newest', label: 'Newest' },
 ];
 
-function mockProviders(category) {
-  return Array.from({ length: 8 }, (_, i) => ({
-    id: `mock-${i}`,
-    providerId: `mock-${i}`,
-    name: ['Nimal Perera', 'Kamal Silva', 'Sitha Fernando', 'Ruwan Bandara', 'Chamara Jayawardena', 'Dilshan Rajapaksa', 'Hasini Wickrama', 'Priya Mendis'][i] ?? `Provider ${i + 1}`,
-    district: ['colombo', 'gampaha', 'kandy', 'galle', 'matara', 'kurunegala', 'ratnapura', 'badulla'][i],
-    averageRating: [4.8, 4.6, 4.9, 4.3, 4.7, 4.5, 4.2, 4.0][i],
-    reviewCount: [42, 28, 63, 15, 37, 21, 9, 5][i],
-    hourlyRate: [1500, 1200, 1800, 1000, 1600, 1100, 900, 1400][i],
-    isVerified: i < 5,
-    bio: `Experienced ${category} specialist with ${3 + i} years of professional service across Sri Lanka.`,
-    workPreview: [],
-  }));
-}
-
 export default function ExploreServicePage() {
   const { category } = useParams();
   const meta = CATEGORY_META[category] ?? { label: category, desc: '', icon: IconToolbox, image: 'https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?auto=format&fit=crop&w=2000&q=80' };
@@ -79,21 +66,23 @@ export default function ExploreServicePage() {
   const [providers, setProviders] = useState([]);
   const [topProviders, setTopProviders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [search, setSearch] = useState('');
   const [district, setDistrict] = useState('');
   const [sort, setSort] = useState('rating');
 
   const fetchProviders = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
       const res = await clientApi.getProvidersByCategory(category, { district, search });
       const data = res.data?.data ?? {};
       setProviders(data.providers ?? []);
       setTopProviders(data.topProviders ?? []);
-    } catch {
-      const mock = mockProviders(meta.label);
-      setProviders(mock);
-      setTopProviders(mock.slice(0, 5));
+    } catch (err) {
+      setProviders([]);
+      setTopProviders([]);
+      setError(extractErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -170,6 +159,15 @@ export default function ExploreServicePage() {
             <div className="ep-spinner" />
             <p>Finding the best {meta.label.toLowerCase()} providers...</p>
           </div>
+        ) : error ? (
+          <EmptyState
+            icon={IconAlertCircle}
+            tone="error"
+            title="Couldn't load providers"
+            message={error}
+            actionLabel="Try Again"
+            onAction={fetchProviders}
+          />
         ) : displayed.length === 0 ? (
           <div className="ep-empty">
             <HeroIcon size={58} style={{ color: 'var(--color-neutral-300)', marginBottom: 'var(--space-md)' }} />

@@ -4,27 +4,23 @@ import { IconHome } from '../../../components/common/icons.jsx';
 
 export default function ClientRegistrationPage() {
   return (
-    <div>
-      <section className="glass-hero register-hero">
-        <div
-          className="glass-hero-bg"
-          style={{ backgroundImage: `url(${REGISTER_CLIENT_HERO_IMAGE_URL})` }}
-          role="img"
-          aria-label="A homeowner relaxing comfortably in a tidy living room"
-        />
-        <div className="glass-hero-overlay" aria-hidden="true" />
-        <div className="container glass-hero-inner">
-          <div className="glass-panel glass-hero-panel text-center animate-fade-in-up" style={{ margin: '0 auto' }}>
-            <div className="hh-float-gentle">
-              <span className="hh-eyebrow"><IconHome size={16} /> Client Sign Up</span>
-              <h1 className="register-hero-title">Create Your Client Account</h1>
-              <p>Book trusted service providers in minutes.</p>
-            </div>
+    <div className="register-page">
+      <div
+        className="register-page-bg"
+        style={{ backgroundImage: `url(${REGISTER_CLIENT_HERO_IMAGE_URL})` }}
+        role="img"
+        aria-label="A sage-green living room with lush plants and warm wood furniture"
+      />
+      <div className="register-page-overlay" aria-hidden="true" />
+      <div className="container register-page-inner">
+        <div className="text-center register-page-heading animate-fade-in-up">
+          <div className="hh-float-gentle">
+            <span className="hh-eyebrow"><IconHome size={16} /> Client Sign Up</span>
+            <h1 className="register-page-title">Create Your Client Account</h1>
+            <p className="register-page-subtitle">Tell us a bit about yourself and pin your home so trusted providers can find you.</p>
           </div>
         </div>
-      </section>
 
-      <div className="container section">
         <ClientRegistrationForm />
       </div>
     </div>
