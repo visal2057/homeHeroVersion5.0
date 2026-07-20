@@ -38,8 +38,8 @@ export default function CompletedJobsTable({ jobs, postedBookingIds, onCreatePos
             <th>Service</th>
             <th>Booking Date</th>
             <th>Completed On</th>
+            <th>Status</th>
             <th>Rating</th>
-            <th>Review</th>
             <th>Post</th>
             <th>Invoice</th>
           </tr>
@@ -56,13 +56,15 @@ export default function CompletedJobsTable({ jobs, postedBookingIds, onCreatePos
                 <td>{j.service_date ? new Date(j.service_date).toLocaleDateString() : '—'}</td>
                 <td>{j.completed_at ? new Date(j.completed_at).toLocaleDateString() : '—'}</td>
                 <td>
+                  <span className="provider-badge completed">
+                    <IconCheckCircle size={12} /> Completed
+                  </span>
+                </td>
+                <td>
                   {j.rating != null
                     ? <StarRow value={j.rating} />
                     : <span style={{ color: 'var(--color-text-muted)' }}>Not rated</span>
                   }
-                </td>
-                <td style={{ maxWidth: 200, fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)' }}>
-                  {j.review_text ?? '—'}
                 </td>
                 <td>
                   {hasPost ? (

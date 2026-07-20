@@ -26,8 +26,8 @@ export default function CategorySelector({ categories, selectedIds, onChange, er
                 alignItems: 'center',
                 gap: 'var(--space-sm)',
                 cursor: isDisabled ? 'not-allowed' : 'pointer',
-                borderColor: isSelected ? 'var(--color-primary-500)' : undefined,
-                backgroundColor: isSelected ? 'var(--color-primary-50)' : undefined,
+                borderColor: isSelected ? 'var(--color-primary-400)' : undefined,
+                backgroundColor: isSelected ? 'rgba(52, 211, 153, 0.28)' : undefined,
                 opacity: isDisabled ? 0.5 : 1,
               }}
             >

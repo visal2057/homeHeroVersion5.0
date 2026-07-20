@@ -5,24 +5,30 @@ import { extractErrorMessage } from '../../../../api/apiErrorHandler.js';
 import { ROUTES } from '../../../../constants/routes.js';
 import ReviewForm from '../components/ReviewForm.jsx';
 import AlertMessage from '../../../../components/common/AlertMessage.jsx';
-import { IconStar } from '../../../../components/common/icons.jsx';
-
-const MOCK_CONTEXT = { bookingId: '1', providerName: 'Nimal Perera' };
+import EmptyState from '../../../../components/common/EmptyState.jsx';
+import { IconStar, IconAlertCircle } from '../../../../components/common/icons.jsx';
 
 export default function SubmitReviewPage() {
   const { bookingId } = useParams();
   const navigate = useNavigate();
 
-  const [context, setContext] = useState(MOCK_CONTEXT);
+  const [context, setContext] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
   const loadContext = useCallback(async () => {
+    setLoading(true);
+    setLoadError(null);
     try {
       const res = await clientPaymentApi.getPaymentContext(bookingId);
       setContext(res.data?.data ?? res.data);
-    } catch {
-      setContext(MOCK_CONTEXT);
+    } catch (err) {
+      setContext(null);
+      setLoadError(extractErrorMessage(err));
+    } finally {
+      setLoading(false);
     }
   }, [bookingId]);
 
@@ -40,6 +46,31 @@ export default function SubmitReviewPage() {
       setSubmitting(false);
     }
   };
+
+  if (loading) {
+    return (
+      <div className="container" style={{ textAlign: 'center', padding: 'var(--space-2xl)' }}>
+        <div className="sr-spinner" />
+        <p style={{ color: 'var(--color-neutral-500)' }}>Loading booking details…</p>
+        <style>{`.sr-spinner { width: 40px; height: 40px; margin: 0 auto var(--space-md); border: 3px solid var(--color-neutral-200); border-top-color: var(--color-primary-500); border-radius: 50%; animation: spin 0.7s linear infinite; } @keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      </div>
+    );
+  }
+
+  if (loadError || !context) {
+    return (
+      <div className="container" style={{ paddingTop: 'var(--space-2xl)', paddingBottom: 'var(--space-2xl)' }}>
+        <EmptyState
+          icon={IconAlertCircle}
+          tone="error"
+          title="Couldn't load this booking"
+          message={loadError || 'Something went wrong loading this booking.'}
+          actionLabel="Try Again"
+          onAction={loadContext}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="sr-page">

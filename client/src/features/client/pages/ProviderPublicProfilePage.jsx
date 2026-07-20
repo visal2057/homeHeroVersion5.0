@@ -1,29 +1,18 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ROUTES } from '../../../constants/routes.js';
+import { useAuth } from '../../../hooks/useAuth.js';
+import { ROLES } from '../../../constants/roles.js';
 import { clientApi } from '../clientApi.js';
+import { extractErrorMessage } from '../../../api/apiErrorHandler.js';
 import ProviderProfileHeader from '../components/ProviderProfileHeader.jsx';
 import PreviousWorkGallery from '../components/PreviousWorkGallery.jsx';
 import ReviewsSection from '../components/ReviewsSection.jsx';
+import EmptyState from '../../../components/common/EmptyState.jsx';
 import {
   IconToolbox, IconMapPin, IconDollarSign, IconCalendar,
-  IconShield, IconUser, IconStar,
+  IconShield, IconUser, IconStar, IconAlertCircle,
 } from '../../../components/common/icons.jsx';
-
-const MOCK_PROVIDER = {
-  id: 'mock-1', providerId: 'mock-1',
-  name: 'Nimal Perera', category: 'Gardening', district: 'colombo',
-  hourlyRate: 1500,
-  bio: 'Experienced gardening professional with over 10 years in lawn care, pruning, and landscape design. Served over 200+ happy clients across Colombo and Gampaha districts.',
-  isVerified: true, isAvailable: true, averageRating: 4.8, reviewCount: 42,
-  portfolioPosts: [], providerToken: 'NPR4X2',
-};
-
-const MOCK_REVIEWS = [
-  { id: 1, clientName: 'Dilini Fernando', rating: 5, comment: 'Excellent work! My garden looks amazing.', createdAt: '2025-12-15' },
-  { id: 2, clientName: 'Kasun Jayawardena', rating: 4, comment: 'Very professional and on time. Will book again.', createdAt: '2025-11-28' },
-  { id: 3, clientName: 'Priya Wickramasinghe', rating: 5, comment: 'Best gardener in the area, highly recommended!', createdAt: '2025-11-10' },
-];
 
 const CATEGORY_CTA_IMAGES = {
   gardening:  'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?auto=format&fit=crop&w=2000&q=80',
@@ -41,30 +30,53 @@ function getCategoryImage(category) {
 
 export default function ProviderPublicProfilePage() {
   const { providerId } = useParams();
+  const { user } = useAuth();
+  // A pending Service Provider may view profiles (see ProtectedRoute's
+  // `allowPendingProvider`) but not book - only a Client viewer sees the
+  // booking CTAs.
+  const canBook = user?.role !== ROLES.SERVICE_PROVIDER;
   const [provider, setProvider] = useState(null);
   const [reviews, setReviews] = useState([]);
+  const [reviewEligibility, setReviewEligibility] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('about');
 
-  useEffect(() => {
-    async function load() {
-      setLoading(true);
-      try {
-        const [pRes, rRes] = await Promise.all([
-          clientApi.getProviderProfile(providerId),
-          clientApi.getProviderReviews(providerId),
-        ]);
-        setProvider(pRes.data?.data ?? pRes.data);
-        setReviews(rRes.data?.data ?? rRes.data ?? []);
-      } catch {
-        setProvider({ ...MOCK_PROVIDER, id: providerId, providerId });
-        setReviews(MOCK_REVIEWS);
-      } finally {
-        setLoading(false);
-      }
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const [pRes, rRes] = await Promise.all([
+        clientApi.getProviderProfile(providerId),
+        clientApi.getProviderReviews(providerId),
+      ]);
+      setProvider(pRes.data?.data ?? pRes.data);
+      setReviews(rRes.data?.data ?? rRes.data ?? []);
+    } catch (err) {
+      setProvider(null);
+      setReviews([]);
+      setError(extractErrorMessage(err));
+    } finally {
+      setLoading(false);
     }
-    load();
   }, [providerId]);
+
+  // Only a logged-in Client viewer can ever write a review, so the
+  // eligibility check is skipped entirely for anyone else (including a
+  // Service Provider previewing their own profile, or a logged-out visitor).
+  useEffect(() => {
+    if (user?.role !== ROLES.CLIENT) {
+      setReviewEligibility(null);
+      return;
+    }
+    clientApi.getReviewEligibility(providerId)
+      .then((res) => setReviewEligibility(res.data?.data ?? res.data))
+      .catch(() => setReviewEligibility(null));
+  }, [providerId, user]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
 
   if (loading) {
     return (
@@ -77,9 +89,18 @@ export default function ProviderPublicProfilePage() {
 
   if (!provider) {
     return (
-      <div className="container" style={{ textAlign: 'center', padding: 'var(--space-2xl)' }}>
-        <h2>Provider not found</h2>
-        <Link to={ROUTES.HOME} className="btn btn-primary" style={{ marginTop: 'var(--space-lg)' }}>Back to Home</Link>
+      <div className="container" style={{ paddingTop: 'var(--space-2xl)', paddingBottom: 'var(--space-2xl)' }}>
+        <EmptyState
+          icon={IconAlertCircle}
+          tone={error ? 'error' : 'neutral'}
+          title={error ? "Couldn't load this profile" : 'Provider not found'}
+          message={error ?? "This provider doesn't exist or is no longer available."}
+          actionLabel={error ? 'Try Again' : undefined}
+          onAction={error ? load : undefined}
+        />
+        <div style={{ textAlign: 'center' }}>
+          <Link to={ROUTES.HOME} className="btn btn-outline" style={{ marginTop: 'var(--space-md)' }}>Back to Home</Link>
+        </div>
       </div>
     );
   }
@@ -97,7 +118,7 @@ export default function ProviderPublicProfilePage() {
   return (
     <div className="pp-page">
       {/* Header: banner + avatar row + Book Now — all in one line */}
-      <ProviderProfileHeader provider={provider} />
+      <ProviderProfileHeader provider={provider} canBook={canBook} />
 
       <div className="container pp-body">
         {/* Two-column layout: tabs left, service details right */}
@@ -149,6 +170,7 @@ export default function ProviderPublicProfilePage() {
                     reviews={reviews}
                     averageRating={provider.averageRating}
                     reviewCount={provider.reviewCount}
+                    reviewEligibility={reviewEligibility}
                   />
                 </div>
               )}
@@ -220,7 +242,7 @@ export default function ProviderPublicProfilePage() {
         </div>
 
         {/* Full-width Ready to Book — category image + glassmorphism card */}
-        {provider.isAvailable !== false && (
+        {canBook && provider.isAvailable !== false && (
           <div className="pp-cta-section" style={{ backgroundImage: `url(${ctaImage})` }}>
             <div className="pp-cta-overlay" />
             <div className="pp-cta-inner">

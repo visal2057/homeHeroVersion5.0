@@ -10,7 +10,11 @@ export default function ServicesSection() {
   const { user } = useAuth();
 
   function handleServiceClick(slug) {
-    if (user?.role === ROLES.CLIENT) {
+    // A Service Provider whose verification is still PENDING may also
+    // browse into Explore (view-only - see ProtectedRoute's
+    // `allowPendingProvider`), same as a Client.
+    const isPendingProvider = user?.role === ROLES.SERVICE_PROVIDER && user?.verificationStatus === 'PENDING';
+    if (user?.role === ROLES.CLIENT || isPendingProvider) {
       navigate(ROUTES.CLIENT_EXPLORE.replace(':category', slug));
     } else {
       navigate(ROUTES.REGISTER_CLIENT);

@@ -1,4 +1,31 @@
+import { useState } from 'react';
 import { IconCheckCircle } from '../../../components/common/icons.jsx';
+import { bookingApi } from '../bookingApi.js';
+
+function InvoiceCell({ bookingId, hasInvoice }) {
+  const [downloading, setDownloading] = useState(false);
+
+  if (!hasInvoice) {
+    return <span style={{ color: 'var(--color-neutral-400)' }}>—</span>;
+  }
+
+  async function handleDownload() {
+    setDownloading(true);
+    try {
+      await bookingApi.downloadInvoice(bookingId);
+    } catch {
+      alert('Failed to download invoice. Please try again.');
+    } finally {
+      setDownloading(false);
+    }
+  }
+
+  return (
+    <button type="button" className="bt-invoice-btn" onClick={handleDownload} disabled={downloading}>
+      {downloading ? 'Downloading…' : 'Download Invoice'}
+    </button>
+  );
+}
 
 export default function CompletedJobsTable({ bookings = [] }) {
   if (!bookings.length) {
@@ -24,6 +51,7 @@ export default function CompletedJobsTable({ bookings = [] }) {
               <th>Service</th>
               <th>Completed On</th>
               <th>Payment</th>
+              <th>Invoice</th>
             </tr>
           </thead>
           <tbody>
@@ -48,6 +76,9 @@ export default function CompletedJobsTable({ bookings = [] }) {
                     <span className="bt-payment-chip">{b.paymentMethod}</span>
                   ) : '—'}
                 </td>
+                <td>
+                  <InvoiceCell bookingId={b.bookingId ?? b.id} hasInvoice={Boolean(b.hasInvoice)} />
+                </td>
               </tr>
             ))}
           </tbody>
@@ -64,6 +95,9 @@ export default function CompletedJobsTable({ bookings = [] }) {
         .bt-id { font-family: monospace; font-size: var(--font-size-xs); color: var(--color-neutral-500); }
         .bt-token { font-family: monospace; font-size: var(--font-size-xs); background: var(--color-primary-50); color: var(--color-primary-700); padding: 2px 7px; border-radius: var(--radius-sm); letter-spacing: 0.05em; }
         .bt-payment-chip { padding: 4px 12px; border-radius: var(--radius-full); font-size: var(--font-size-xs); font-weight: 600; background: var(--color-secondary-50, #f0fdf4); color: var(--color-secondary-700); }
+        .bt-invoice-btn { padding: 7px 17px; background: var(--color-primary-600); color: white; border: none; border-radius: var(--radius-md); font-size: var(--font-size-xs); font-weight: 600; cursor: pointer; white-space: nowrap; font-family: inherit; }
+        .bt-invoice-btn:hover:not(:disabled) { background: var(--color-primary-700); }
+        .bt-invoice-btn:disabled { background: var(--color-neutral-300); cursor: not-allowed; }
       `}</style>
     </div>
   );

@@ -29,7 +29,7 @@ export default function TopProvidersSection({ providers = [], category }) {
             <IconTrophy size={26} style={{ color: '#d97706' }} />
           </div>
           <div>
-            <h2 className="tps-title">Top Providers in {category}</h2>
+            <h2 className="tps-title">Top Five Service Providers</h2>
             <p className="tps-sub">Highly rated professionals trusted by our community</p>
           </div>
         </div>

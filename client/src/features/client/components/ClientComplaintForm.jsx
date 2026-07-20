@@ -13,7 +13,7 @@ const COMPLAINT_TYPES = [
 ];
 
 export default function ClientComplaintForm({ onSuccess }) {
-  const [form, setForm] = useState({ token: '', complaintType: '', description: '' });
+  const [form, setForm] = useState({ token: '', complaintType: '', description: '', bookingId: '' });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
@@ -47,9 +47,10 @@ export default function ClientComplaintForm({ onSuccess }) {
         token: form.token.trim().toUpperCase(),
         complaintType: form.complaintType,
         description: form.description.trim(),
+        bookingId: form.bookingId.trim() || undefined,
       });
       onSuccess?.();
-      setForm({ token: '', complaintType: '', description: '' });
+      setForm({ token: '', complaintType: '', description: '', bookingId: '' });
     } catch (err) {
       setError(err?.response?.data?.message ?? 'Failed to submit complaint. Please try again.');
     } finally {
@@ -75,6 +76,21 @@ export default function ClientComplaintForm({ onSuccess }) {
         />
         <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-neutral-400)', marginTop: 4 }}>
           Enter the unique token of the service provider (found on their profile page)
+        </div>
+      </div>
+
+      <div className="cf-group">
+        <label className="cf-label">Booking ID (optional)</label>
+        <input
+          type="text"
+          name="bookingId"
+          placeholder="e.g. 42"
+          value={form.bookingId}
+          onChange={handleChange}
+          className="cf-input"
+        />
+        <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-neutral-400)', marginTop: 4 }}>
+          If this complaint relates to a specific booking, enter its ID (found on My Bookings)
         </div>
       </div>
 

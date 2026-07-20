@@ -40,7 +40,7 @@ providerRouter.post('/complaints', submitProviderComplaintHandler);
 
 providerRouter.get('/portfolio', listPortfolioPostsHandler);
 providerRouter.post('/portfolio', uploadPortfolioImages, createPortfolioPostHandler);
-providerRouter.put('/portfolio/:postId', updatePortfolioPostHandler);
+providerRouter.put('/portfolio/:postId', uploadPortfolioImages, updatePortfolioPostHandler);
 providerRouter.delete('/portfolio/:postId', deletePortfolioPostHandler);
 
 // Public provider directory and profile: mounted at /api/providers

@@ -1,10 +1,30 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Modal from '../../../../components/common/Modal.jsx';
 
-export default function BanUserModal({ isOpen, onClose, onSubmit, targetName, isSubmitting }) {
+// Converts a requestedEndsAt ISO timestamp (from a Verification Admin's
+// recommendation) into the value a <input type="datetime-local"> expects.
+function toDatetimeLocalValue(isoString) {
+  if (!isoString) return '';
+  const d = new Date(isoString);
+  if (Number.isNaN(d.getTime())) return '';
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+export default function BanUserModal({ isOpen, onClose, onSubmit, targetName, isSubmitting, recommendation }) {
   const [banType, setBanType] = useState('TEMPORARY');
   const [endsAt, setEndsAt] = useState('');
   const [reason, setReason] = useState('');
+
+  // Pre-fill from the Verification Admin's recommended ban type/duration/reason
+  // (when opened from a Ban Request card) so the System Admin reviews-then-adjusts
+  // instead of re-entering everything from scratch.
+  useEffect(() => {
+    if (!isOpen) return;
+    setBanType(recommendation?.banType ?? 'TEMPORARY');
+    setEndsAt(toDatetimeLocalValue(recommendation?.requestedEndsAt));
+    setReason(recommendation?.reason ?? '');
+  }, [isOpen, recommendation]);
 
   function handleSubmit(event) {
     event.preventDefault();

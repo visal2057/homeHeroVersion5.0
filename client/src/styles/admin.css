@@ -487,7 +487,7 @@
    pinned right - regardless of how wide the brand/actions zones are. */
 .admin-header-modern .admin-header-inner {
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   flex-wrap: nowrap;
   padding-top: 0;

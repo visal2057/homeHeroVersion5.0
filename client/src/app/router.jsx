@@ -111,8 +111,6 @@ export default function AppRouter() {
         <Route element={<ClientLayout />}>
           <Route path="/client" element={<Navigate to={ROUTES.HOME} replace />} />
           <Route path={ROUTES.CLIENT_HOME}             element={<Navigate to={ROUTES.HOME} replace />} />
-          <Route path={ROUTES.CLIENT_EXPLORE}          element={<ExploreServicePage />} />
-          <Route path={ROUTES.CLIENT_PROVIDER_PROFILE} element={<ProviderPublicProfilePage />} />
           <Route path={ROUTES.CLIENT_BOOKING_CONFIRM}  element={<BookingConfirmationPage />} />
           <Route path={ROUTES.CLIENT_BOOKING_SENT}     element={<BookingRequestSentPage />} />
           <Route path={ROUTES.CLIENT_MY_BOOKINGS}      element={<MyBookingsPage />} />
@@ -122,6 +120,20 @@ export default function AppRouter() {
           <Route path={ROUTES.CLIENT_PAYMENT_FAILED}   element={<PaymentFailedPage />} />
           <Route path={ROUTES.CLIENT_PROFILE}          element={<ClientProfilePage />} />
           <Route path={ROUTES.CLIENT_COMPLAINTS}       element={<ClientComplaintsPage />} />
+        </Route>
+      </Route>
+
+      {/* Explore + provider-profile viewing: Clients as always, plus a
+          Service Provider whose verification is still PENDING may browse
+          (but not book - the booking CTAs are hidden for that viewer role)
+          up to a specific provider's profile while their application is
+          under review. Kept as its own group, same layout/guard shape as
+          above, so the rest of the Client area stays exactly as strict as
+          it was. */}
+      <Route element={<ProtectedRoute roles={[ROLES.CLIENT]} allowPendingProvider />}>
+        <Route element={<ClientLayout />}>
+          <Route path={ROUTES.CLIENT_EXPLORE}          element={<ExploreServicePage />} />
+          <Route path={ROUTES.CLIENT_PROVIDER_PROFILE} element={<ProviderPublicProfilePage />} />
         </Route>
       </Route>
 

@@ -41,6 +41,7 @@ export default function PreviousWorkGallery({ posts = [] }) {
             <h4 className="pwork-card-title">{post.title}</h4>
             {post.createdAt && <span className="pwork-card-date">{formatDate(post.createdAt)}</span>}
           </header>
+          {post.categoryName && <span className="pwork-card-category">{post.categoryName}</span>}
           {post.description && <p className="pwork-card-desc">{post.description}</p>}
           {post.images?.length > 0 && (
             <div className={`pwork-card-images pwork-card-images-${Math.min(post.images.length, 3)}`}>
@@ -92,6 +93,11 @@ export default function PreviousWorkGallery({ posts = [] }) {
         }
         .pwork-card-title { margin: 0; font-size: var(--font-size-base); font-weight: 700; color: var(--color-secondary-700); }
         .pwork-card-date { font-size: var(--font-size-xs); color: var(--color-neutral-400); white-space: nowrap; }
+        .pwork-card-category {
+          display: inline-block; margin-bottom: 8px; padding: 2px 10px;
+          background: var(--color-primary-50); color: var(--color-primary-700);
+          border-radius: var(--radius-full, 999px); font-size: var(--font-size-xs); font-weight: 600;
+        }
         .pwork-card-desc { color: var(--color-neutral-600); margin: 0 0 var(--space-md); line-height: 1.6; }
         .pwork-card-images { display: grid; gap: 8px; }
         .pwork-card-images-1 { grid-template-columns: 1fr; }

@@ -60,7 +60,7 @@ export default function ContentManagementPage() {
           />
           <SiteImageManager
             title="Login Page Image"
-            description="Displayed on the left side of the login page, behind the glass info tile."
+            description="The full-width background photo behind the glass login form on the public login page."
             image={images.LOGIN_SIDE_IMAGE}
             fallbackUrl={LOGIN_SIDE_IMAGE_URL}
             assetType="LOGIN_SIDE_IMAGE"

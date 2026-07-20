@@ -6,6 +6,7 @@ import { AppError } from '../../utils/AppError.js';
 import { hashPassword, verifyPassword } from '../../utils/passwordUtils.js';
 import { generateUserToken } from '../../utils/tokenGenerator.js';
 import { sendWelcomeEmail, sendPasswordResetEmail } from '../emails/email.service.js';
+import { logAction } from '../audit/audit.service.js';
 import {
   findUserByUsernameOrEmail,
   findUserByEmail,
@@ -107,6 +108,14 @@ export async function registerClient(input) {
     await client.query('COMMIT');
 
     await sendWelcomeEmail(user);
+
+    await logAction({
+      actorUserId: user.user_id,
+      actionCode: 'CLIENT_REGISTERED',
+      entityType: 'user',
+      entityId: user.user_id,
+      description: `${user.full_name} registered as a new Client`,
+    });
 
     return toPublicUser({ ...user, role_code: 'CLIENT' });
   } catch (err) {

@@ -59,6 +59,22 @@ export function insertBookingImage(client, bookingId, { storagePath, originalFil
   );
 }
 
+// Used by the public provider profile's "Write Review" entry point: a Client
+// may only review a provider through a completed booking they haven't
+// reviewed yet (spec section 14.3's eligibility rule).
+export function findReviewableBookingForClientAndProvider(clientUserId, providerUserId) {
+  return query(
+    `SELECT b.booking_id
+     FROM bookings b
+     LEFT JOIN reviews r ON r.booking_id = b.booking_id
+     WHERE b.client_user_id = $1 AND b.provider_user_id = $2
+       AND b.booking_status = 'COMPLETED' AND r.review_id IS NULL
+     ORDER BY b.completed_at DESC
+     LIMIT 1`,
+    [clientUserId, providerUserId],
+  );
+}
+
 export function findBookingForOwnershipCheck(bookingId) {
   return query(
     `SELECT booking_id, client_user_id, provider_user_id, booking_status FROM bookings WHERE booking_id = $1`,
@@ -84,7 +100,14 @@ export function updateBookingCancelled(bookingId, cancelledByUserId, reason) {
 }
 
 export function listClientBookings(clientUserId) {
-  return query(`SELECT * FROM vw_booking_overview WHERE client_user_id = $1 ORDER BY requested_at DESC`, [clientUserId]);
+  return query(
+    `SELECT vo.*, (inv.invoice_id IS NOT NULL) AS has_invoice
+     FROM vw_booking_overview vo
+     LEFT JOIN invoices inv ON inv.booking_id = vo.booking_id
+     WHERE vo.client_user_id = $1
+     ORDER BY vo.requested_at DESC`,
+    [clientUserId],
+  );
 }
 
 export function listProviderBookingsByStatuses(providerUserId, statuses, limit) {
@@ -147,7 +170,7 @@ export function adminSearchBookings({ search, status, period, limit = 100 }) {
     params.push(Number.isFinite(Number(search)) ? Number(search) : -1);
     const idIdx = params.length;
     conditions.push(
-      `(client_name ILIKE $${idx} OR provider_name ILIKE $${idx} OR client_token ILIKE $${idx} OR provider_token ILIKE $${idx} OR booking_id = $${idIdx})`,
+      `(client_name ILIKE $${idx} OR provider_name ILIKE $${idx} OR client_token ILIKE $${idx} OR provider_token ILIKE $${idx} OR service_category ILIKE $${idx} OR booking_id = $${idIdx})`,
     );
   }
 

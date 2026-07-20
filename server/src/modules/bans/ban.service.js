@@ -19,6 +19,7 @@ export async function getPendingBanRequests() {
     requestedUserToken: row.requested_user_token,
     requestedUserRole: row.requested_user_role,
     requestedByName: row.requested_by_name,
+    verdictText: row.verdict_text ?? null,
   }));
 }
 

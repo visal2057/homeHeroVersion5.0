@@ -73,5 +73,6 @@ export const API_ENDPOINTS = {
     INVOICE_FORM:       (bookingId) => `/provider/invoices/${bookingId}/form`,
     INVOICE_GENERATE:   (bookingId) => `/provider/invoices/${bookingId}`,
     INVOICE_DOWNLOAD:   (bookingId) => `/provider/invoices/${bookingId}/download`,
+    EARNINGS_TOTAL:     '/payments/provider/earnings/total',
   },
 };

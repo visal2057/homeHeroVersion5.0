@@ -7,6 +7,7 @@ import { useAlert } from '../../../hooks/useAlert.js';
 import { extractErrorMessage } from '../../../api/apiErrorHandler.js';
 import { ROLE_HOME_ROUTE, ROLES } from '../../../constants/roles.js';
 import { ROUTES } from '../../../constants/routes.js';
+import { IconLock } from '../../../components/common/icons.jsx';
 
 function resolveRedirect(user, fromPath) {
   if (user.role === ROLES.SERVICE_PROVIDER && user.verificationStatus !== 'APPROVED') {
@@ -47,11 +48,15 @@ export default function LoginForm() {
   }
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="card auth-card animate-fade-in-up"
-      style={{ padding: 'var(--space-xl)', maxWidth: 420, margin: '0 auto' }}
-    >
+    <form onSubmit={handleSubmit} className="register-glass-box login-glass-box animate-fade-in-up">
+      <div className="register-glass-box-header">
+        <span className="register-glass-box-icon"><IconLock size={20} /></span>
+        <div>
+          <h3>Account Login</h3>
+          <p>Enter your username and password</p>
+        </div>
+      </div>
+
       <FormInput
         label="Username or Email"
         name="identifier"
@@ -66,13 +71,16 @@ export default function LoginForm() {
         onChange={(event) => setPassword(event.target.value)}
         error={errors.password}
       />
-      <div style={{ textAlign: 'right', marginBottom: 'var(--space-lg)' }}>
+      <div className="login-forgot-row">
         <Link to={ROUTES.FORGOT_PASSWORD}>Forgot Password?</Link>
       </div>
-      <button type="submit" className="btn btn-primary btn-block" disabled={isSubmitting}>
+      <button type="submit" className="btn btn-primary btn-block btn-shine" disabled={isSubmitting}>
         {isSubmitting && <span className="btn-spinner" aria-hidden="true" />}
         {isSubmitting ? 'Logging in...' : 'Login'}
       </button>
+      <p className="register-submit-hint">
+        Don't have an account? <Link to={ROUTES.REGISTER_ROLE}>Sign up</Link>
+      </p>
     </form>
   );
 }

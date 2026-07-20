@@ -1,53 +1,62 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ROUTES } from '../../../constants/routes.js';
-import { useAuth } from '../../../hooks/useAuth.js';
 import { clientApi } from '../clientApi.js';
+import { extractErrorMessage } from '../../../api/apiErrorHandler.js';
 import BookingForm from '../components/BookingForm.jsx';
-import { IconCalendar } from '../../../components/common/icons.jsx';
-
-const MOCK_PROVIDER = {
-  id: 'mock-1',
-  providerId: 'mock-1',
-  name: 'Nimal Perera',
-  category: 'Gardening',
-  district: 'colombo',
-  hourlyRate: 1500,
-  isVerified: true,
-};
+import EmptyState from '../../../components/common/EmptyState.jsx';
+import { IconCalendar, IconAlertCircle } from '../../../components/common/icons.jsx';
 
 export default function BookingConfirmationPage() {
   const { providerId } = useParams();
-  const { user } = useAuth();
   const [provider, setProvider] = useState(null);
   const [clientProfile, setClientProfile] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const [pRes, cRes] = await Promise.all([
+        clientApi.getProviderProfile(providerId),
+        clientApi.getProfile(),
+      ]);
+      setProvider(pRes.data?.data ?? pRes.data);
+      setClientProfile(cRes.data?.data ?? cRes.data);
+    } catch (err) {
+      setProvider(null);
+      setClientProfile(null);
+      setError(extractErrorMessage(err));
+    } finally {
+      setLoading(false);
+    }
+  }, [providerId]);
 
   useEffect(() => {
-    async function load() {
-      setLoading(true);
-      try {
-        const [pRes, cRes] = await Promise.all([
-          clientApi.getProviderProfile(providerId),
-          clientApi.getProfile(),
-        ]);
-        setProvider(pRes.data?.data ?? pRes.data);
-        setClientProfile(cRes.data?.data ?? cRes.data);
-      } catch {
-        setProvider({ ...MOCK_PROVIDER, id: providerId, providerId });
-        setClientProfile(user);
-      } finally {
-        setLoading(false);
-      }
-    }
     load();
-  }, [providerId, user]);
+  }, [load]);
 
   if (loading) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', padding: 'var(--space-2xl)' }}>
         <div className="ep-spinner" />
         <style>{`.ep-spinner { width: 48px; height: 48px; border: 3px solid var(--color-neutral-200); border-top-color: var(--color-primary-500); border-radius: 50%; animation: spin 0.7s linear infinite; } @keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container" style={{ paddingTop: 'var(--space-2xl)', paddingBottom: 'var(--space-2xl)' }}>
+        <EmptyState
+          icon={IconAlertCircle}
+          tone="error"
+          title="Couldn't load this booking form"
+          message={error}
+          actionLabel="Try Again"
+          onAction={load}
+        />
       </div>
     );
   }
@@ -81,7 +90,7 @@ export default function BookingConfirmationPage() {
           {provider?.category && (
             <>
               <Link
-                to={ROUTES.CLIENT_EXPLORE.replace(':category', provider.category?.toLowerCase()?.replace(' ', '-'))}
+                to={ROUTES.CLIENT_EXPLORE.replace(':category', (provider.categories?.[0] ?? provider.category).toLowerCase().replace(/\s+/g, '-'))}
                 style={{ color: 'var(--color-primary-600)' }}
               >
                 {provider.category}

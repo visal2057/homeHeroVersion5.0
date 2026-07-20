@@ -6,11 +6,13 @@ export function listPendingBanRequests() {
     `SELECT br.ban_request_id, br.complaint_id, br.ban_type, br.requested_ends_at, br.reason, br.request_status, br.created_at,
             ru.user_id AS requested_user_id, ru.full_name AS requested_user_name, ru.user_token AS requested_user_token,
             rr.role_code AS requested_user_role,
-            rb.full_name AS requested_by_name
+            rb.full_name AS requested_by_name,
+            cv.verdict_text
      FROM ban_requests br
      JOIN users ru ON ru.user_id = br.requested_user_id
      JOIN roles rr ON rr.role_id = ru.role_id
      JOIN users rb ON rb.user_id = br.requested_by_user_id
+     LEFT JOIN complaint_verdicts cv ON cv.complaint_id = br.complaint_id
      WHERE br.request_status = 'PENDING'
      ORDER BY br.created_at DESC`,
   );

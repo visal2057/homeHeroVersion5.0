@@ -23,6 +23,11 @@ const DISTRICTS = {
   matara: 'Matara', kurunegala: 'Kurunegala', ratnapura: 'Ratnapura',
 };
 
+function formatShortDate(dateStr) {
+  if (!dateStr) return '';
+  return new Date(dateStr).toLocaleDateString('en-LK', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
 function StarRating({ rating, count }) {
   const filled = Math.round(rating ?? 0);
   return (
@@ -37,7 +42,7 @@ function StarRating({ rating, count }) {
   );
 }
 
-export default function ProviderProfileHeader({ provider }) {
+export default function ProviderProfileHeader({ provider, canBook = true }) {
   const bookingHref = ROUTES.CLIENT_BOOKING_CONFIRM.replace(':providerId', provider.providerId ?? provider.id);
   const bannerImage = getBannerImage(provider.category);
   const districtLabel = DISTRICTS[provider.district?.toLowerCase()] ?? provider.district;
@@ -92,15 +97,23 @@ export default function ProviderProfileHeader({ provider }) {
               )}
             </div>
             <StarRating rating={provider.averageRating} count={provider.reviewCount} />
+            {provider.unavailablePeriods?.[0] && (
+              <div className="pph-unavailable-notice">
+                Unavailable {formatShortDate(provider.unavailablePeriods[0].startDate)} – {formatShortDate(provider.unavailablePeriods[0].endDate)}
+              </div>
+            )}
           </div>
 
-          {/* CTA */}
+          {/* CTA - hidden entirely for a viewer who isn't allowed to book
+              (e.g. a pending Service Provider browsing profiles) */}
           <div className="pph-actions">
             {provider.isAvailable !== false ? (
-              <Link to={bookingHref} className="btn btn-primary btn-shine pph-book-btn">
-                <IconCalendar size={19} style={{ marginRight: 6 }} />
-                Book Now
-              </Link>
+              canBook && (
+                <Link to={bookingHref} className="btn btn-primary btn-shine pph-book-btn">
+                  <IconCalendar size={19} style={{ marginRight: 6 }} />
+                  Book Now
+                </Link>
+              )
             ) : (
               <span className="pph-unavailable">Currently Unavailable</span>
             )}
@@ -142,6 +155,10 @@ export default function ProviderProfileHeader({ provider }) {
         .pph-name { font-size: var(--font-size-2xl); font-weight: 800; color: var(--color-secondary-700); margin-bottom: 8px; }
         .pph-meta { display: flex; gap: var(--space-md); flex-wrap: wrap; margin-bottom: 10px; }
         .pph-meta-item { display: flex; align-items: center; gap: 5px; font-size: var(--font-size-sm); color: var(--color-neutral-500); }
+        .pph-unavailable-notice {
+          display: inline-block; margin-top: 8px; font-size: var(--font-size-sm); font-weight: 600;
+          color: #b45309; background: #fef3c7; border-radius: var(--radius-sm); padding: 4px 10px;
+        }
         .pph-actions { flex-shrink: 0; }
         .pph-book-btn { display: flex; align-items: center; padding: 14px 34px; font-size: var(--font-size-base); }
         .pph-unavailable { padding: 12px 24px; border-radius: var(--radius-md); background: var(--color-neutral-100); color: var(--color-neutral-500); font-size: var(--font-size-sm); font-weight: 600; }
