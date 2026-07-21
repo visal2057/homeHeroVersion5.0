@@ -3,11 +3,18 @@ import { useAuth } from '../../hooks/useAuth.js';
 import { ROUTES } from '../../constants/routes.js';
 import { ROLE_HOME_ROUTE, ROLES } from '../../constants/roles.js';
 
-export default function ProtectedRoute({ roles, allowPendingProvider = false }) {
+export default function ProtectedRoute({ roles, allowPendingProvider = false, allowGuest = false }) {
   const { user, isLoading } = useAuth();
   const location = useLocation();
 
   if (isLoading) return null;
+
+  // Opt-in exception (default off, so every route that doesn't pass this
+  // prop behaves exactly as before): lets a logged-out visitor pass straight
+  // through, for the specific routes that explicitly allow guest browsing
+  // (Explore / provider-profile viewing).
+  if (!user && allowGuest) return <Outlet />;
+
   if (!user) return <Navigate to={ROUTES.LOGIN} replace state={{ from: location }} />;
 
   // Opt-in exception (default off, so every route that doesn't pass this
