@@ -143,13 +143,13 @@ export default function ProviderProfileHeader({ provider, canBook = true }) {
           display: flex; gap: var(--space-xl); align-items: center;
           padding: 0 0 var(--space-xl);
         }
-        .pph-avatar-wrap { position: relative; margin-top: -62px; flex-shrink: 0; }
+        .pph-avatar-wrap { position: relative; margin-top: -74px; flex-shrink: 0; }
         .pph-avatar {
-          width: 132px; height: 132px; border-radius: 50%;
+          width: 156px; height: 156px; border-radius: 50%;
           border: 4px solid white; box-shadow: 0 4px 14px rgba(0,0,0,0.12);
           background: var(--color-primary-100); overflow: hidden;
           display: flex; align-items: center; justify-content: center;
-          font-size: 3rem; font-weight: 700; color: var(--color-primary-700);
+          font-size: 3.4rem; font-weight: 700; color: var(--color-primary-700);
         }
         .pph-avatar img { width: 100%; height: 100%; object-fit: cover; }
         .pph-badge {

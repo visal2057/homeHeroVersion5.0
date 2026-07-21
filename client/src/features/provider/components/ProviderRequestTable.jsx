@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import BookingDetailPreview from './BookingDetailPreview.jsx';
 import { IconInbox, IconMapPin } from '../../../components/common/icons.jsx';
 import { rowPreviewPosition } from '../rowPreviewPosition.js';
+import { buildGoogleMapsUrl } from '../../../utils/mapsUtils.js';
 
 const MIN_ROWS = 6;
 const COLUMN_COUNT = 9;
@@ -76,15 +77,15 @@ export default function ProviderRequestTable({ requests, onAccept, onReject, loa
               <td>{r.service_date ? new Date(r.service_date).toLocaleDateString() : '—'}</td>
               <td>{r.service_date ? new Date(r.service_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—'}</td>
               <td>
-                {r.location ? (
+                {r.location?.latitude != null ? (
                   <a
-                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(r.location)}`}
+                    href={buildGoogleMapsUrl(r.location.latitude, r.location.longitude)}
                     target="_blank"
                     rel="noopener noreferrer"
                     style={{ color: 'var(--color-primary-600)', display: 'inline-flex', alignItems: 'center', gap: 4 }}
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <IconMapPin size={14} /> {r.location}
+                    <IconMapPin size={14} /> {r.location.addressText ?? `${r.location.latitude}, ${r.location.longitude}`}
                   </a>
                 ) : '—'}
               </td>

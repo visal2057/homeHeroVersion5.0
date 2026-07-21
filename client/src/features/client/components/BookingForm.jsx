@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { ROUTES } from '../../../constants/routes.js';
 import { bookingApi } from '../bookingApi.js';
 import MapPicker from '../../../components/common/MapPicker.jsx';
+import { getAssetUrl } from '../../../utils/storageUtils.js';
 import { IconCalendar, IconClock, IconMapPin, IconCheckCircle, IconImage } from '../../../components/common/icons.jsx';
 
 const HOURS = Array.from({ length: 12 }, (_, i) => String(i + 1));
@@ -129,8 +130,8 @@ export default function BookingForm({ provider, client }) {
         <div className="booking-provider-strip">
           <div className="bps-avatar">
             {provider.profilePhoto
-              ? <img src={provider.profilePhoto} alt="" />
-              : <span>{(provider.name ?? 'P')[0]}</span>}
+              ? <img src={getAssetUrl(provider.profilePhoto)} alt="" />
+              : <span>{(provider.name ?? 'P')[0].toUpperCase()}</span>}
           </div>
           <div>
             <div style={{ fontWeight: 700, color: 'var(--color-secondary-700)' }}>{provider.name}</div>

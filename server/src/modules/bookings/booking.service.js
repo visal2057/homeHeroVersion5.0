@@ -165,8 +165,13 @@ function toProviderRowShape(row) {
     service_date: row.scheduled_at,
     completed_at: row.completed_at,
     location:
-      row.address_snapshot
-      ?? (row.latitude_snapshot != null ? `${row.latitude_snapshot},${row.longitude_snapshot}` : null),
+      row.address_snapshot != null || row.latitude_snapshot != null
+        ? {
+            addressText: row.address_snapshot,
+            latitude: row.latitude_snapshot != null ? Number(row.latitude_snapshot) : null,
+            longitude: row.longitude_snapshot != null ? Number(row.longitude_snapshot) : null,
+          }
+        : null,
     status: row.booking_status.toLowerCase(),
     rating: row.rating,
     review_text: row.review_text,
