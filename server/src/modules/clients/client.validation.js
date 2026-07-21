@@ -9,6 +9,7 @@ export const updateClientProfileSchema = z.object({
 });
 
 export const updateClientLocationSchema = z.object({
+  locationType: z.enum(['PRIMARY', 'SECONDARY']),
   latitude: z.coerce.number().min(-90).max(90),
   longitude: z.coerce.number().min(-180).max(180),
   addressText: z.string().min(3).max(255),

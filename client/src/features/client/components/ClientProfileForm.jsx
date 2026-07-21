@@ -70,13 +70,13 @@ export default function ClientProfileForm({ initialData, onSaved }) {
         .pf-label { font-weight: 600; color: var(--color-secondary-700); font-size: var(--font-size-sm); }
         .pf-req { color: var(--color-error); }
         .pf-input {
-          padding: 10px 14px; border: 1.5px solid var(--color-neutral-200);
+          padding: 12px 17px; border: 1.5px solid var(--color-neutral-200);
           border-radius: var(--radius-md); font-size: var(--font-size-base); font-family: inherit;
           outline: none; transition: border-color var(--transition-base); background: white; color: var(--color-text);
         }
         .pf-input:focus { border-color: var(--color-primary-500); }
-        .pf-error { padding: 10px 14px; background: var(--color-error-bg); color: var(--color-error); border-radius: var(--radius-md); font-size: var(--font-size-sm); }
-        .pf-success { padding: 10px 14px; background: var(--color-success-bg); color: var(--color-success); border-radius: var(--radius-md); font-size: var(--font-size-sm); font-weight: 600; }
+        .pf-error { padding: 12px 17px; background: var(--color-error-bg); color: var(--color-error); border-radius: var(--radius-md); font-size: var(--font-size-sm); }
+        .pf-success { padding: 12px 17px; background: var(--color-success-bg); color: var(--color-success); border-radius: var(--radius-md); font-size: var(--font-size-sm); font-weight: 600; }
       `}</style>
     </form>
   );

@@ -1,29 +1,18 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ROUTES } from '../../../constants/routes.js';
+import { useAuth } from '../../../hooks/useAuth.js';
+import { ROLES } from '../../../constants/roles.js';
 import { clientApi } from '../clientApi.js';
+import { extractErrorMessage } from '../../../api/apiErrorHandler.js';
 import ProviderProfileHeader from '../components/ProviderProfileHeader.jsx';
 import PreviousWorkGallery from '../components/PreviousWorkGallery.jsx';
 import ReviewsSection from '../components/ReviewsSection.jsx';
+import EmptyState from '../../../components/common/EmptyState.jsx';
 import {
   IconToolbox, IconMapPin, IconDollarSign, IconCalendar,
-  IconShield, IconUser, IconStar,
+  IconShield, IconUser, IconStar, IconAlertCircle,
 } from '../../../components/common/icons.jsx';
-
-const MOCK_PROVIDER = {
-  id: 'mock-1', providerId: 'mock-1',
-  name: 'Nimal Perera', category: 'Gardening', district: 'colombo',
-  hourlyRate: 1500,
-  bio: 'Experienced gardening professional with over 10 years in lawn care, pruning, and landscape design. Served over 200+ happy clients across Colombo and Gampaha districts.',
-  isVerified: true, isAvailable: true, averageRating: 4.8, reviewCount: 42,
-  workImages: [], providerToken: 'NPR4X2',
-};
-
-const MOCK_REVIEWS = [
-  { id: 1, clientName: 'Dilini Fernando', rating: 5, comment: 'Excellent work! My garden looks amazing.', createdAt: '2025-12-15' },
-  { id: 2, clientName: 'Kasun Jayawardena', rating: 4, comment: 'Very professional and on time. Will book again.', createdAt: '2025-11-28' },
-  { id: 3, clientName: 'Priya Wickramasinghe', rating: 5, comment: 'Best gardener in the area, highly recommended!', createdAt: '2025-11-10' },
-];
 
 const CATEGORY_CTA_IMAGES = {
   gardening:  'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?auto=format&fit=crop&w=2000&q=80',
@@ -41,63 +30,100 @@ function getCategoryImage(category) {
 
 export default function ProviderPublicProfilePage() {
   const { providerId } = useParams();
+  const { user } = useAuth();
+  // A pending Service Provider may view profiles (see ProtectedRoute's
+  // `allowPendingProvider`) but not book - only a Client viewer sees the
+  // booking CTAs.
+  const canBook = user?.role !== ROLES.SERVICE_PROVIDER;
   const [provider, setProvider] = useState(null);
   const [reviews, setReviews] = useState([]);
+  const [reviewEligibility, setReviewEligibility] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('about');
 
-  useEffect(() => {
-    async function load() {
-      setLoading(true);
-      try {
-        const [pRes, rRes] = await Promise.all([
-          clientApi.getProviderProfile(providerId),
-          clientApi.getProviderReviews(providerId),
-        ]);
-        setProvider(pRes.data?.data ?? pRes.data);
-        setReviews(rRes.data?.data ?? rRes.data ?? []);
-      } catch {
-        setProvider({ ...MOCK_PROVIDER, id: providerId, providerId });
-        setReviews(MOCK_REVIEWS);
-      } finally {
-        setLoading(false);
-      }
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const [pRes, rRes] = await Promise.all([
+        clientApi.getProviderProfile(providerId),
+        clientApi.getProviderReviews(providerId),
+      ]);
+      setProvider(pRes.data?.data ?? pRes.data);
+      setReviews(rRes.data?.data ?? rRes.data ?? []);
+    } catch (err) {
+      setProvider(null);
+      setReviews([]);
+      setError(extractErrorMessage(err));
+    } finally {
+      setLoading(false);
     }
-    load();
   }, [providerId]);
+
+  // Only a logged-in Client viewer can ever write a review, so the
+  // eligibility check is skipped entirely for anyone else (including a
+  // Service Provider previewing their own profile, or a logged-out visitor).
+  useEffect(() => {
+    if (user?.role !== ROLES.CLIENT) {
+      setReviewEligibility(null);
+      return;
+    }
+    clientApi.getReviewEligibility(providerId)
+      .then((res) => setReviewEligibility(res.data?.data ?? res.data))
+      .catch(() => setReviewEligibility(null));
+  }, [providerId, user]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
 
   if (loading) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
         <div className="ep-spinner" />
-        <style>{`.ep-spinner { border: 3px solid var(--color-neutral-200); border-top-color: var(--color-primary-500); border-radius: 50%; width: 48px; height: 48px; animation: spin 0.7s linear infinite; } @keyframes spin { to { transform: rotate(360deg); } }`}</style>
+        <style>{`.ep-spinner { border: 3px solid var(--color-neutral-200); border-top-color: var(--color-primary-500); border-radius: 50%; width: 58px; height: 58px; animation: spin 0.7s linear infinite; } @keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </div>
     );
   }
 
   if (!provider) {
     return (
-      <div className="container" style={{ textAlign: 'center', padding: 'var(--space-2xl)' }}>
-        <h2>Provider not found</h2>
-        <Link to={ROUTES.HOME} className="btn btn-primary" style={{ marginTop: 'var(--space-lg)' }}>Back to Home</Link>
+      <div className="container" style={{ paddingTop: 'var(--space-2xl)', paddingBottom: 'var(--space-2xl)' }}>
+        <EmptyState
+          icon={IconAlertCircle}
+          tone={error ? 'error' : 'neutral'}
+          title={error ? "Couldn't load this profile" : 'Provider not found'}
+          message={error ?? "This provider doesn't exist or is no longer available."}
+          actionLabel={error ? 'Try Again' : undefined}
+          onAction={error ? load : undefined}
+        />
+        <div style={{ textAlign: 'center' }}>
+          <Link to={ROUTES.HOME} className="btn btn-outline" style={{ marginTop: 'var(--space-md)' }}>Back to Home</Link>
+        </div>
       </div>
     );
   }
 
   const token = provider.providerToken ?? provider.userToken ?? provider.token;
-  const bookingHref = ROUTES.CLIENT_BOOKING_CONFIRM.replace(':providerId', provider.providerId ?? provider.id);
+  // A logged-out visitor can browse this far (see ProtectedRoute's
+  // `allowGuest`), but only gets sent into the actual booking flow once
+  // logged in as a Client - the CTA below sends them to client signup instead.
+  const bookingHref = user
+    ? ROUTES.CLIENT_BOOKING_CONFIRM.replace(':providerId', provider.providerId ?? provider.id)
+    : ROUTES.REGISTER_CLIENT;
   const ctaImage = getCategoryImage(provider.category);
 
   const tabs = [
     { key: 'about',   label: 'About' },
-    { key: 'gallery', label: `Previous Work (${provider.workImages?.length ?? 0})` },
+    { key: 'gallery', label: `Previous Work (${provider.portfolioPosts?.length ?? 0})` },
     { key: 'reviews', label: `Reviews (${provider.reviewCount ?? reviews.length})` },
   ];
 
   return (
     <div className="pp-page">
       {/* Header: banner + avatar row + Book Now — all in one line */}
-      <ProviderProfileHeader provider={provider} />
+      <ProviderProfileHeader provider={provider} canBook={canBook} />
 
       <div className="container pp-body">
         {/* Two-column layout: tabs left, service details right */}
@@ -131,13 +157,13 @@ export default function ProviderPublicProfilePage() {
               {activeTab === 'gallery' && (
                 <div className="pp-card">
                   <h3 className="pp-card-title">Previous Work</h3>
-                  {(provider.workImages?.length ?? 0) === 0 ? (
+                  {(provider.portfolioPosts?.length ?? 0) === 0 ? (
                     <div style={{ textAlign: 'center', padding: 'var(--space-xl)', color: 'var(--color-neutral-400)' }}>
-                      <IconToolbox size={40} style={{ color: 'var(--color-neutral-300)', marginBottom: 12 }} />
+                      <IconToolbox size={48} style={{ color: 'var(--color-neutral-300)', marginBottom: 14 }} />
                       <p>No portfolio images yet.</p>
                     </div>
                   ) : (
-                    <PreviousWorkGallery images={provider.workImages} />
+                    <PreviousWorkGallery posts={provider.portfolioPosts} />
                   )}
                 </div>
               )}
@@ -149,6 +175,7 @@ export default function ProviderPublicProfilePage() {
                     reviews={reviews}
                     averageRating={provider.averageRating}
                     reviewCount={provider.reviewCount}
+                    reviewEligibility={reviewEligibility}
                   />
                 </div>
               )}
@@ -163,7 +190,7 @@ export default function ProviderPublicProfilePage() {
                 {token && (
                   <div className="pp-detail-item">
                     <span className="pp-detail-label">
-                      <IconUser size={14} style={{ color: 'var(--color-neutral-400)' }} />
+                      <IconUser size={17} style={{ color: 'var(--color-neutral-400)' }} />
                       Provider Token
                     </span>
                     <span className="pp-detail-value pp-token">{token}</span>
@@ -171,14 +198,14 @@ export default function ProviderPublicProfilePage() {
                 )}
                 <div className="pp-detail-item">
                   <span className="pp-detail-label">
-                    <IconToolbox size={14} style={{ color: 'var(--color-neutral-400)' }} />
+                    <IconToolbox size={17} style={{ color: 'var(--color-neutral-400)' }} />
                     Category
                   </span>
                   <span className="pp-detail-value">{provider.category ?? 'N/A'}</span>
                 </div>
                 <div className="pp-detail-item">
                   <span className="pp-detail-label">
-                    <IconMapPin size={14} style={{ color: 'var(--color-neutral-400)' }} />
+                    <IconMapPin size={17} style={{ color: 'var(--color-neutral-400)' }} />
                     District
                   </span>
                   <span className="pp-detail-value" style={{ textTransform: 'capitalize' }}>
@@ -188,7 +215,7 @@ export default function ProviderPublicProfilePage() {
                 {provider.hourlyRate && (
                   <div className="pp-detail-item">
                     <span className="pp-detail-label">
-                      <IconDollarSign size={14} style={{ color: 'var(--color-neutral-400)' }} />
+                      <IconDollarSign size={17} style={{ color: 'var(--color-neutral-400)' }} />
                       Hourly Rate
                     </span>
                     <span className="pp-detail-value">Rs. {provider.hourlyRate}/hr</span>
@@ -196,7 +223,7 @@ export default function ProviderPublicProfilePage() {
                 )}
                 <div className="pp-detail-item">
                   <span className="pp-detail-label">
-                    <IconShield size={14} style={{ color: 'var(--color-neutral-400)' }} />
+                    <IconShield size={17} style={{ color: 'var(--color-neutral-400)' }} />
                     Verified
                   </span>
                   <span className={`pp-detail-value pp-verified-chip ${provider.isVerified ? 'pp-verified-yes' : 'pp-verified-no'}`}>
@@ -206,7 +233,7 @@ export default function ProviderPublicProfilePage() {
                 {provider.averageRating > 0 && (
                   <div className="pp-detail-item">
                     <span className="pp-detail-label">
-                      <IconStar size={14} style={{ color: 'var(--color-neutral-400)' }} />
+                      <IconStar size={17} style={{ color: 'var(--color-neutral-400)' }} />
                       Rating
                     </span>
                     <span className="pp-detail-value" style={{ color: '#d97706', fontWeight: 700 }}>
@@ -220,12 +247,12 @@ export default function ProviderPublicProfilePage() {
         </div>
 
         {/* Full-width Ready to Book — category image + glassmorphism card */}
-        {provider.isAvailable !== false && (
+        {canBook && provider.isAvailable !== false && (
           <div className="pp-cta-section" style={{ backgroundImage: `url(${ctaImage})` }}>
             <div className="pp-cta-overlay" />
             <div className="pp-cta-inner">
               <div className="pp-cta-glass">
-                <IconCalendar size={32} style={{ color: 'white', marginBottom: 12 }} />
+                <IconCalendar size={38} style={{ color: 'white', marginBottom: 14 }} />
                 <h2 className="pp-cta-title">Ready to Book {provider.name}?</h2>
                 <p className="pp-cta-text">
                   {provider.name} is currently accepting bookings.
@@ -260,7 +287,7 @@ export default function ProviderPublicProfilePage() {
           margin-bottom: var(--space-lg);
         }
         .pp-tab {
-          padding: 11px 22px; background: none; border: none; cursor: pointer;
+          padding: 13px 26px; background: none; border: none; cursor: pointer;
           font-family: inherit; font-size: var(--font-size-sm); font-weight: 600;
           color: var(--color-neutral-500); border-bottom: 2px solid transparent;
           margin-bottom: -2px; transition: color 0.2s, border-color 0.2s; white-space: nowrap;
@@ -280,7 +307,7 @@ export default function ProviderPublicProfilePage() {
         .pp-detail-list { display: flex; flex-direction: column; }
         .pp-detail-item {
           display: flex; justify-content: space-between; align-items: center;
-          padding: 11px 0; border-bottom: 1px solid var(--color-neutral-100);
+          padding: 13px 0; border-bottom: 1px solid var(--color-neutral-100);
           font-size: var(--font-size-sm); gap: var(--space-md);
         }
         .pp-detail-item:last-child { border-bottom: none; }
@@ -309,7 +336,7 @@ export default function ProviderPublicProfilePage() {
         .pp-cta-inner {
           position: relative; z-index: 1;
           display: flex; align-items: center; justify-content: center;
-          padding: 64px 40px;
+          padding: 77px 48px;
         }
         .pp-cta-glass {
           background: rgba(255,255,255,0.10);
@@ -317,9 +344,9 @@ export default function ProviderPublicProfilePage() {
           -webkit-backdrop-filter: blur(20px);
           border: 1px solid rgba(255,255,255,0.28);
           border-radius: var(--radius-xl);
-          padding: 40px 48px;
+          padding: 48px 58px;
           text-align: center;
-          max-width: 520px;
+          max-width: 624px;
           box-shadow: 0 8px 32px rgba(0,0,0,0.18);
         }
         .pp-cta-title {
@@ -332,7 +359,7 @@ export default function ProviderPublicProfilePage() {
         }
         .pp-cta-btn {
           display: inline-flex; align-items: center; justify-content: center;
-          padding: 14px 36px; font-size: var(--font-size-base); font-weight: 700;
+          padding: 17px 43px; font-size: var(--font-size-base); font-weight: 700;
           background: white; color: var(--color-primary-700);
           border-radius: var(--radius-md); text-decoration: none;
           transition: transform 0.15s, box-shadow 0.15s;

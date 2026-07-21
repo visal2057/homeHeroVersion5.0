@@ -1,53 +1,62 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ROUTES } from '../../../constants/routes.js';
-import { useAuth } from '../../../hooks/useAuth.js';
 import { clientApi } from '../clientApi.js';
+import { extractErrorMessage } from '../../../api/apiErrorHandler.js';
 import BookingForm from '../components/BookingForm.jsx';
-import { IconCalendar } from '../../../components/common/icons.jsx';
-
-const MOCK_PROVIDER = {
-  id: 'mock-1',
-  providerId: 'mock-1',
-  name: 'Nimal Perera',
-  category: 'Gardening',
-  district: 'colombo',
-  hourlyRate: 1500,
-  isVerified: true,
-};
+import EmptyState from '../../../components/common/EmptyState.jsx';
+import { IconCalendar, IconAlertCircle } from '../../../components/common/icons.jsx';
 
 export default function BookingConfirmationPage() {
   const { providerId } = useParams();
-  const { user } = useAuth();
   const [provider, setProvider] = useState(null);
   const [clientProfile, setClientProfile] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const [pRes, cRes] = await Promise.all([
+        clientApi.getProviderProfile(providerId),
+        clientApi.getProfile(),
+      ]);
+      setProvider(pRes.data?.data ?? pRes.data);
+      setClientProfile(cRes.data?.data ?? cRes.data);
+    } catch (err) {
+      setProvider(null);
+      setClientProfile(null);
+      setError(extractErrorMessage(err));
+    } finally {
+      setLoading(false);
+    }
+  }, [providerId]);
 
   useEffect(() => {
-    async function load() {
-      setLoading(true);
-      try {
-        const [pRes, cRes] = await Promise.all([
-          clientApi.getProviderProfile(providerId),
-          clientApi.getProfile(),
-        ]);
-        setProvider(pRes.data?.data ?? pRes.data);
-        setClientProfile(cRes.data?.data ?? cRes.data);
-      } catch {
-        setProvider({ ...MOCK_PROVIDER, id: providerId, providerId });
-        setClientProfile(user);
-      } finally {
-        setLoading(false);
-      }
-    }
     load();
-  }, [providerId, user]);
+  }, [load]);
 
   if (loading) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', padding: 'var(--space-2xl)' }}>
         <div className="ep-spinner" />
-        <style>{`.ep-spinner { width: 40px; height: 40px; border: 3px solid var(--color-neutral-200); border-top-color: var(--color-primary-500); border-radius: 50%; animation: spin 0.7s linear infinite; } @keyframes spin { to { transform: rotate(360deg); } }`}</style>
+        <style>{`.ep-spinner { width: 48px; height: 48px; border: 3px solid var(--color-neutral-200); border-top-color: var(--color-primary-500); border-radius: 50%; animation: spin 0.7s linear infinite; } @keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container" style={{ paddingTop: 'var(--space-2xl)', paddingBottom: 'var(--space-2xl)' }}>
+        <EmptyState
+          icon={IconAlertCircle}
+          tone="error"
+          title="Couldn't load this booking form"
+          message={error}
+          actionLabel="Try Again"
+          onAction={load}
+        />
       </div>
     );
   }
@@ -60,7 +69,7 @@ export default function BookingConfirmationPage() {
         <div className="container" style={{ position: 'relative', zIndex: 1 }}>
           <div className="bcp-hero-inner">
             <div className="bcp-hero-icon">
-              <IconCalendar size={32} style={{ color: 'white' }} />
+              <IconCalendar size={38} style={{ color: 'white' }} />
             </div>
             <div>
               <div className="hh-eyebrow" style={{ color: 'rgba(255,255,255,0.75)', marginBottom: 6 }}>Booking</div>
@@ -81,7 +90,7 @@ export default function BookingConfirmationPage() {
           {provider?.category && (
             <>
               <Link
-                to={ROUTES.CLIENT_EXPLORE.replace(':category', provider.category?.toLowerCase()?.replace(' ', '-'))}
+                to={ROUTES.CLIENT_EXPLORE.replace(':category', (provider.categories?.[0] ?? provider.category).toLowerCase().replace(/\s+/g, '-'))}
                 style={{ color: 'var(--color-primary-600)' }}
               >
                 {provider.category}
@@ -96,7 +105,7 @@ export default function BookingConfirmationPage() {
           <span style={{ color: 'var(--color-neutral-500)' }}>Book</span>
         </div>
 
-        <div className="bcp-content" style={{ maxWidth: 720, margin: '0 auto' }}>
+        <div className="bcp-content" style={{ margin: '0 auto' }}>
           {provider && <BookingForm provider={provider} client={clientProfile} />}
           <p className="bcp-note">
             Your request will be sent to the provider. They will confirm or decline within 24 hours.
@@ -109,7 +118,7 @@ export default function BookingConfirmationPage() {
         .bcp-hero {
           position: relative;
           background-image: url('https://images.unsplash.com/photo-1484480974693-6ca0a78fb36b?auto=format&fit=crop&w=2000&q=80');
-          background-size: cover; background-position: center; padding: 56px 0;
+          background-size: cover; background-position: center; padding: 67px 0;
         }
         .bcp-hero-overlay {
           position: absolute; inset: 0;
@@ -117,7 +126,7 @@ export default function BookingConfirmationPage() {
         }
         .bcp-hero-inner { display: flex; align-items: center; gap: var(--space-xl); }
         .bcp-hero-icon {
-          width: 64px; height: 64px; border-radius: var(--radius-lg);
+          width: 77px; height: 77px; border-radius: var(--radius-lg);
           background: rgba(255,255,255,0.15); backdrop-filter: blur(8px);
           display: flex; align-items: center; justify-content: center; flex-shrink: 0;
           border: 1px solid rgba(255,255,255,0.25);
@@ -126,7 +135,7 @@ export default function BookingConfirmationPage() {
         .bcp-hero-sub { color: rgba(255,255,255,0.8); font-size: var(--font-size-lg); margin: 0; }
         .bcp-body { padding-top: var(--space-xl); }
         .bcp-breadcrumb { font-size: var(--font-size-sm); color: var(--color-neutral-500); margin-bottom: var(--space-lg); }
-        .bcp-content { max-width: 760px; }
+        .bcp-content { max-width: 912px; }
         .bcp-note { margin-top: var(--space-lg); font-size: var(--font-size-sm); color: var(--color-neutral-400); text-align: center; }
       `}</style>
     </div>

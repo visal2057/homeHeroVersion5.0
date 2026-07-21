@@ -26,6 +26,7 @@ async function resolveCategory(categorySlug) {
 }
 
 function toCardShape(row) {
+  const workImages = (row.work_images ?? []).filter(Boolean);
   return {
     providerId: row.provider_user_id,
     id: row.provider_user_id,
@@ -37,6 +38,11 @@ function toCardShape(row) {
     hourlyRate: row.hourly_charge_estimate != null ? Number(row.hourly_charge_estimate) : null,
     isVerified: row.is_verified,
     isAvailable: row.is_bookable ?? null,
+    unavailableFrom: row.unavailable_from ?? null,
+    unavailableTo: row.unavailable_to ?? null,
+    workPreview: workImages.length > 0
+      ? { title: row.work_title, description: row.work_description, images: workImages }
+      : null,
   };
 }
 
@@ -109,6 +115,7 @@ export async function getPublicProviderPortfolio(providerId) {
     id: row.portfolio_post_id,
     title: row.title,
     description: row.description,
+    categoryName: row.category_name ?? null,
     createdAt: row.created_at,
     images: (row.image_paths ?? []).filter(Boolean),
   }));
@@ -122,5 +129,7 @@ export async function getPublicProviderReviews(providerId) {
     comment: row.review_text,
     createdAt: row.created_at,
     clientName: row.client_name,
+    bookingId: row.booking_id,
+    serviceCategory: row.category_name,
   }));
 }

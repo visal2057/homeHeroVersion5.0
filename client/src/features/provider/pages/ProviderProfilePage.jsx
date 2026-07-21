@@ -72,10 +72,21 @@ export default function ProviderProfilePage() {
     setProfile((prev) => (prev ? { ...prev, profileImageUrl } : prev));
   }
 
-  async function handleSavePost(id, { title, description }) {
-    const res = await axiosClient.put(API_ENDPOINTS.PROVIDER.PORTFOLIO_DELETE(id), { title, description });
+  async function handleSavePost(id, { title, description, images = [] }) {
+    let res;
+    if (images.length > 0) {
+      const formData = new FormData();
+      formData.append('title', title);
+      formData.append('description', description);
+      images.forEach((file) => formData.append('images', file));
+      res = await axiosClient.put(API_ENDPOINTS.PROVIDER.PORTFOLIO_DELETE(id), formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+    } else {
+      res = await axiosClient.put(API_ENDPOINTS.PROVIDER.PORTFOLIO_DELETE(id), { title, description });
+    }
     const updated = res.data?.data ?? res.data;
-    setPortfolio((prev) => prev.map((p) => (p.id === id ? { ...p, ...updated } : p)));
+    setPortfolio((prev) => prev.map((p) => (p.id === id ? updated : p)));
   }
 
   async function handleDeletePost(id) {

@@ -95,6 +95,43 @@ img {
   padding: 0 var(--space-lg);
 }
 
+/* Client operation pages (Explore, Provider Profile, Booking flow, My
+   Bookings, Client Profile, Complaints) render ~20% larger than the rest of
+   the site to fill the page and cut down on side whitespace, per feedback
+   that those pages felt sparse next to Provider/Admin/public pages. Scoped
+   to .client-scale (set on ClientLayout's <main>) so it never touches the
+   shared tokens Provider/Admin/public pages rely on. Every rule below still
+   just consumes var(--space-*)/var(--font-size-*)/var(--radius-*), so this
+   redefinition alone scales nearly all of those pages' existing styling. */
+.client-scale {
+  --font-size-xs: 0.9rem;
+  --font-size-sm: 1.05rem;
+  --font-size-base: 1.2rem;
+  --font-size-lg: 1.35rem;
+  --font-size-xl: 1.65rem;
+  --font-size-2xl: 2.1rem;
+  --font-size-3xl: 2.7rem;
+  --font-size-4xl: 3.6rem;
+
+  --space-xs: 0.3rem;
+  --space-sm: 0.6rem;
+  --space-md: 1.2rem;
+  --space-lg: 1.8rem;
+  --space-xl: 3rem;
+  --space-2xl: 4.8rem;
+
+  --radius-sm: 7px;
+  --radius-md: 12px;
+  --radius-lg: 19px;
+  --radius-xl: 23px;
+
+  font-size: var(--font-size-base);
+}
+
+.client-scale .container {
+  max-width: 1416px;
+}
+
 .btn {
   display: inline-flex;
   align-items: center;

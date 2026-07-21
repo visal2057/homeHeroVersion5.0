@@ -1,29 +1,28 @@
 import { useEffect, useState, useCallback } from 'react';
 import { bookingApi } from '../bookingApi.js';
+import { extractErrorMessage } from '../../../api/apiErrorHandler.js';
 import BookingTabs from '../components/BookingTabs.jsx';
 import RequestsTable from '../components/RequestsTable.jsx';
 import JobsToDoTable from '../components/JobsToDoTable.jsx';
 import CompletedJobsTable from '../components/CompletedJobsTable.jsx';
-import { IconClipboardList } from '../../../components/common/icons.jsx';
-
-const MOCK_BOOKINGS = [
-  { id: '1', bookingId: '1', providerName: 'Nimal Perera', providerToken: 'NPR4X2', category: 'Gardening', scheduledAt: '2026-07-10T09:00:00.000Z', status: 'ACCEPTED' },
-  { id: '2', bookingId: '2', providerName: 'Kamal Silva', providerToken: 'KSL7Y9', category: 'Cleaning', scheduledAt: '2026-07-15T10:00:00.000Z', status: 'PENDING' },
-  { id: '3', bookingId: '3', providerName: 'Sitha Fernando', providerToken: 'SFN2M1', category: 'Pet Care', completedAt: '2026-06-20T14:00:00.000Z', paymentMethod: 'CARD', status: 'COMPLETED' },
-];
+import EmptyState from '../../../components/common/EmptyState.jsx';
+import { IconClipboardList, IconAlertCircle } from '../../../components/common/icons.jsx';
 
 export default function MyBookingsPage() {
   const [activeTab, setActiveTab] = useState('requests');
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const fetchBookings = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
       const res = await bookingApi.getMyBookings();
       setBookings(res.data?.data ?? res.data ?? []);
-    } catch {
-      setBookings(MOCK_BOOKINGS);
+    } catch (err) {
+      setBookings([]);
+      setError(extractErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -33,7 +32,7 @@ export default function MyBookingsPage() {
     fetchBookings();
   }, [fetchBookings]);
 
-  const requests = bookings.filter((b) => ['PENDING', 'ACCEPTED', 'REJECTED', 'CANCELLED'].includes(b.status));
+  const requests = bookings.filter((b) => ['PENDING', 'REJECTED', 'CANCELLED'].includes(b.status));
   const jobs = bookings.filter((b) => b.status === 'ACCEPTED');
   const completed = bookings.filter((b) => b.status === 'COMPLETED');
 
@@ -45,7 +44,7 @@ export default function MyBookingsPage() {
         <div className="container" style={{ position: 'relative', zIndex: 1 }}>
           <div className="mb-hero-inner">
             <div className="mb-hero-icon">
-              <IconClipboardList size={32} style={{ color: 'white' }} />
+              <IconClipboardList size={38} style={{ color: 'white' }} />
             </div>
             <div>
               <div className="hh-eyebrow" style={{ color: 'rgba(255,255,255,0.75)', marginBottom: 6 }}>Your Account</div>
@@ -83,10 +82,21 @@ export default function MyBookingsPage() {
             <div className="mb-spinner" />
             <p>Loading your bookings...</p>
           </div>
+        ) : error ? (
+          <div className="mb-table-wrap">
+            <EmptyState
+              icon={IconAlertCircle}
+              tone="error"
+              title="Couldn't load your bookings"
+              message={error}
+              actionLabel="Try Again"
+              onAction={fetchBookings}
+            />
+          </div>
         ) : (
           <div className="mb-table-wrap">
             {activeTab === 'requests' && <RequestsTable bookings={requests} onRefresh={fetchBookings} />}
-            {activeTab === 'jobs' && <JobsToDoTable bookings={jobs} />}
+            {activeTab === 'jobs' && <JobsToDoTable bookings={jobs} onRefresh={fetchBookings} />}
             {activeTab === 'completed' && <CompletedJobsTable bookings={completed} onRefresh={fetchBookings} />}
           </div>
         )}
@@ -96,7 +106,7 @@ export default function MyBookingsPage() {
         .mb-page { padding-bottom: var(--space-2xl); }
         .mb-hero {
           position: relative; background-image: url('https://images.unsplash.com/photo-1506784365847-bbad939e9335?auto=format&fit=crop&w=2000&q=80');
-          background-size: cover; background-position: center; padding: 64px 0;
+          background-size: cover; background-position: center; padding: 77px 0;
         }
         .mb-hero-overlay {
           position: absolute; inset: 0;
@@ -104,7 +114,7 @@ export default function MyBookingsPage() {
         }
         .mb-hero-inner { display: flex; align-items: center; gap: var(--space-xl); }
         .mb-hero-icon {
-          width: 64px; height: 64px; border-radius: var(--radius-lg);
+          width: 77px; height: 77px; border-radius: var(--radius-lg);
           background: rgba(255,255,255,0.15); backdrop-filter: blur(8px);
           display: flex; align-items: center; justify-content: center; flex-shrink: 0;
           border: 1px solid rgba(255,255,255,0.25);
@@ -114,7 +124,7 @@ export default function MyBookingsPage() {
         .mb-body { padding-top: var(--space-2xl); }
         .mb-summary { display: flex; gap: var(--space-md); margin-bottom: var(--space-xl); flex-wrap: wrap; }
         .mb-chip {
-          display: flex; align-items: center; gap: 10px; padding: 12px 20px;
+          display: flex; align-items: center; gap: 12px; padding: 14px 24px;
           border-radius: var(--radius-md); background: white;
           border: 1px solid var(--color-neutral-200);
           font-size: var(--font-size-sm); font-weight: 600; color: var(--color-neutral-700);
@@ -124,7 +134,7 @@ export default function MyBookingsPage() {
         .mb-chip-upcoming .mb-chip-num { color: var(--color-primary-600); }
         .mb-chip-done .mb-chip-num { color: var(--color-secondary-700); }
         .mb-table-wrap { background: white; border-radius: var(--radius-lg); border: 1px solid var(--color-neutral-200); overflow: hidden; }
-        .mb-spinner { width: 40px; height: 40px; border: 3px solid var(--color-neutral-200); border-top-color: var(--color-primary-500); border-radius: 50%; animation: spin 0.7s linear infinite; margin: 0 auto var(--space-md); }
+        .mb-spinner { width: 48px; height: 48px; border: 3px solid var(--color-neutral-200); border-top-color: var(--color-primary-500); border-radius: 50%; animation: spin 0.7s linear infinite; margin: 0 auto var(--space-md); }
         @keyframes spin { to { transform: rotate(360deg); } }
       `}</style>
     </div>

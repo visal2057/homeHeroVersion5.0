@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { IconCheckCircle, IconAlertCircle } from '../../../components/common/icons.jsx';
+import { IconCheckCircle } from '../../../components/common/icons.jsx';
+import AlertMessage from '../../../components/common/AlertMessage.jsx';
 
 export default function ProviderComplaintForm({ onSubmit, submitting, error, success }) {
   const [form, setForm] = useState({ token: '', description: '' });
@@ -16,7 +17,7 @@ export default function ProviderComplaintForm({ onSubmit, submitting, error, suc
 
   if (success) {
     return (
-      <div className="provider-alert success" style={{ padding: 'var(--space-xl)', borderRadius: 'var(--radius-lg)', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+      <div className="alert alert-success" style={{ padding: 'var(--space-xl)', borderRadius: 'var(--radius-lg)', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
         <div style={{ marginBottom: 'var(--space-sm)' }}><IconCheckCircle size={32} /></div>
         <p style={{ margin: 0, fontWeight: 600 }}>Complaint submitted successfully.</p>
         <p style={{ margin: 0, fontSize: 'var(--font-size-sm)' }}>Our team will review it and get back to you.</p>
@@ -26,11 +27,7 @@ export default function ProviderComplaintForm({ onSubmit, submitting, error, suc
 
   return (
     <form onSubmit={handleSubmit} className="provider-complaint-wrap">
-      {error && (
-        <div className="provider-alert error">
-          <IconAlertCircle size={16} /> {error}
-        </div>
-      )}
+      {error && <AlertMessage type="error" message={error} />}
 
       <div className="provider-form-grid">
         <div className="provider-form-group full">

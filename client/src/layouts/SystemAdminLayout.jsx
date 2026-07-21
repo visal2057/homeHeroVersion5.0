@@ -5,6 +5,7 @@ import { ROUTES } from '../constants/routes.js';
 const NAV_ITEMS = [
   { to: ROUTES.SYSTEM_ADMIN_DASHBOARD, label: 'Dashboard', end: true },
   { to: ROUTES.SYSTEM_ADMIN_BOOKINGS, label: 'Bookings Management' },
+  { to: ROUTES.SYSTEM_ADMIN_SP_TRACKING, label: 'SP Tracking' },
   { to: ROUTES.SYSTEM_ADMIN_USERS, label: 'User Management' },
   { to: ROUTES.SYSTEM_ADMIN_CONTENT, label: 'Content Management' },
   { to: ROUTES.SYSTEM_ADMIN_ANNOUNCEMENTS, label: 'Announcements' },

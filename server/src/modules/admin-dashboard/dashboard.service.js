@@ -4,7 +4,7 @@ import {
   verifiedProvidersCount,
   newClientsThisMonth,
   lastSixMonthsRevenue,
-  categoryBookingDistribution,
+  bookingStatusDistribution,
 } from './dashboard.queries.js';
 import { getRecentActions } from '../audit/audit.service.js';
 
@@ -24,14 +24,14 @@ function buildTrailingSixMonths() {
 }
 
 export async function getDashboardOverview() {
-  const [earningsRes, bookingsRes, providersRes, clientsRes, revenueRes, categoryRes, recentActions] =
+  const [earningsRes, bookingsRes, providersRes, clientsRes, revenueRes, statusRes, recentActions] =
     await Promise.all([
       currentMonthEarnings(),
       activeBookingsCount(),
       verifiedProvidersCount(),
       newClientsThisMonth(),
       lastSixMonthsRevenue(),
-      categoryBookingDistribution(),
+      bookingStatusDistribution(),
       getRecentActions(10),
     ]);
 
@@ -51,13 +51,23 @@ export async function getDashboardOverview() {
     };
   });
 
-  const totalCategoryBookings = categoryRes.rows.reduce((sum, row) => sum + Number(row.booking_count), 0);
-  const categoryDistribution = categoryRes.rows.map((row) => ({
-    categoryId: row.service_category_id,
-    categoryName: row.category_name,
-    count: Number(row.booking_count),
-    percentage: totalCategoryBookings > 0 ? Math.round((Number(row.booking_count) / totalCategoryBookings) * 1000) / 10 : 0,
-  }));
+  const activeCount = Number(statusRes.rows[0].active_count);
+  const completedCount = Number(statusRes.rows[0].completed_count);
+  const totalStatusBookings = activeCount + completedCount;
+  const statusDistribution = [
+    {
+      statusKey: 'active',
+      label: 'Active / Accepted',
+      count: activeCount,
+      percentage: totalStatusBookings > 0 ? Math.round((activeCount / totalStatusBookings) * 1000) / 10 : 0,
+    },
+    {
+      statusKey: 'completed',
+      label: 'Completed',
+      count: completedCount,
+      percentage: totalStatusBookings > 0 ? Math.round((completedCount / totalStatusBookings) * 1000) / 10 : 0,
+    },
+  ];
 
   return {
     metrics: {
@@ -69,7 +79,7 @@ export async function getDashboardOverview() {
       newClientsThisMonth: Number(clientsRes.rows[0].count),
     },
     revenueChart,
-    categoryDistribution,
+    statusDistribution,
     recentActions,
   };
 }

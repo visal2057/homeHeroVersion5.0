@@ -849,6 +849,36 @@ ALTER TABLE public.email_logs ALTER COLUMN email_log_id ADD GENERATED ALWAYS AS 
 
 
 --
+-- Name: invoices; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.invoices (
+    invoice_id bigint NOT NULL,
+    booking_id bigint NOT NULL,
+    provider_user_id bigint NOT NULL,
+    payment_method public.payment_method NOT NULL,
+    amount numeric(12,2) NOT NULL,
+    storage_path text NOT NULL,
+    generated_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT invoices_amount_check CHECK ((amount > (0)::numeric))
+);
+
+
+--
+-- Name: invoices_invoice_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.invoices ALTER COLUMN invoice_id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME public.invoices_invoice_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
 -- Name: membership_payments; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1797,6 +1827,22 @@ ALTER TABLE ONLY public.email_logs
 
 
 --
+-- Name: invoices invoices_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.invoices
+    ADD CONSTRAINT invoices_pkey PRIMARY KEY (invoice_id);
+
+
+--
+-- Name: invoices invoices_booking_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.invoices
+    ADD CONSTRAINT invoices_booking_id_key UNIQUE (booking_id);
+
+
+--
 -- Name: membership_payments membership_payments_gateway_reference_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2261,6 +2307,13 @@ CREATE INDEX ix_cm_target_user_id ON public.complaints USING btree (target_user_
 --
 
 CREATE INDEX ix_el_recipient_user_id ON public.email_logs USING btree (recipient_user_id);
+
+
+--
+-- Name: ix_inv_provider_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_inv_provider_user_id ON public.invoices USING btree (provider_user_id);
 
 
 --
@@ -2792,6 +2845,22 @@ ALTER TABLE ONLY public.complaints
 
 ALTER TABLE ONLY public.email_logs
     ADD CONSTRAINT email_logs_recipient_user_id_fkey FOREIGN KEY (recipient_user_id) REFERENCES public.users(user_id);
+
+
+--
+-- Name: invoices invoices_booking_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.invoices
+    ADD CONSTRAINT invoices_booking_id_fkey FOREIGN KEY (booking_id) REFERENCES public.bookings(booking_id);
+
+
+--
+-- Name: invoices invoices_provider_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.invoices
+    ADD CONSTRAINT invoices_provider_user_id_fkey FOREIGN KEY (provider_user_id) REFERENCES public.service_provider_profiles(provider_user_id);
 
 
 --

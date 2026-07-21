@@ -31,3 +31,16 @@
 .data-table tbody tr:last-child td {
   border-bottom: none;
 }
+
+.sp-tracking-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.5rem 0.25rem;
+  background-color: var(--color-neutral-50);
+}
+
+.sp-tracking-detail p {
+  margin: 0;
+  font-size: var(--font-size-sm);
+}

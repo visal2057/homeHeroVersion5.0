@@ -14,6 +14,7 @@ import {
   updateProfileImageHandler,
   updateLocationHandler,
   changePasswordHandler,
+  getReviewEligibilityHandler,
 } from './client.controller.js';
 import {
   submitClientComplaintHandler,
@@ -35,5 +36,7 @@ router.get('/complaints', listClientComplaintsHandler);
 router.post('/complaints', submitClientComplaintHandler);
 
 router.get('/announcements', listActiveAnnouncementsHandler);
+
+router.get('/providers/:providerId/review-eligibility', getReviewEligibilityHandler);
 
 export default router;

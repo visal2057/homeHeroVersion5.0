@@ -4,12 +4,32 @@ import { ROUTES } from '../../../constants/routes.js';
 import { getAssetUrl } from '../../../utils/storageUtils.js';
 import { IconMapPin, IconStar } from '../../../components/common/icons.jsx';
 
+function ProviderWorkPreview({ preview }) {
+  if (!preview?.images?.length) return null;
+  return (
+    <div className="pc-preview animate-fade-in-up">
+      {preview.title && <div className="pc-preview-title">{preview.title}</div>}
+      {preview.description && <p className="pc-preview-desc">{preview.description}</p>}
+      <div className="pc-preview-grid">
+        {preview.images.slice(0, 3).map((img, i) => (
+          <img key={i} src={getAssetUrl(img)} alt={preview.title ? `${preview.title} ${i + 1}` : ''} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 const DISTRICTS = {
   colombo: 'Colombo', gampaha: 'Gampaha', kandy: 'Kandy', galle: 'Galle',
   matara: 'Matara', kurunegala: 'Kurunegala', ratnapura: 'Ratnapura',
   badulla: 'Badulla', anuradhapura: 'Anuradhapura', trincomalee: 'Trincomalee',
   jaffna: 'Jaffna', kalutara: 'Kalutara', kegalle: 'Kegalle',
 };
+
+function formatShortDate(dateStr) {
+  if (!dateStr) return '';
+  return new Date(dateStr).toLocaleDateString('en-LK', { month: 'short', day: 'numeric' });
+}
 
 function StarRating({ rating }) {
   const filled = Math.round(rating ?? 0);
@@ -52,26 +72,31 @@ export default function ProviderCard({ provider }) {
             <StarRating rating={provider.averageRating ?? provider.rating} />
           </div>
           {provider.bio && <p className="pc-bio">{provider.bio}</p>}
+          {provider.unavailableFrom && provider.unavailableTo && (
+            <div className="pc-unavailable">
+              Unavailable {formatShortDate(provider.unavailableFrom)} – {formatShortDate(provider.unavailableTo)}
+            </div>
+          )}
           <div className="pc-footer">
             {provider.hourlyRate && (
               <span className="pc-rate">Rs. {provider.hourlyRate}/hr</span>
             )}
-            <Link to={profileHref} className="btn btn-primary" style={{ padding: '6px 14px', fontSize: 'var(--font-size-sm)' }}>
+            <Link to={profileHref} className="btn btn-primary" style={{ padding: '7px 17px', fontSize: 'var(--font-size-sm)' }}>
               View Profile
             </Link>
           </div>
         </div>
       </div>
 
-      {hovered && provider.workPreview?.length > 0 && (
-        <div className="pc-preview animate-fade-in-up">
-          <div style={{ fontWeight: 600, fontSize: 'var(--font-size-sm)', color: 'var(--color-secondary-700)', marginBottom: 8 }}>Recent Work</div>
-          <div className="pc-preview-grid">
-            {provider.workPreview.slice(0, 3).map((img, i) => (
-              <img key={i} src={img} alt="" />
-            ))}
-          </div>
-        </div>
+      {hovered && provider.workPreview?.images?.length > 0 && (
+        <>
+          {/* Blurs everything else on the page while this card's own preview
+              stays sharp on top of it (spec: "the page background becomes
+              blurred" on hover) -- position: fixed means DOM nesting here
+              doesn't matter, so no lifting hover state up to the page. */}
+          <div className="pc-hover-blur" aria-hidden="true" />
+          <ProviderWorkPreview preview={provider.workPreview} />
+        </>
       )}
 
       <style>{`
@@ -79,36 +104,52 @@ export default function ProviderCard({ provider }) {
           background: white; border-radius: var(--radius-lg);
           border: 1px solid var(--color-neutral-200); padding: var(--space-lg);
           transition: transform 0.2s ease, box-shadow 0.2s ease; position: relative;
+          z-index: 1;
         }
-        .provider-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+        .provider-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); z-index: 25; }
+        .pc-hover-blur {
+          position: fixed; inset: 0; z-index: 15;
+          background: rgba(15, 23, 42, 0.08);
+          backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+        }
         .pc-inner { display: flex; gap: var(--space-md); }
         .pc-avatar {
-          position: relative; width: 72px; height: 72px; border-radius: 50%;
+          position: relative; width: 86px; height: 86px; border-radius: 50%;
           overflow: hidden; flex-shrink: 0; background: var(--color-primary-100);
           display: flex; align-items: center; justify-content: center;
-          font-size: 1.75rem; font-weight: 700; color: var(--color-primary-700);
+          font-size: 2.1rem; font-weight: 700; color: var(--color-primary-700);
           border: 3px solid var(--color-primary-200);
         }
         .pc-avatar img { width: 100%; height: 100%; object-fit: cover; }
         .pc-verified {
-          position: absolute; bottom: 2px; right: 2px; width: 18px; height: 18px;
+          position: absolute; bottom: 2px; right: 2px; width: 22px; height: 22px;
           background: var(--color-primary-600); color: white; border-radius: 50%;
           display: flex; align-items: center; justify-content: center;
-          font-size: 10px; border: 2px solid white;
+          font-size: 12px; border: 2px solid white;
         }
         .pc-body { flex: 1; min-width: 0; }
         .pc-name { font-size: var(--font-size-lg); font-weight: 700; color: var(--color-secondary-700); margin-bottom: 4px; }
         .pc-meta { display: flex; gap: var(--space-md); flex-wrap: wrap; margin-bottom: 6px; font-size: var(--font-size-sm); color: var(--color-neutral-500); align-items: center; }
         .pc-bio { font-size: var(--font-size-sm); color: var(--color-neutral-600); margin: 0 0 8px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .pc-unavailable {
+          display: inline-block; font-size: var(--font-size-xs); font-weight: 600;
+          color: #b45309; background: #fef3c7; border-radius: var(--radius-sm);
+          padding: 3px 8px; margin-bottom: 8px;
+        }
         .pc-footer { display: flex; align-items: center; justify-content: space-between; }
         .pc-rate { font-weight: 700; color: var(--color-primary-700); font-size: var(--font-size-sm); }
         .pc-preview {
           position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
           background: white; border-radius: var(--radius-md); box-shadow: var(--shadow-lg);
           border: 1px solid var(--color-neutral-200); padding: var(--space-md);
-          z-index: 20; width: 240px; margin-top: 8px;
+          z-index: 20; width: 288px; margin-top: 8px;
         }
-        .pc-preview-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+        .pc-preview-title { font-weight: 600; font-size: var(--font-size-sm); color: var(--color-secondary-700); margin-bottom: 4px; }
+        .pc-preview-desc {
+          font-size: var(--font-size-xs); color: var(--color-neutral-500); margin: 0 0 8px;
+          display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+        }
+        .pc-preview-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }
         .pc-preview-grid img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: var(--radius-sm); }
       `}</style>
     </div>

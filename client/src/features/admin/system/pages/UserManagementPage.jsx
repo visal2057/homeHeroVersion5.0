@@ -13,6 +13,7 @@ export default function UserManagementPage() {
   const [banRequests, setBanRequests] = useState([]);
   const [role, setRole] = useState('');
   const [search, setSearch] = useState('');
+  const [bookingId, setBookingId] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [banTarget, setBanTarget] = useState(null);
   const [unbanTarget, setUnbanTarget] = useState(null);
@@ -22,7 +23,7 @@ export default function UserManagementPage() {
   const loadUsers = useCallback(() => {
     setIsLoading(true);
     return Promise.all([
-      fetchUsers({ role: role || undefined, search: search || undefined }),
+      fetchUsers({ role: role || undefined, search: search || undefined, bookingId: bookingId || undefined }),
       fetchBanRequests(),
     ])
       .then(([usersRes, banRes]) => {
@@ -31,7 +32,7 @@ export default function UserManagementPage() {
       })
       .catch((error) => showError(extractErrorMessage(error)))
       .finally(() => setIsLoading(false));
-  }, [role, search, showError]);
+  }, [role, search, bookingId, showError]);
 
   useEffect(() => {
     const timeout = setTimeout(loadUsers, 250);
@@ -100,6 +101,13 @@ export default function UserManagementPage() {
           <option value="CLIENT">Clients</option>
           <option value="SERVICE_PROVIDER">Service Providers</option>
         </select>
+        <input
+          className="form-control"
+          type="number"
+          placeholder="Search by Booking ID"
+          value={bookingId}
+          onChange={(event) => setBookingId(event.target.value)}
+        />
       </div>
 
       {isLoading ? (
@@ -116,6 +124,7 @@ export default function UserManagementPage() {
         onSubmit={handleApplyBan}
         targetName={banTarget?.fullName ?? banTarget?.requestedUserName}
         isSubmitting={isSubmitting}
+        recommendation={banTarget}
       />
 
       <ConfirmModal

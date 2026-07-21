@@ -131,12 +131,26 @@ export function expireCurrentMemberships() {
 export function forceOfflineAfterGrace() {
   return query(
     `UPDATE service_provider_profiles spp
-     SET manual_online = false, updated_at = now()
+     SET manual_online = false, forced_offline = true, updated_at = now()
      FROM vw_current_provider_membership cur
      WHERE spp.provider_user_id = cur.provider_user_id
        AND cur.membership_status = 'EXPIRED'
        AND cur.grace_ends_at < now()
        AND spp.manual_online = true
      RETURNING spp.provider_user_id`,
+  );
+}
+
+// Called when a membership payment succeeds. Only restores the online toggle
+// for providers the system itself forced offline (forced_offline = true) --
+// a provider who was already offline by their own choice before their
+// membership lapsed is left exactly as they were.
+export function restoreOnlineIfForcedOffline(client, providerUserId) {
+  return client.query(
+    `UPDATE service_provider_profiles
+     SET manual_online = true, forced_offline = false, updated_at = now()
+     WHERE provider_user_id = $1 AND forced_offline = true
+     RETURNING provider_user_id`,
+    [providerUserId],
   );
 }

@@ -2,7 +2,7 @@ import { AppError } from '../../utils/AppError.js';
 import { sendBanEmail } from '../emails/email.service.js';
 import { logAction } from '../audit/audit.service.js';
 import { findUserDetailById } from '../users/user.queries.js';
-import { listPendingBanRequests, applyBan, revokeBan } from './ban.queries.js';
+import { listPendingBanRequests, applyBan, revokeBan, expireDueTemporaryBans } from './ban.queries.js';
 
 export async function getPendingBanRequests() {
   const { rows } = await listPendingBanRequests();
@@ -19,6 +19,7 @@ export async function getPendingBanRequests() {
     requestedUserToken: row.requested_user_token,
     requestedUserRole: row.requested_user_role,
     requestedByName: row.requested_by_name,
+    verdictText: row.verdict_text ?? null,
   }));
 }
 
@@ -62,4 +63,24 @@ export async function unbanUser(userBanId, revokedByUserId) {
   });
 
   return rows[0];
+}
+
+// Called on a schedule (see jobs/temporaryBanExpiry.job.js) rather than
+// on-demand, since access checks (findActiveBan/findSessionValidity) only
+// look at ban_status = 'ACTIVE' with no date comparison of their own -- a
+// temporary ban would otherwise never actually expire on its own.
+export async function runTemporaryBanExpiryCheck() {
+  const { rows } = await expireDueTemporaryBans();
+
+  for (const row of rows) {
+    await logAction({
+      actorUserId: null,
+      actionCode: 'USER_BAN_EXPIRED',
+      entityType: 'user',
+      entityId: row.user_id,
+      description: 'A temporary ban expired and the account automatically returned to Active status',
+    });
+  }
+
+  return { expiredCount: rows.length };
 }

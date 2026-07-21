@@ -7,37 +7,34 @@ const HOVER_STROKE = 33;
 const CENTER = SIZE / 2;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
-// Five fixed colors for the five HomeHero service categories, matched by
-// name so the legend stays consistent regardless of category order from
-// the database. Falls back to grey for any unexpected category.
-const CATEGORY_COLORS = {
-  gardening: '#059669',
-  cleaning: '#14b8a6',
-  'pet care': '#6366f1',
-  plumbing: '#3b82f6',
-  'ac repair': '#f59e0b',
+// Two fixed colors for the Active/Accepted vs Completed booking-status
+// split, matched by statusKey so the legend stays consistent regardless of
+// ordering from the API. Falls back to grey for any unexpected status.
+const STATUS_COLORS = {
+  active: '#3b82f6',
+  completed: '#059669',
 };
 
-function colorFor(categoryName) {
-  return CATEGORY_COLORS[String(categoryName).toLowerCase()] ?? '#94a3b8';
+function colorFor(statusKey) {
+  return STATUS_COLORS[String(statusKey).toLowerCase()] ?? '#94a3b8';
 }
 
-export default function BookingPieChart({ categories }) {
+export default function BookingPieChart({ statuses }) {
   const [hoveredIndex, setHoveredIndex] = useState(null);
-  const total = (categories ?? []).reduce((sum, c) => sum + c.count, 0);
+  const total = (statuses ?? []).reduce((sum, s) => sum + s.count, 0);
 
-  if (!categories || total === 0) {
+  if (!statuses || total === 0) {
     return <p className="empty-state">No bookings recorded yet.</p>;
   }
 
   let offsetSoFar = 0;
-  const segments = categories.map((category) => {
-    const length = (category.count / total) * CIRCUMFERENCE;
+  const segments = statuses.map((status) => {
+    const length = (status.count / total) * CIRCUMFERENCE;
     const segment = {
-      label: category.categoryName,
-      value: category.count,
-      percentage: category.percentage,
-      color: colorFor(category.categoryName),
+      label: status.label,
+      value: status.count,
+      percentage: status.percentage,
+      color: colorFor(status.statusKey),
       length,
       offset: offsetSoFar,
     };
@@ -47,7 +44,7 @@ export default function BookingPieChart({ categories }) {
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--space-xl)', flexWrap: 'wrap', width: '100%' }}>
-      <svg viewBox={`0 0 ${SIZE} ${SIZE}`} width="170" height="170" role="img" aria-label="Booking distribution by service category">
+      <svg viewBox={`0 0 ${SIZE} ${SIZE}`} width="170" height="170" role="img" aria-label="Booking distribution by status">
         <circle cx={CENTER} cy={CENTER} r={RADIUS} fill="none" stroke="var(--color-neutral-100)" strokeWidth={BASE_STROKE} />
         {segments.map((segment, index) => (
           <circle

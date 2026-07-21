@@ -7,6 +7,7 @@ import SystemAdminLayout       from '../layouts/SystemAdminLayout.jsx';
 import VerificationAdminLayout from '../layouts/VerificationAdminLayout.jsx';
 import GuestRoute      from '../components/routing/GuestRoute.jsx';
 import ProtectedRoute  from '../components/routing/ProtectedRoute.jsx';
+import PublicRoute     from '../components/routing/PublicRoute.jsx';
 import { ROUTES }      from '../constants/routes.js';
 import { ROLES }       from '../constants/roles.js';
 
@@ -33,9 +34,11 @@ import ProviderCompletedJobsPage from '../features/provider/pages/ProviderComple
 import ProviderSubscriptionsPage from '../features/provider/pages/ProviderSubscriptionsPage.jsx';
 import ProviderProfilePage       from '../features/provider/pages/ProviderProfilePage.jsx';
 import ProviderComplaintsPage    from '../features/provider/pages/ProviderComplaintsPage.jsx';
+import CreateInvoicePage         from '../features/provider/pages/CreateInvoicePage.jsx';
 
 import SystemAdminDashboardPage from '../features/admin/system/pages/SystemAdminDashboardPage.jsx';
 import BookingManagementPage from '../features/admin/system/pages/BookingManagementPage.jsx';
+import SPTrackingPage from '../features/admin/system/pages/SPTrackingPage.jsx';
 import UserManagementPage from '../features/admin/system/pages/UserManagementPage.jsx';
 import ContentManagementPage from '../features/admin/system/pages/ContentManagementPage.jsx';
 import AnnouncementsPage from '../features/admin/system/pages/AnnouncementsPage.jsx';
@@ -65,10 +68,12 @@ export default function AppRouter() {
     <Routes>
       {/* ── Public layout ─────────────────────────────────────────────────── */}
       <Route element={<PublicLayout />}>
-        <Route path={ROUTES.HOME}                  element={<LandingPage />} />
-        <Route path={ROUTES.ABOUT}                 element={<AboutUsPage />} />
-        <Route path={ROUTES.CAREERS}               element={<CareersPage />} />
-        <Route path={ROUTES.CONTACT}               element={<ContactUsPage />} />
+        <Route element={<PublicRoute />}>
+          <Route path={ROUTES.HOME}    element={<LandingPage />} />
+          <Route path={ROUTES.ABOUT}   element={<AboutUsPage />} />
+          <Route path={ROUTES.CAREERS} element={<CareersPage />} />
+          <Route path={ROUTES.CONTACT} element={<ContactUsPage />} />
+        </Route>
         <Route path={ROUTES.VERIFICATION_PENDING}  element={<VerificationPendingPage />} />
         <Route path={ROUTES.APPLICATION_REJECTED}  element={<ApplicationRejectedPage />} />
 
@@ -97,6 +102,7 @@ export default function AppRouter() {
           <Route path={ROUTES.PROVIDER_SUBSCRIPTIONS} element={<ProviderSubscriptionsPage />} />
           <Route path={ROUTES.PROVIDER_PROFILE}       element={<ProviderProfilePage />} />
           <Route path={ROUTES.PROVIDER_COMPLAINTS}    element={<ProviderComplaintsPage />} />
+          <Route path={ROUTES.PROVIDER_INVOICE}       element={<CreateInvoicePage />} />
         </Route>
       </Route>
 
@@ -105,8 +111,6 @@ export default function AppRouter() {
         <Route element={<ClientLayout />}>
           <Route path="/client" element={<Navigate to={ROUTES.HOME} replace />} />
           <Route path={ROUTES.CLIENT_HOME}             element={<Navigate to={ROUTES.HOME} replace />} />
-          <Route path={ROUTES.CLIENT_EXPLORE}          element={<ExploreServicePage />} />
-          <Route path={ROUTES.CLIENT_PROVIDER_PROFILE} element={<ProviderPublicProfilePage />} />
           <Route path={ROUTES.CLIENT_BOOKING_CONFIRM}  element={<BookingConfirmationPage />} />
           <Route path={ROUTES.CLIENT_BOOKING_SENT}     element={<BookingRequestSentPage />} />
           <Route path={ROUTES.CLIENT_MY_BOOKINGS}      element={<MyBookingsPage />} />
@@ -119,6 +123,21 @@ export default function AppRouter() {
         </Route>
       </Route>
 
+      {/* Explore + provider-profile viewing: Clients as always, plus a
+          Service Provider whose verification is still PENDING may browse
+          (but not book - the booking CTAs are hidden for that viewer role)
+          up to a specific provider's profile while their application is
+          under review, plus a logged-out visitor may browse both pages too
+          (but not book - the "Book Now" CTAs route a guest to client signup
+          instead). Kept as its own group, same layout/guard shape as above,
+          so the rest of the Client area stays exactly as strict as it was. */}
+      <Route element={<ProtectedRoute roles={[ROLES.CLIENT]} allowPendingProvider allowGuest />}>
+        <Route element={<ClientLayout />}>
+          <Route path={ROUTES.CLIENT_EXPLORE}          element={<ExploreServicePage />} />
+          <Route path={ROUTES.CLIENT_PROVIDER_PROFILE} element={<ProviderPublicProfilePage />} />
+        </Route>
+      </Route>
+
       {/* ── System Admin layout ─────────────────────────────────────────── */}
       <Route element={<ProtectedRoute roles={[ROLES.SYSTEM_ADMIN]} />}>
         <Route element={<SystemAdminLayout />}>
@@ -126,6 +145,7 @@ export default function AppRouter() {
 
           <Route path={ROUTES.SYSTEM_ADMIN_DASHBOARD}     element={<SystemAdminDashboardPage />} />
           <Route path={ROUTES.SYSTEM_ADMIN_BOOKINGS}       element={<BookingManagementPage />} />
+          <Route path={ROUTES.SYSTEM_ADMIN_SP_TRACKING}    element={<SPTrackingPage />} />
           <Route path={ROUTES.SYSTEM_ADMIN_USERS}          element={<UserManagementPage />} />
           <Route path={ROUTES.SYSTEM_ADMIN_CONTENT}        element={<ContentManagementPage />} />
           <Route path={ROUTES.SYSTEM_ADMIN_ANNOUNCEMENTS}  element={<AnnouncementsPage />} />

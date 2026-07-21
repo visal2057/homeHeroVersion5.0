@@ -6,6 +6,7 @@ import { AppError } from '../../utils/AppError.js';
 import { hashPassword, verifyPassword } from '../../utils/passwordUtils.js';
 import { generateUserToken } from '../../utils/tokenGenerator.js';
 import { sendWelcomeEmail, sendPasswordResetEmail } from '../emails/email.service.js';
+import { logAction } from '../audit/audit.service.js';
 import {
   findUserByUsernameOrEmail,
   findUserByEmail,
@@ -43,6 +44,8 @@ function toPublicUser(user) {
     userToken: user.user_token,
     accountStatus: user.account_status,
     profileImageUrl: user.profile_image_url,
+    // Only meaningful for Service Providers; null for every other role.
+    verificationStatus: user.verification_status ?? null,
   };
 }
 
@@ -53,6 +56,7 @@ function signSession(user) {
       username: user.username,
       role: user.role_code,
       accountStatus: user.account_status,
+      verificationStatus: user.verification_status ?? null,
     },
     env.authSecret,
     { expiresIn: `${env.sessionExpiryDays}d` },
@@ -104,6 +108,14 @@ export async function registerClient(input) {
     await client.query('COMMIT');
 
     await sendWelcomeEmail(user);
+
+    await logAction({
+      actorUserId: user.user_id,
+      actionCode: 'CLIENT_REGISTERED',
+      entityType: 'user',
+      entityId: user.user_id,
+      description: `${user.full_name} registered as a new Client`,
+    });
 
     return toPublicUser({ ...user, role_code: 'CLIENT' });
   } catch (err) {

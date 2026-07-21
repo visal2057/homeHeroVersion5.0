@@ -1,6 +1,7 @@
 import path from 'path';
 import { pool } from '../../db/pool.js';
 import { AppError } from '../../utils/AppError.js';
+import { logAction } from '../audit/audit.service.js';
 import {
   findClientLocation,
   findProviderBookability,
@@ -32,6 +33,7 @@ function toClientBookingShape(row) {
     paymentStatus: row.payment_status,
     requestedAt: row.requested_at,
     completedAt: row.completed_at,
+    hasInvoice: row.has_invoice ?? false,
   };
 }
 
@@ -67,7 +69,17 @@ export async function createBooking(clientUserId, input, files = []) {
     throw new AppError('This time slot was just booked, please choose another time', 409);
   }
 
-  const location = locationRows[0];
+  const profileLocation = locationRows[0];
+  const hasCustomLocation = input.locationLatitude != null && input.locationLongitude != null;
+  const location = hasCustomLocation
+    ? {
+        address_text: input.locationAddress?.trim()
+          || `${input.locationLatitude}, ${input.locationLongitude}`,
+        latitude: input.locationLatitude,
+        longitude: input.locationLongitude,
+      }
+    : profileLocation;
+
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
@@ -100,6 +112,15 @@ export async function createBooking(clientUserId, input, files = []) {
     }
 
     await client.query('COMMIT');
+
+    await logAction({
+      actorUserId: clientUserId,
+      actionCode: 'BOOKING_CREATED',
+      entityType: 'booking',
+      entityId: booking.booking_id,
+      description: `A new booking request (#${booking.booking_id}) was submitted`,
+    });
+
     return { bookingId: booking.booking_id, status: booking.booking_status };
   } catch (err) {
     await client.query('ROLLBACK');
@@ -144,10 +165,18 @@ function toProviderRowShape(row) {
     service_date: row.scheduled_at,
     completed_at: row.completed_at,
     location:
-      row.latitude_snapshot != null ? `${row.latitude_snapshot},${row.longitude_snapshot}` : null,
+      row.address_snapshot != null || row.latitude_snapshot != null
+        ? {
+            addressText: row.address_snapshot,
+            latitude: row.latitude_snapshot != null ? Number(row.latitude_snapshot) : null,
+            longitude: row.longitude_snapshot != null ? Number(row.longitude_snapshot) : null,
+          }
+        : null,
     status: row.booking_status.toLowerCase(),
     rating: row.rating,
     review_text: row.review_text,
+    payment_method: row.payment_method,
+    has_invoice: row.has_invoice,
   };
 }
 
@@ -197,6 +226,15 @@ async function assertOwnedPendingBooking(bookingId, providerUserId) {
 export async function acceptBooking(bookingId, providerUserId) {
   await assertOwnedPendingBooking(bookingId, providerUserId);
   const { rows } = await updateBookingStatus(bookingId, 'ACCEPTED', 'accepted_at');
+
+  await logAction({
+    actorUserId: providerUserId,
+    actionCode: 'BOOKING_ACCEPTED',
+    entityType: 'booking',
+    entityId: rows[0].booking_id,
+    description: `Booking #${rows[0].booking_id} was accepted by the Service Provider`,
+  });
+
   return { bookingId: rows[0].booking_id, status: rows[0].booking_status.toLowerCase() };
 }
 

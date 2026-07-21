@@ -23,6 +23,7 @@ server/storage/public/portfolio-images/*
 server/storage/public/site-assets/*
 server/storage/private/verification-documents/*
 server/storage/private/booking-images/*
+server/storage/private/invoices/*
 server/storage/temp/*
 
 # Keep empty upload directories

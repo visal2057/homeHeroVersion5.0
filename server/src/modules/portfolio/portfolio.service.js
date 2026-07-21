@@ -9,6 +9,8 @@ import {
   listPortfolioPostsForProvider,
   findPortfolioPostForOwnershipCheck,
   updatePortfolioPostRow,
+  getPortfolioPostWithImages,
+  deletePortfolioImagesForPost,
   deactivatePortfolioPost,
 } from './portfolio.queries.js';
 
@@ -18,6 +20,7 @@ function toDto(row) {
     bookingId: row.booking_id,
     title: row.title,
     description: row.description,
+    categoryName: row.category_name ?? null,
     createdAt: row.created_at,
     images: (row.image_paths ?? []).filter(Boolean),
   };
@@ -100,12 +103,43 @@ async function assertOwnedPost(postId, providerUserId) {
   }
 }
 
-export async function updatePortfolioPost(postId, providerUserId, { title, description }) {
+export async function updatePortfolioPost(postId, providerUserId, { title, description }, files = []) {
   await assertOwnedPost(postId, providerUserId);
   if (!title?.trim() || !description?.trim()) {
     throw new AppError('Title and description are required', 422);
   }
-  const { rows } = await updatePortfolioPostRow(postId, { title: title.trim(), description: description.trim() });
+  if (files.length > 3) {
+    throw new AppError('A portfolio post can have at most 3 images', 422);
+  }
+
+  await updatePortfolioPostRow(postId, { title: title.trim(), description: description.trim() });
+
+  if (files.length > 0) {
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      await deletePortfolioImagesForPost(client, postId);
+      let displayOrder = 1;
+      for (const file of files) {
+        await insertPortfolioImage(client, postId, {
+          storagePath: `/public/portfolio-images/${path.basename(file.path)}`,
+          originalFilename: file.originalname,
+          mimeType: file.mimetype,
+          fileSizeBytes: file.size,
+          displayOrder,
+        });
+        displayOrder += 1;
+      }
+      await client.query('COMMIT');
+    } catch (err) {
+      await client.query('ROLLBACK');
+      throw err;
+    } finally {
+      client.release();
+    }
+  }
+
+  const { rows } = await getPortfolioPostWithImages(postId);
   return toDto(rows[0]);
 }
 
