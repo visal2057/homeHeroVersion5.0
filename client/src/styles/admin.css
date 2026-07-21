@@ -1152,7 +1152,9 @@
 }
 
 .ban-popover {
-  position: fixed;
+  /* absolute (not fixed): scrolls with the row that opened it, since its
+     top/left are document coordinates (see banPopoverPosition.js). */
+  position: absolute;
   z-index: 1151;
   width: 300px;
   background: var(--color-neutral-0);

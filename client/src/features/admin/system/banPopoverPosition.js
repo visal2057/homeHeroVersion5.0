@@ -3,13 +3,14 @@ const POPOVER_HEIGHT_ESTIMATE = 300; // roomy enough to cover the optional "ends
 const VIEWPORT_MARGIN = 12;
 
 /**
- * Positions the Ban popover relative to the viewport (it's portaled to
- * document.body with position: fixed, so it must anchor to the clicked
- * button's own rect rather than a page-level container -- every admin page
- * wraps its content in .animate-fade-in-up, whose final keyframe leaves a
- * `transform: translateY(0)` in place, which turns that container into the
- * containing block for any `position: fixed` descendant and is why the old
- * centered Modal appeared mid-document instead of mid-viewport).
+ * Positions the Ban popover in document coordinates (it's portaled to
+ * document.body with position: absolute, not fixed, so it scrolls together
+ * with the row that opened it instead of staying pinned to the viewport
+ * while that row scrolls out from under it). anchorRect comes from
+ * getBoundingClientRect(), which is viewport-relative, so the initial
+ * above/below and left/right placement is decided against the visible
+ * viewport, then the result is converted to document coordinates by adding
+ * the current scroll offset.
  */
 export function banPopoverPosition(anchorRect) {
   let left = anchorRect.right - POPOVER_WIDTH;
@@ -24,5 +25,5 @@ export function banPopoverPosition(anchorRect) {
     if (top < VIEWPORT_MARGIN) top = VIEWPORT_MARGIN;
   }
 
-  return { top, left };
+  return { top: top + window.scrollY, left: left + window.scrollX };
 }

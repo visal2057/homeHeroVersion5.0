@@ -45,7 +45,16 @@ export default function BanUserModal({ isOpen, onClose, onSubmit, targetName, is
 
   function handleSubmit(event) {
     event.preventDefault();
-    onSubmit({ banType, endsAt: banType === 'TEMPORARY' ? endsAt : null, reason });
+    // <input type="datetime-local"> yields a timezone-less value like
+    // "2026-07-25T10:30" (interpreted as the admin's own local wall-clock
+    // time by `new Date(...)`). The backend's applyBanSchema requires a
+    // full ISO-8601 datetime (z.string().datetime()), which that raw value
+    // is not -- sending it as-is always failed validation with "Invalid
+    // datetime". Converting to an absolute ISO instant here is both what
+    // the backend needs and the only way to preserve the wall-clock time
+    // the admin actually picked, regardless of server timezone.
+    const isoEndsAt = banType === 'TEMPORARY' && endsAt ? new Date(endsAt).toISOString() : null;
+    onSubmit({ banType, endsAt: isoEndsAt, reason });
   }
 
   return createPortal(
