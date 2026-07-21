@@ -1,5 +1,6 @@
 import { createPortal } from 'react-dom';
 import { getAssetUrl } from '../../../utils/storageUtils.js';
+import { buildGoogleMapsUrl } from '../../../utils/mapsUtils.js';
 import { IconCalendar, IconMapPin } from '../../../components/common/icons.jsx';
 
 export default function BookingDetailPreview({ booking, style }) {
@@ -19,16 +20,16 @@ export default function BookingDetailPreview({ booking, style }) {
             <IconCalendar size={13} /> {new Date(booking.service_date).toLocaleDateString()}
           </span>
         )}
-        {booking.location && (
+        {booking.location?.latitude != null && (
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
             <IconMapPin size={13} />
             <a
-              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(booking.location)}`}
+              href={buildGoogleMapsUrl(booking.location.latitude, booking.location.longitude)}
               target="_blank"
               rel="noopener noreferrer"
               style={{ color: 'var(--color-primary-600)' }}
             >
-              {booking.location}
+              {booking.location.addressText ?? `${booking.location.latitude}, ${booking.location.longitude}`}
             </a>
           </span>
         )}
