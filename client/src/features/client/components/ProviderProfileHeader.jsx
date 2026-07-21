@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { ROUTES } from '../../../constants/routes.js';
+import { useAuth } from '../../../hooks/useAuth.js';
 import { getAssetUrl } from '../../../utils/storageUtils.js';
 import { IconMapPin, IconToolbox, IconDollarSign, IconCalendar } from '../../../components/common/icons.jsx';
 
@@ -43,7 +44,14 @@ function StarRating({ rating, count }) {
 }
 
 export default function ProviderProfileHeader({ provider, canBook = true }) {
-  const bookingHref = ROUTES.CLIENT_BOOKING_CONFIRM.replace(':providerId', provider.providerId ?? provider.id);
+  const { user } = useAuth();
+  // A logged-out visitor can browse all the way to a provider's profile
+  // (see ProtectedRoute's `allowGuest`), but only gets sent into the actual
+  // booking flow once logged in as a Client - "Book Now" sends them to
+  // client signup instead.
+  const bookingHref = user
+    ? ROUTES.CLIENT_BOOKING_CONFIRM.replace(':providerId', provider.providerId ?? provider.id)
+    : ROUTES.REGISTER_CLIENT;
   const bannerImage = getBannerImage(provider.category);
   const districtLabel = DISTRICTS[provider.district?.toLowerCase()] ?? provider.district;
 
