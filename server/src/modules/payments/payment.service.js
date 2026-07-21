@@ -10,6 +10,7 @@ import {
   getCardPaymentAmountForBooking,
 } from './payment.queries.js';
 import { createNotification } from '../notifications/notification.service.js';
+import { logAction } from '../audit/audit.service.js';
 
 // Shared checks: the booking must exist, belong to this client, be Accepted,
 // and not already be paid. Used by both the cash and card flows.
@@ -74,6 +75,14 @@ export async function payWithCash(bookingId, clientUserId) {
     categoryName: ctx.category_name,
   });
 
+  await logAction({
+    actorUserId: clientUserId,
+    actionCode: 'PAYMENT_COMPLETED',
+    entityType: 'booking',
+    entityId: bookingId,
+    description: `Booking #${bookingId} was paid by Cash`,
+  });
+
   return { bookingPaymentId: paymentRows[0].booking_payment_id, method: 'CASH', platformFee: 0 };
 }
 
@@ -133,6 +142,14 @@ export async function payWithCard(input, clientUserId) {
     });
 
     await client.query('COMMIT');
+
+    await logAction({
+      actorUserId: clientUserId,
+      actionCode: 'PAYMENT_COMPLETED',
+      entityType: 'booking',
+      entityId: bookingId,
+      description: `Booking #${bookingId} was paid by Card (LKR ${payment.total_amount})`,
+    });
 
     // Notify the provider after the payment is safely committed. A
     // notification failure must never undo a successful payment.

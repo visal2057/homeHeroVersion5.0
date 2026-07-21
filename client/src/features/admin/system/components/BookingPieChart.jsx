@@ -68,8 +68,8 @@ export default function BookingPieChart({ statuses }) {
             {total}
           </tspan>
         </text>
-        <text x={CENTER} y={CENTER + 16} textAnchor="middle" fontSize="9" fontWeight="700" fill="var(--color-text-muted)" letterSpacing="0.5">
-          TOTAL BOOKINGS
+        <text x={CENTER} y={CENTER + 16} textAnchor="middle" fontSize="8" fontWeight="700" fill="var(--color-text-muted)" letterSpacing="0.5">
+          ACTIVE + COMPLETED
         </text>
       </svg>
 
