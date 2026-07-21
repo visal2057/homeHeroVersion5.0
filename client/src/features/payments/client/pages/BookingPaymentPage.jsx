@@ -9,7 +9,7 @@ import PayeeDetails from '../components/PayeeDetails.jsx';
 import CashPaymentConfirmation from '../components/CashPaymentConfirmation.jsx';
 import CardPaymentForm from '../components/CardPaymentForm.jsx';
 import EmptyState from '../../../../components/common/EmptyState.jsx';
-import { IconCreditCard, IconAlertCircle } from '../../../../components/common/icons.jsx';
+import { IconCreditCard, IconAlertCircle, IconCheckCircle } from '../../../../components/common/icons.jsx';
 
 export default function BookingPaymentPage() {
   const { bookingId } = useParams();
@@ -98,7 +98,18 @@ export default function BookingPaymentPage() {
           <PaymentSummary context={context} />
 
           <div className="bp-main">
-            {step === 'select' && (
+            {context.alreadyPaid ? (
+              <div style={{ textAlign: 'center', padding: 'var(--space-lg) 0' }}>
+                <IconCheckCircle size={48} style={{ color: 'var(--color-secondary-600)', marginBottom: 'var(--space-md)' }} />
+                <h3 style={{ marginBottom: 6 }}>This booking has already been paid</h3>
+                <p style={{ color: 'var(--color-neutral-500)', marginBottom: 'var(--space-lg)' }}>
+                  Continue to leave your review and finish this job.
+                </p>
+                <button type="button" className="bp-proceed" onClick={goToReview}>
+                  Continue to Review
+                </button>
+              </div>
+            ) : step === 'select' && (
               <>
                 <PaymentMethodSelector value={method} onChange={setMethod} />
                 {method === 'CARD' && (

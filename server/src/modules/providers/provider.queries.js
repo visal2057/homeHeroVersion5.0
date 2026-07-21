@@ -150,6 +150,7 @@ export function findTopProviders(categoryId, { district, search }, limit = 5) {
      WHERE vs.service_category_id = $1
        AND bk.is_verified = true
        AND bk.has_active_ban = false
+       AND bk.is_bookable = true
        AND ($2::text IS NULL OR vs.district_name ILIKE $2)
        AND ($3::text IS NULL OR vs.provider_name ILIKE '%' || $3 || '%')
      ORDER BY vs.current_month_completed_jobs DESC, vs.average_rating DESC NULLS LAST
@@ -175,6 +176,7 @@ export function findAvailableProviders(categoryId, { district, search }, limit =
        AND bk.is_verified = true
        AND bk.has_active_ban = false
        AND bk.has_valid_membership_or_grace = true
+       AND bk.is_bookable = true
        AND vs.is_newcomer = true
        AND ($2::text IS NULL OR vs.district_name ILIKE $2)
        AND ($3::text IS NULL OR vs.provider_name ILIKE '%' || $3 || '%')

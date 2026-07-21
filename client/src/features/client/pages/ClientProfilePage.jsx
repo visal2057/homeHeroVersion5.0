@@ -58,6 +58,7 @@ export default function ClientProfilePage() {
             </div>
             <div>
               <h1 className="cp-hero-name">{profile?.fullName ?? profile?.username ?? 'My Profile'}</h1>
+              {profile?.username && <div className="cp-hero-username">@{profile.username}</div>}
               <div className="cp-hero-email">{profile?.email}</div>
               {profile?.userToken && (
                 <div className="cp-hero-token">
@@ -167,6 +168,7 @@ export default function ClientProfilePage() {
         }
         .cp-hero-avatar:hover .cp-avatar-overlay { opacity: 1; }
         .cp-hero-name { font-size: var(--font-size-2xl); font-weight: 800; color: white; margin-bottom: 4px; }
+        .cp-hero-username { color: rgba(255,255,255,0.65); font-size: var(--font-size-sm); margin-bottom: 4px; }
         .cp-hero-email { color: rgba(255,255,255,0.75); margin-bottom: 8px; font-size: var(--font-size-sm); }
         .cp-hero-token {
           display: inline-flex; align-items: center; padding: 4px 12px;

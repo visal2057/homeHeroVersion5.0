@@ -38,6 +38,7 @@ function toCardShape(row) {
     hourlyRate: row.hourly_charge_estimate != null ? Number(row.hourly_charge_estimate) : null,
     isVerified: row.is_verified,
     isAvailable: row.is_bookable ?? null,
+    registeredAt: row.registered_at ?? null,
     unavailableFrom: row.unavailable_from ?? null,
     unavailableTo: row.unavailable_to ?? null,
     workPreview: workImages.length > 0
