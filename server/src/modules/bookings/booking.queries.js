@@ -171,7 +171,7 @@ export function adminSearchBookings({ search, status, period, limit = 100 }) {
     params.push(Number.isFinite(Number(search)) ? Number(search) : -1);
     const idIdx = params.length;
     conditions.push(
-      `(client_name ILIKE $${idx} OR provider_name ILIKE $${idx} OR client_token ILIKE $${idx} OR provider_token ILIKE $${idx} OR service_category ILIKE $${idx} OR booking_id = $${idIdx})`,
+      `(client_name ILIKE $${idx} OR provider_name ILIKE $${idx} OR client_token ILIKE $${idx} OR provider_token ILIKE $${idx} OR service_category ILIKE $${idx} OR vbo.booking_id = $${idIdx})`,
     );
   }
 
@@ -189,8 +189,17 @@ export function adminSearchBookings({ search, status, period, limit = 100 }) {
   const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
   params.push(limit);
 
+  // Left-joined so the Invoice column can offer a download only when the
+  // Service Provider actually generated one for a completed job (mirrors
+  // sp-tracking.queries.js's same LEFT JOIN invoices pattern). booking_id is
+  // qualified as vbo.booking_id since invoices also has its own booking_id
+  // column, which would otherwise be ambiguous in the search condition above.
   return query(
-    `SELECT * FROM vw_booking_overview ${whereClause} ORDER BY requested_at DESC LIMIT $${params.length}`,
+    `SELECT vbo.*, i.invoice_id
+     FROM vw_booking_overview vbo
+     LEFT JOIN invoices i ON i.booking_id = vbo.booking_id
+     ${whereClause}
+     ORDER BY vbo.requested_at DESC LIMIT $${params.length}`,
     params,
   );
 }
