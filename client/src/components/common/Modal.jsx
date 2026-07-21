@@ -1,7 +1,16 @@
+import { createPortal } from 'react-dom';
+
 export default function Modal({ isOpen, onClose, title, children }) {
   if (!isOpen) return null;
 
-  return (
+  // Portaled straight to document.body rather than rendered in place: every
+  // page that opens a Modal wraps its content in .animate-fade-in-up, whose
+  // final keyframe leaves `transform: translateY(0)` in place, and any
+  // transform on an ancestor becomes the containing block for this div's
+  // `position: fixed` -- so without the portal, the overlay centers itself
+  // relative to the whole scrollable page instead of the visible viewport,
+  // forcing a scroll to reach it on any page taller than one screen.
+  return createPortal(
     <div
       className="animate-fade-in"
       style={{
@@ -32,6 +41,7 @@ export default function Modal({ isOpen, onClose, title, children }) {
         {title && <h3>{title}</h3>}
         {children}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
