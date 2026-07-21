@@ -12,9 +12,12 @@ export default function ServicesSection() {
   function handleServiceClick(slug) {
     // A Service Provider whose verification is still PENDING may also
     // browse into Explore (view-only - see ProtectedRoute's
-    // `allowPendingProvider`), same as a Client.
+    // `allowPendingProvider`), same as a Client. A logged-out visitor may
+    // browse in too (see ProtectedRoute's `allowGuest`) - they're only sent
+    // to client signup once they try to actually book a provider.
     const isPendingProvider = user?.role === ROLES.SERVICE_PROVIDER && user?.verificationStatus === 'PENDING';
-    if (user?.role === ROLES.CLIENT || isPendingProvider) {
+    const isGuest = !user;
+    if (user?.role === ROLES.CLIENT || isPendingProvider || isGuest) {
       navigate(ROUTES.CLIENT_EXPLORE.replace(':category', slug));
     } else {
       navigate(ROUTES.REGISTER_CLIENT);
