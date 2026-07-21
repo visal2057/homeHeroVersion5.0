@@ -1136,3 +1136,38 @@
   color: var(--color-secondary-700);
   text-align: right;
 }
+
+/* ---------------------------------------------------------------------
+   Ban popover
+   Anchored next to the Ban button that opened it instead of a full-page
+   centered modal, with no dimming overlay over the table behind it. Kept
+   deliberately understated: a dark green border and a soft, low-key green
+   halo rather than the bolder glow used for the SP Tracking search bar.
+   ------------------------------------------------------------------- */
+.ban-popover-catcher {
+  position: fixed;
+  inset: 0;
+  background: transparent;
+  z-index: 1150;
+}
+
+.ban-popover {
+  position: fixed;
+  z-index: 1151;
+  width: 300px;
+  background: var(--color-neutral-0);
+  border: 2px solid var(--color-secondary-700);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 0 0 3px var(--color-primary-100), var(--shadow-lg);
+  padding: var(--space-md) var(--space-lg);
+}
+
+.ban-popover-title {
+  margin: 0 0 var(--space-md);
+  font-size: var(--font-size-base);
+  color: var(--color-secondary-700);
+}
+
+.ban-popover .form-group {
+  margin-bottom: var(--space-md);
+}
