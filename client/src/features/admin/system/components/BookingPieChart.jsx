@@ -7,34 +7,40 @@ const HOVER_STROKE = 33;
 const CENTER = SIZE / 2;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
-// Two fixed colors for the Active/Accepted vs Completed booking-status
-// split, matched by statusKey so the legend stays consistent regardless of
-// ordering from the API. Falls back to grey for any unexpected status.
-const STATUS_COLORS = {
-  active: '#3b82f6',
-  completed: '#059669',
+// One fixed, distinct color per service category so a slice always means
+// the same category no matter how the API orders the rows. Falls back to
+// grey for any category added later that hasn't been assigned one yet.
+const CATEGORY_COLORS = {
+  GARDENING: 'var(--color-primary-600)',
+  CLEANING: '#0ea5e9',
+  PET_CARE: '#d97706',
+  PLUMBING: '#7c3aed',
+  AC_REPAIR: '#0891b2',
 };
 
-function colorFor(statusKey) {
-  return STATUS_COLORS[String(statusKey).toLowerCase()] ?? '#94a3b8';
+function colorFor(categoryCode) {
+  return CATEGORY_COLORS[categoryCode] ?? '#94a3b8';
 }
 
-export default function BookingPieChart({ statuses }) {
+export default function BookingPieChart({ categories }) {
   const [hoveredIndex, setHoveredIndex] = useState(null);
-  const total = (statuses ?? []).reduce((sum, s) => sum + s.count, 0);
+  const total = (categories ?? []).reduce((sum, c) => sum + c.count, 0);
 
-  if (!statuses || total === 0) {
+  if (!categories || total === 0) {
     return <p className="empty-state">No bookings recorded yet.</p>;
   }
 
+  // Zero-count categories are kept (not filtered out) so the legend always
+  // lists all 5 categories -- a 0-length arc just contributes nothing
+  // visually, which is the correct outcome for "0%".
   let offsetSoFar = 0;
-  const segments = statuses.map((status) => {
-    const length = (status.count / total) * CIRCUMFERENCE;
+  const segments = categories.map((category) => {
+    const length = (category.count / total) * CIRCUMFERENCE;
     const segment = {
-      label: status.label,
-      value: status.count,
-      percentage: status.percentage,
-      color: colorFor(status.statusKey),
+      label: category.label,
+      value: category.count,
+      percentage: category.percentage,
+      color: colorFor(category.categoryCode),
       length,
       offset: offsetSoFar,
     };
@@ -44,7 +50,7 @@ export default function BookingPieChart({ statuses }) {
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--space-xl)', flexWrap: 'wrap', width: '100%' }}>
-      <svg viewBox={`0 0 ${SIZE} ${SIZE}`} width="170" height="170" role="img" aria-label="Booking distribution by status">
+      <svg viewBox={`0 0 ${SIZE} ${SIZE}`} width="170" height="170" role="img" aria-label="Booking distribution by service category">
         <circle cx={CENTER} cy={CENTER} r={RADIUS} fill="none" stroke="var(--color-neutral-100)" strokeWidth={BASE_STROKE} />
         {segments.map((segment, index) => (
           <circle
@@ -63,13 +69,16 @@ export default function BookingPieChart({ statuses }) {
             onMouseLeave={() => setHoveredIndex((current) => (current === index ? null : current))}
           />
         ))}
-        <text x={CENTER} y={CENTER - 3} textAnchor="middle">
+        <text x={CENTER} y={CENTER - 5} textAnchor="middle">
           <tspan fontSize="26" fontWeight="800" fill="var(--color-secondary-700)">
             {total}
           </tspan>
         </text>
-        <text x={CENTER} y={CENTER + 16} textAnchor="middle" fontSize="8" fontWeight="700" fill="var(--color-text-muted)" letterSpacing="0.5">
-          ACTIVE + COMPLETED
+        <text x={CENTER} y={CENTER + 13} textAnchor="middle" fontSize="7.5" fontWeight="700" fill="var(--color-text-muted)" letterSpacing="0.4">
+          JOBS TO DO
+        </text>
+        <text x={CENTER} y={CENTER + 22} textAnchor="middle" fontSize="7.5" fontWeight="700" fill="var(--color-text-muted)" letterSpacing="0.4">
+          + COMPLETED
         </text>
       </svg>
 
