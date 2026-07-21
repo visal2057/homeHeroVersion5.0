@@ -127,10 +127,11 @@ export default function AppRouter() {
           Service Provider whose verification is still PENDING may browse
           (but not book - the booking CTAs are hidden for that viewer role)
           up to a specific provider's profile while their application is
-          under review. Kept as its own group, same layout/guard shape as
-          above, so the rest of the Client area stays exactly as strict as
-          it was. */}
-      <Route element={<ProtectedRoute roles={[ROLES.CLIENT]} allowPendingProvider />}>
+          under review, plus a logged-out visitor may browse both pages too
+          (but not book - the "Book Now" CTAs route a guest to client signup
+          instead). Kept as its own group, same layout/guard shape as above,
+          so the rest of the Client area stays exactly as strict as it was. */}
+      <Route element={<ProtectedRoute roles={[ROLES.CLIENT]} allowPendingProvider allowGuest />}>
         <Route element={<ClientLayout />}>
           <Route path={ROUTES.CLIENT_EXPLORE}          element={<ExploreServicePage />} />
           <Route path={ROUTES.CLIENT_PROVIDER_PROFILE} element={<ProviderPublicProfilePage />} />
