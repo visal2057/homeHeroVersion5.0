@@ -2,7 +2,8 @@ import { query } from '../../db/query.js';
 
 export function findClientLocation(clientUserId) {
   return query(
-    `SELECT latitude, longitude, address_text FROM client_locations WHERE client_user_id = $1`,
+    `SELECT latitude, longitude, address_text FROM client_locations
+     WHERE client_user_id = $1 AND location_type = 'PRIMARY'`,
     [clientUserId],
   );
 }

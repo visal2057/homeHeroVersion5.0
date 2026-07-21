@@ -20,13 +20,22 @@ function toProfileResponse(row) {
     userToken: row.user_token,
     profileImageUrl: row.profile_image_url,
     accountStatus: row.account_status,
-    location:
-      row.latitude != null
+    primaryLocation:
+      row.primary_latitude != null
         ? {
-            latitude: Number(row.latitude),
-            longitude: Number(row.longitude),
-            addressText: row.address_text,
-            updatedAt: row.location_updated_at,
+            latitude: Number(row.primary_latitude),
+            longitude: Number(row.primary_longitude),
+            addressText: row.primary_address_text,
+            updatedAt: row.primary_location_updated_at,
+          }
+        : null,
+    secondaryLocation:
+      row.secondary_latitude != null
+        ? {
+            latitude: Number(row.secondary_latitude),
+            longitude: Number(row.secondary_longitude),
+            addressText: row.secondary_address_text,
+            updatedAt: row.secondary_location_updated_at,
           }
         : null,
   };
@@ -56,9 +65,10 @@ export async function updateClientProfileImagePath(userId, profileImageUrl) {
   return { profileImageUrl: rows[0].profile_image_url };
 }
 
-export async function updateClientLocation(userId, { addressText, latitude, longitude }) {
-  const { rows } = await upsertClientLocation(userId, { addressText, latitude, longitude });
+export async function updateClientLocation(userId, { locationType, addressText, latitude, longitude }) {
+  const { rows } = await upsertClientLocation(userId, { locationType, addressText, latitude, longitude });
   return {
+    locationType: rows[0].location_type,
     latitude: Number(rows[0].latitude),
     longitude: Number(rows[0].longitude),
     addressText: rows[0].address_text,

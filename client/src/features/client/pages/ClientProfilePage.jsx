@@ -3,7 +3,8 @@ import { useAuth } from '../../../hooks/useAuth.js';
 import { clientApi } from '../clientApi.js';
 import ClientProfileForm from '../components/ClientProfileForm.jsx';
 import ChangePasswordForm from '../components/ChangePasswordForm.jsx';
-import MapPicker from '../../../components/common/MapPicker.jsx';
+import LocationCard from '../components/LocationCard.jsx';
+import LocationEditModal from '../components/LocationEditModal.jsx';
 import { getAssetUrl } from '../../../utils/storageUtils.js';
 import { IconUser, IconDocumentEdit, IconLock, IconMapPin, IconShield } from '../../../components/common/icons.jsx';
 
@@ -11,16 +12,13 @@ export default function ClientProfilePage() {
   const { user, refreshUser } = useAuth();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [location, setLocation] = useState(null);
-  const [savingLocation, setSavingLocation] = useState(false);
-  const [locationMessage, setLocationMessage] = useState('');
+  const [editingLocationType, setEditingLocationType] = useState(null); // 'PRIMARY' | 'SECONDARY' | null
 
   useEffect(() => {
     clientApi.getProfile()
       .then((r) => {
         const data = r.data?.data ?? r.data ?? user;
         setProfile(data);
-        if (data?.location) setLocation(data.location);
       })
       .catch(() => setProfile(user))
       .finally(() => setLoading(false));
@@ -34,25 +32,6 @@ export default function ClientProfilePage() {
       setProfile((p) => ({ ...p, profileImageUrl: response.data?.data?.profileImageUrl }));
       refreshUser?.();
     } catch { /* shown inline */ }
-  }
-
-  async function handleSaveLocation() {
-    if (!location) return;
-    setSavingLocation(true);
-    setLocationMessage('');
-    try {
-      const response = await clientApi.updateLocation({
-        latitude: location.latitude,
-        longitude: location.longitude,
-        addressText: location.addressText ?? profile?.location?.addressText ?? 'Selected on map',
-      });
-      setProfile((p) => ({ ...p, location: response.data?.data }));
-      setLocationMessage('Location saved successfully.');
-    } catch (err) {
-      setLocationMessage(err?.response?.data?.message ?? 'Failed to save location.');
-    } finally {
-      setSavingLocation(false);
-    }
   }
 
   const initials = profile?.fullName
@@ -121,34 +100,45 @@ export default function ClientProfilePage() {
             <ChangePasswordForm />
           </div>
 
-          {/* Location map */}
+          {/* Locations */}
           <div className="cp-card cp-card-full">
             <div className="cp-card-title">
               <IconMapPin size={22} style={{ color: 'var(--color-primary-600)' }} />
-              Location
+              Locations
             </div>
             <p style={{ color: 'var(--color-neutral-500)', marginBottom: 'var(--space-md)', fontSize: 'var(--font-size-sm)' }}>
-              Drag the pin to your exact location. Providers only see this once you have an active booking with them.
+              Set a Primary and, optionally, a Secondary location. Providers only see these once you have an active
+              booking with them, and both are available to pick from when you book a service.
             </p>
-            <MapPicker
-              latitude={location?.latitude ?? profile?.location?.latitude}
-              longitude={location?.longitude ?? profile?.location?.longitude}
-              onChange={setLocation}
-              height={384}
-            />
-            {locationMessage && (
-              <p style={{ marginTop: 'var(--space-sm)', fontSize: 'var(--font-size-sm)', color: locationMessage.includes('success') ? '#059669' : 'var(--color-error)' }}>
-                {locationMessage}
-              </p>
-            )}
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 'var(--space-md)' }}>
-              <button type="button" className="btn btn-primary" disabled={!location || savingLocation} onClick={handleSaveLocation}>
-                {savingLocation ? 'Saving…' : 'Save Location'}
-              </button>
+            <div className="cp-locations-grid">
+              <LocationCard
+                label="Primary Location"
+                location={profile?.primaryLocation}
+                onEdit={() => setEditingLocationType('PRIMARY')}
+              />
+              <LocationCard
+                label="Secondary Location"
+                location={profile?.secondaryLocation}
+                onEdit={() => setEditingLocationType('SECONDARY')}
+              />
             </div>
           </div>
         </div>
       </div>
+
+      <LocationEditModal
+        isOpen={editingLocationType != null}
+        onClose={() => setEditingLocationType(null)}
+        label={editingLocationType === 'SECONDARY' ? 'Secondary Location' : 'Primary Location'}
+        locationType={editingLocationType ?? 'PRIMARY'}
+        initialLocation={editingLocationType === 'SECONDARY' ? profile?.secondaryLocation : profile?.primaryLocation}
+        onSaved={(saved) => {
+          setProfile((p) => ({
+            ...p,
+            ...(editingLocationType === 'SECONDARY' ? { secondaryLocation: saved } : { primaryLocation: saved }),
+          }));
+        }}
+      />
 
       <style>{`
         .cp-page { padding-bottom: var(--space-2xl); }
@@ -198,6 +188,7 @@ export default function ClientProfilePage() {
           color: var(--color-secondary-700); margin-bottom: var(--space-lg);
           padding-bottom: var(--space-md); border-bottom: 1px solid var(--color-neutral-100);
         }
+        .cp-locations-grid { display: flex; flex-direction: column; gap: var(--space-md); }
       `}</style>
     </div>
   );
