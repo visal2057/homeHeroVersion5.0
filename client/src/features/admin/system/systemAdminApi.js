@@ -44,6 +44,10 @@ export function searchSPTracking(search) {
   return axiosClient.get(API_ENDPOINTS.SYSTEM_ADMIN.SP_TRACKING, { params: { search } });
 }
 
+export function fetchMvpProviders() {
+  return axiosClient.get(API_ENDPOINTS.SYSTEM_ADMIN.SP_TRACKING_MVP);
+}
+
 export async function downloadTrackedInvoice(bookingId) {
   const { data } = await axiosClient.get(API_ENDPOINTS.PROVIDER.INVOICE_DOWNLOAD(bookingId), {
     responseType: 'blob',
