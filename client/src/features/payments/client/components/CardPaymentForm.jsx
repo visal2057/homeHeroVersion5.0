@@ -5,6 +5,7 @@ import { formatLKR, calculateCardTotals } from '../paymentMath.js';
 import FormInput from '../../../../components/common/FormInput.jsx';
 import ConfirmModal from '../../../../components/common/ConfirmModal.jsx';
 import AlertMessage from '../../../../components/common/AlertMessage.jsx';
+import { useAlert } from '../../../../hooks/useAlert.js';
 
 // Card flow: HomeHero processes the payment and keeps the 5% platform fee.
 // We collect the card details, show the client the fee breakdown, then
@@ -21,6 +22,7 @@ export default function CardPaymentForm({ context, onCancel, onPaid }) {
   const [showConfirm, setShowConfirm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [apiError, setApiError] = useState('');
+  const { showSuccess } = useAlert();
 
   // The client enters the price they agreed with the provider; the fee
   // breakdown updates live from it. The backend calculates the fee again.
@@ -68,6 +70,7 @@ export default function CardPaymentForm({ context, onCancel, onPaid }) {
         expiryDate: form.expiryDate,
         cvv: form.cvv,
       });
+      showSuccess('Payment successful. Please submit a review for the job.');
       onPaid(); // success -> parent sends us to the review page
     } catch (err) {
       setApiError(extractErrorMessage(err));

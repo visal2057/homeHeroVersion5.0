@@ -86,7 +86,7 @@ export default function ExploreServicePage() {
     } finally {
       setLoading(false);
     }
-  }, [category, district, sort, search]);
+  }, [category, district, search]);
 
   useEffect(() => {
     fetchProviders();
@@ -95,6 +95,7 @@ export default function ExploreServicePage() {
   const sorted = [...providers].sort((a, b) => {
     if (sort === 'rate_asc') return (a.hourlyRate ?? 0) - (b.hourlyRate ?? 0);
     if (sort === 'rate_desc') return (b.hourlyRate ?? 0) - (a.hourlyRate ?? 0);
+    if (sort === 'newest') return new Date(b.registeredAt ?? 0) - new Date(a.registeredAt ?? 0);
     return (b.averageRating ?? 0) - (a.averageRating ?? 0);
   });
   const displayed = sorted.slice(0, 20);
