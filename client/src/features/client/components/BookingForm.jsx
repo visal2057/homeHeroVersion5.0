@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { ROUTES } from '../../../constants/routes.js';
 import { bookingApi } from '../bookingApi.js';
+import MapPicker from '../../../components/common/MapPicker.jsx';
 import { IconCalendar, IconClock, IconMapPin, IconCheckCircle, IconImage } from '../../../components/common/icons.jsx';
 
 const HOURS = Array.from({ length: 12 }, (_, i) => String(i + 1));
@@ -26,12 +27,22 @@ export default function BookingForm({ provider, client }) {
   const [submitting, setSubmitting] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
-  const profileLocation = client?.location;
-  const hasProfileLocation = profileLocation?.latitude != null;
+  const hasPrimaryLocation = client?.primaryLocation?.latitude != null;
+  const hasSecondaryLocation = client?.secondaryLocation?.latitude != null;
 
-  // Location is read-only here — sourced directly from the client's profile.
-  // To change it, the client must update their Client Profile.
-  const effectiveLocation = profileLocation;
+  // The client can either pick one of their saved profile locations, or drop
+  // a fresh pin and name it for this booking only (that pin is never saved
+  // back to the profile - it's one-off, same as the mechanism this replaces).
+  const [locationMode, setLocationMode] = useState(
+    hasPrimaryLocation ? 'primary' : hasSecondaryLocation ? 'secondary' : 'custom',
+  );
+  const [customAddress, setCustomAddress] = useState('');
+  const [customPosition, setCustomPosition] = useState(null);
+
+  const effectiveLocation =
+    locationMode === 'primary' ? client?.primaryLocation
+    : locationMode === 'secondary' ? client?.secondaryLocation
+    : (customPosition ? { ...customPosition, addressText: customAddress } : null);
   const hasEffectiveLocation = effectiveLocation?.latitude != null;
 
   // Revoke object URLs when photos change to avoid memory leaks
@@ -67,8 +78,16 @@ export default function BookingForm({ provider, client }) {
       setError('Job description must be at least 10 characters.');
       return;
     }
+    if (locationMode === 'custom' && !customAddress.trim()) {
+      setError('Please enter an address for the location you dropped a pin on.');
+      return;
+    }
     if (!hasEffectiveLocation) {
-      setError('Please set your location in your Client Profile before booking.');
+      setError(
+        locationMode === 'custom'
+          ? 'Please drop a pin on the map to set the service location.'
+          : 'Please select a location for this booking.',
+      );
       return;
     }
     setShowConfirm(true);
@@ -170,18 +189,65 @@ export default function BookingForm({ provider, client }) {
               Service Location
             </label>
 
-            {/* Read-only profile location display */}
-            <div className={`bf-location-display${hasEffectiveLocation ? '' : ' bf-location-warn'}`}>
-              <div className="bf-location-text">
-                {hasEffectiveLocation
-                  ? (effectiveLocation.addressText ?? `${effectiveLocation.latitude?.toFixed(5)}, ${effectiveLocation.longitude?.toFixed(5)}`)
-                  : 'No location set — please add your location in your Client Profile.'}
-              </div>
-              <Link to={ROUTES.CLIENT_PROFILE} className="bf-loc-alt-btn">
-                <IconMapPin size={14} style={{ marginRight: 4 }} />
-                {hasProfileLocation ? 'Change in Profile' : 'Set Location in Profile'}
-              </Link>
+            <div className="bf-location-modes">
+              {hasPrimaryLocation && (
+                <button
+                  type="button"
+                  className={`bf-loc-mode-btn${locationMode === 'primary' ? ' bf-loc-mode-active' : ''}`}
+                  onClick={() => setLocationMode('primary')}
+                >
+                  Primary Location
+                </button>
+              )}
+              {hasSecondaryLocation && (
+                <button
+                  type="button"
+                  className={`bf-loc-mode-btn${locationMode === 'secondary' ? ' bf-loc-mode-active' : ''}`}
+                  onClick={() => setLocationMode('secondary')}
+                >
+                  Secondary Location
+                </button>
+              )}
+              <button
+                type="button"
+                className={`bf-loc-mode-btn${locationMode === 'custom' ? ' bf-loc-mode-active' : ''}`}
+                onClick={() => setLocationMode('custom')}
+              >
+                Drop a Pin
+              </button>
             </div>
+
+            {locationMode === 'custom' ? (
+              <div className="bf-location-custom">
+                <input
+                  type="text"
+                  placeholder="Address for this location"
+                  value={customAddress}
+                  onChange={(e) => setCustomAddress(e.target.value)}
+                  className="bf-input"
+                  style={{ marginBottom: 'var(--space-sm)' }}
+                />
+                <MapPicker
+                  latitude={customPosition?.latitude}
+                  longitude={customPosition?.longitude}
+                  onChange={setCustomPosition}
+                  draggable
+                  height={260}
+                />
+              </div>
+            ) : (
+              <div className={`bf-location-display${hasEffectiveLocation ? '' : ' bf-location-warn'}`}>
+                <div className="bf-location-text">
+                  {hasEffectiveLocation
+                    ? (effectiveLocation.addressText ?? `${effectiveLocation.latitude?.toFixed(5)}, ${effectiveLocation.longitude?.toFixed(5)}`)
+                    : 'No location set — please add it in your Client Profile.'}
+                </div>
+                <Link to={ROUTES.CLIENT_PROFILE} className="bf-loc-alt-btn">
+                  <IconMapPin size={14} style={{ marginRight: 4 }} />
+                  Change in Profile
+                </Link>
+              </div>
+            )}
           </div>
 
           {/* Job description */}
@@ -296,6 +362,18 @@ export default function BookingForm({ provider, client }) {
           .bf-hint-warn { color: var(--color-error); }
 
           /* Location */
+          .bf-location-modes { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: var(--space-sm); }
+          .bf-loc-mode-btn {
+            padding: 7px 16px; border-radius: var(--radius-full);
+            border: 1.5px solid var(--color-neutral-200); background: white;
+            color: var(--color-neutral-600); font-size: var(--font-size-xs); font-weight: 600;
+            cursor: pointer; font-family: inherit; transition: background 0.15s, border-color 0.15s, color 0.15s;
+          }
+          .bf-loc-mode-btn:hover { border-color: var(--color-primary-400); }
+          .bf-loc-mode-active {
+            background: var(--color-primary-600); border-color: var(--color-primary-600); color: white;
+          }
+          .bf-location-custom { display: flex; flex-direction: column; }
           .bf-location-display {
             display: flex; align-items: center; justify-content: space-between;
             gap: 14px; padding: 12px 17px;
