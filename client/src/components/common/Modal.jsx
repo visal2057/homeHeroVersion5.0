@@ -1,6 +1,6 @@
 import { createPortal } from 'react-dom';
 
-export default function Modal({ isOpen, onClose, title, children }) {
+export default function Modal({ isOpen, onClose, title, children, maxWidth = 480 }) {
   if (!isOpen) return null;
 
   // Portaled straight to document.body rather than rendered in place: every
@@ -32,7 +32,9 @@ export default function Modal({ isOpen, onClose, title, children }) {
         className="card"
         style={{
           width: '100%',
-          maxWidth: 480,
+          maxWidth,
+          maxHeight: '85vh',
+          overflowY: 'auto',
           padding: 'var(--space-xl)',
           animation: 'hh-scale-in var(--transition-slow) ease both',
         }}
