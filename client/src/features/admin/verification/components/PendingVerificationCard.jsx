@@ -2,11 +2,13 @@ import { Link } from 'react-router-dom';
 import { ROUTES } from '../../../../constants/routes.js';
 
 export default function PendingVerificationCard({ application }) {
+  const isProcessing = Boolean(application.openedAt);
   return (
     <div className="card review-card">
       <div className="review-card-row">
         <div>
-          <strong>{application.fullName}</strong> <span className="status-badge is-neutral">@{application.username}</span>
+          <strong>{application.fullName}</strong> <span className="status-badge is-neutral">@{application.username}</span>{' '}
+          <span className={`status-badge ${isProcessing ? 'is-info' : 'is-warning'}`}>{isProcessing ? 'Processing' : 'Unread'}</span>
           <p className="review-card-meta">Token: {application.userToken}</p>
           <p className="review-card-meta">Categories: {application.categories ?? '—'}</p>
           <p className="review-card-meta">District: {application.districtName}</p>
