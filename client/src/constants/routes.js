@@ -48,6 +48,8 @@ export const ROUTES = {
 
   // Verification Admin
   VERIFICATION_ADMIN_DASHBOARD: '/admin/verification/dashboard',
+  VERIFICATION_ADMIN_APPLICATIONS: '/admin/verification/applications',
   VERIFICATION_ADMIN_REVIEW: '/admin/verification/applications/:applicationId',
+  VERIFICATION_ADMIN_COMPLAINTS: '/admin/verification/complaints',
   VERIFICATION_ADMIN_COMPLAINT: '/admin/verification/complaints/:complaintId',
 };

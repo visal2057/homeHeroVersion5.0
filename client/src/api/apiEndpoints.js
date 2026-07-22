@@ -47,11 +47,13 @@ export const API_ENDPOINTS = {
 
   VERIFICATION_ADMIN: {
     APPLICATIONS: '/verification-admin/verification/applications',
+    APPLICATIONS_HISTORY: '/verification-admin/verification/applications/history',
     APPLICATION_DETAIL: (id) => `/verification-admin/verification/applications/${id}`,
     DOCUMENT: (id) => `/verification-admin/verification/documents/${id}`,
     APPROVE: (id) => `/verification-admin/verification/applications/${id}/approve`,
     REJECT: (id) => `/verification-admin/verification/applications/${id}/reject`,
     COMPLAINTS: '/verification-admin/complaints',
+    COMPLAINTS_HISTORY: '/verification-admin/complaints/history',
     COMPLAINT_DETAIL: (id) => `/verification-admin/complaints/${id}`,
     COMPLAINT_VERDICT: (id) => `/verification-admin/complaints/${id}/verdict`,
   },
