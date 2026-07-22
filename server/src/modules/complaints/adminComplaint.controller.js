@@ -1,9 +1,14 @@
 import { asyncHandler } from '../../utils/asyncHandler.js';
 import { sendSuccess } from '../../utils/responseUtils.js';
-import { getAllComplaints, getComplaintDetail, recordVerdict } from './complaint.service.js';
+import { getAllComplaints, getComplaintHistory, getComplaintDetail, recordVerdict } from './complaint.service.js';
 
 export const listComplaintsHandler = asyncHandler(async (req, res) => {
   const complaints = await getAllComplaints();
+  sendSuccess(res, { complaints });
+});
+
+export const getComplaintHistoryHandler = asyncHandler(async (req, res) => {
+  const complaints = await getComplaintHistory();
   sendSuccess(res, { complaints });
 });
 
