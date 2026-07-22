@@ -3,7 +3,8 @@ import { asyncHandler } from '../../utils/asyncHandler.js';
 import { sendSuccess } from '../../utils/responseUtils.js';
 import {
   getPendingApplications,
-  getApplicationDetail,
+  getApplicationHistory,
+  getApplicationDetailForReview,
   getDocumentFile,
   approveApplication,
   rejectApplication,
@@ -14,8 +15,16 @@ export const listPendingHandler = asyncHandler(async (req, res) => {
   sendSuccess(res, { applications });
 });
 
+export const getHistoryHandler = asyncHandler(async (req, res) => {
+  const history = await getApplicationHistory();
+  sendSuccess(res, history);
+});
+
+// Also used, unchanged, by the Applications history popup (Change 2) -
+// getApplicationDetailForReview's "mark opened" write is a guarded no-op
+// there since the application is no longer PENDING by the time it's resolved.
 export const getDetailHandler = asyncHandler(async (req, res) => {
-  const application = await getApplicationDetail(Number(req.params.applicationId));
+  const application = await getApplicationDetailForReview(Number(req.params.applicationId), req.user.userId);
   sendSuccess(res, { application });
 });
 

@@ -5,6 +5,7 @@ import { validateRequest } from '../../middleware/validateRequest.js';
 import { rejectApplicationSchema } from './verification.validation.js';
 import {
   listPendingHandler,
+  getHistoryHandler,
   getDetailHandler,
   getDocumentHandler,
   approveHandler,
@@ -15,6 +16,9 @@ const router = Router();
 
 router.use(authenticate, requireVerificationAdmin);
 router.get('/applications', listPendingHandler);
+// Must be registered before the '/:applicationId' route below, otherwise
+// Express would match "history" as an applicationId value.
+router.get('/applications/history', getHistoryHandler);
 router.get('/applications/:applicationId', getDetailHandler);
 router.get('/documents/:documentId', getDocumentHandler);
 router.post('/applications/:applicationId/approve', approveHandler);
