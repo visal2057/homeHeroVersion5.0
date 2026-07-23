@@ -49,9 +49,11 @@ export default function ProviderCard({ provider }) {
   const [hovered, setHovered] = useState(false);
   const profileHref = ROUTES.CLIENT_PROVIDER_PROFILE.replace(':providerId', provider.providerId ?? provider.id);
 
+  const hasPreview = provider.workPreview?.images?.length > 0;
+
   return (
     <div
-      className="provider-card"
+      className={`provider-card${hasPreview ? ' has-preview' : ''}`}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
@@ -88,29 +90,25 @@ export default function ProviderCard({ provider }) {
         </div>
       </div>
 
-      {hovered && provider.workPreview?.images?.length > 0 && (
-        <>
-          {/* Blurs everything else on the page while this card's own preview
-              stays sharp on top of it (spec: "the page background becomes
-              blurred" on hover) -- position: fixed means DOM nesting here
-              doesn't matter, so no lifting hover state up to the page. */}
-          <div className="pc-hover-blur" aria-hidden="true" />
-          <ProviderWorkPreview preview={provider.workPreview} />
-        </>
-      )}
+      {hovered && hasPreview && <ProviderWorkPreview preview={provider.workPreview} />}
 
       <style>{`
         .provider-card {
           background: white; border-radius: var(--radius-lg);
           border: 1px solid var(--color-neutral-200); padding: var(--space-lg);
-          transition: transform 0.2s ease, box-shadow 0.2s ease; position: relative;
+          transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease; position: relative;
           z-index: 1;
         }
         .provider-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); z-index: 25; }
-        .pc-hover-blur {
-          position: fixed; inset: 0; z-index: 15;
-          background: rgba(15, 23, 42, 0.08);
-          backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+        /* Dims every other card in the grid while one card's work preview is
+           open, without touching the hovered card itself - so it (and its
+           "View Profile" link) always stays sharp and clickable, no matter
+           where it sits in the DOM or what wraps it. Pure sibling selectors,
+           so this works for any grid of provider cards, present or future,
+           with no coordination needed from the page that renders them. */
+        .provider-card:has(~ .provider-card.has-preview:hover),
+        .provider-card.has-preview:hover ~ .provider-card {
+          filter: blur(3px);
         }
         .pc-inner { display: flex; gap: var(--space-md); }
         .pc-avatar {

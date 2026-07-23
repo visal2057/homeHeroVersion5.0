@@ -321,6 +321,15 @@
   font-weight: 600;
 }
 
+/* Sharper, brighter shine sweep for the login button only - same
+   narrower/faster/whiter treatment as the SP dashboard logout button,
+   scoped here so every other .btn-shine button on the site is unaffected. */
+.login-glass-box .btn-shine::after {
+  width: 25%;
+  background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.55), transparent);
+  transition: left 0.4s ease;
+}
+
 @media (max-width: 900px) {
   .login-grid {
     grid-template-columns: 1fr;
