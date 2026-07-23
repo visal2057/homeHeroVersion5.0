@@ -98,9 +98,13 @@
   transition: transform var(--transition-base);
 }
 
-.provider-nav-link:hover {
+/* Qualified with both ancestor classes so this beats global.css's
+   `a:not(.btn):not(.card):hover` rule, which otherwise wins the cascade
+   (it also matches the `a` type selector) and silently overrides the
+   color below. */
+.provider-sidebar .provider-sidebar-nav .provider-nav-link:hover {
   background: var(--color-secondary-900);
-  color: var(--color-primary-200);
+  color: var(--color-primary-300);
   text-decoration: none;
 }
 
