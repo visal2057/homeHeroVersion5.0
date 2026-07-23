@@ -171,12 +171,13 @@
   border-radius: var(--radius-md);
   cursor: pointer;
   transition: background-color var(--transition-base), color var(--transition-base),
-    transform var(--transition-base);
+    transform var(--transition-base), box-shadow var(--transition-base);
 }
 
 .provider-sidebar-footer button:hover {
   background-color: #b91c1c;
   transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(220, 38, 38, 0.25);
 }
 
 .provider-sidebar-footer button:active {
