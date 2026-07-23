@@ -170,6 +170,8 @@
   font-weight: 600;
   border-radius: var(--radius-md);
   cursor: pointer;
+  position: relative;
+  overflow: hidden;
   transition: background-color var(--transition-base), color var(--transition-base),
     transform var(--transition-base), box-shadow var(--transition-base);
 }
@@ -182,6 +184,25 @@
 
 .provider-sidebar-footer button:active {
   transform: translateY(0);
+}
+
+/* Diagonal shine sweep on hover, same mechanic as .btn-shine on the
+   login button, tinted red instead of green. */
+.provider-sidebar-footer button::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -60%;
+  width: 40%;
+  height: 100%;
+  background: linear-gradient(120deg, transparent, rgba(220, 38, 38, 0.35), transparent);
+  transform: skewX(-20deg);
+  transition: left 0.6s ease;
+  pointer-events: none;
+}
+
+.provider-sidebar-footer button:hover::after {
+  left: 130%;
 }
 
 /* --------------------------------------------------------------------------
