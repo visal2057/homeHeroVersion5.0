@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import { ROUTES } from '../../../constants/routes.js';
 import { getAssetUrl } from '../../../utils/storageUtils.js';
@@ -92,9 +93,13 @@ export default function ProviderCard({ provider }) {
         <>
           {/* Blurs everything else on the page while this card's own preview
               stays sharp on top of it (spec: "the page background becomes
-              blurred" on hover) -- position: fixed means DOM nesting here
-              doesn't matter, so no lifting hover state up to the page. */}
-          <div className="pc-hover-blur" aria-hidden="true" />
+              blurred" on hover). Portaled to document.body because
+              .provider-card:hover sets a transform, and a transform on any
+              ancestor becomes the containing block for a position: fixed
+              descendant -- without the portal, the "page-wide" blur was
+              trapped inside this card's own box instead, blurring and
+              blocking clicks on the card itself. */}
+          {createPortal(<div className="pc-hover-blur" aria-hidden="true" />, document.body)}
           <ProviderWorkPreview preview={provider.workPreview} />
         </>
       )}
