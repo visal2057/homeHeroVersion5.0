@@ -50,9 +50,11 @@ export default function ProviderCard({ provider }) {
   const [hovered, setHovered] = useState(false);
   const profileHref = ROUTES.CLIENT_PROVIDER_PROFILE.replace(':providerId', provider.providerId ?? provider.id);
 
+  const hasPreview = provider.workPreview?.images?.length > 0;
+
   return (
     <div
-      className="provider-card"
+      className={`provider-card${hasPreview ? ' has-preview' : ''}`}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
