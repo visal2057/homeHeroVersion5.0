@@ -369,6 +369,14 @@
   color: var(--color-neutral-0);
 }
 
+/* <option> items render in the browser's native dropdown popup, which
+   ignores the glass field's translucent styling and falls back to a
+   plain white list - so the white text above becomes unreadable until
+   hovered. Force option text to the standard dark body color instead. */
+.register-glass-box .form-control option {
+  color: var(--color-text);
+}
+
 .register-glass-box .form-control::placeholder {
   color: rgba(255, 255, 255, 0.55);
 }

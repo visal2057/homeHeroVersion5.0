@@ -49,10 +49,12 @@ export default function ProviderSidebar({ isOpen, onClose }) {
             className={({ isActive }) => `provider-nav-link${isActive ? ' active' : ''}`}
             onClick={onClose}
           >
-            <span className="provider-nav-icon" aria-hidden="true">
-              <Icon size={19} />
+            <span className="provider-nav-content">
+              <span className="provider-nav-icon" aria-hidden="true">
+                <Icon size={19} />
+              </span>
+              {label}
             </span>
-            {label}
           </NavLink>
         ))}
       </nav>

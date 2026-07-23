@@ -81,7 +81,6 @@
 .provider-nav-link {
   display: flex;
   align-items: center;
-  gap: var(--space-md);
   padding: 0.65rem var(--space-lg);
   color: rgba(255, 255, 255, 0.75);
   font-weight: 500;
@@ -92,9 +91,20 @@
   position: relative;
 }
 
-.provider-nav-link:hover {
+.provider-nav-content {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  transition: transform var(--transition-base);
+}
+
+/* Qualified with both ancestor classes so this beats global.css's
+   `a:not(.btn):not(.card):hover` rule, which otherwise wins the cascade
+   (it also matches the `a` type selector) and silently overrides the
+   color below. */
+.provider-sidebar .provider-sidebar-nav .provider-nav-link:hover {
   background: var(--color-secondary-900);
-  color: var(--color-primary-200);
+  color: var(--color-primary-300);
   text-decoration: none;
 }
 
@@ -102,10 +112,23 @@
   display: none;
 }
 
+.provider-nav-link:hover .provider-nav-content {
+  transform: translateX(4px);
+}
+
 .provider-nav-link.active {
   background: rgba(16, 185, 129, 0.18);
   color: var(--color-primary-300);
   font-weight: 600;
+}
+
+/* Same specificity issue as the plain hover rule above: without both
+   ancestor classes, global.css's a:not(.btn):not(.card):hover rule would
+   still win and force dark text onto the already-dark active background,
+   making the current page's link unreadable on hover. */
+.provider-sidebar .provider-sidebar-nav .provider-nav-link.active:hover {
+  background: rgba(16, 185, 129, 0.18);
+  color: var(--color-primary-300);
 }
 
 .provider-nav-link.active::before {
@@ -137,21 +160,49 @@
   width: 100%;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: var(--space-md);
-  padding: 0.65rem var(--space-sm);
-  background: none;
-  border: none;
-  color: var(--color-error);
+  padding: 0.65rem var(--space-lg);
+  background-color: var(--color-error);
+  border: 1px solid transparent;
+  color: var(--color-neutral-0);
   font-size: var(--font-size-sm);
   font-weight: 600;
   border-radius: var(--radius-md);
   cursor: pointer;
-  transition: background-color var(--transition-base), color var(--transition-base);
+  position: relative;
+  overflow: hidden;
+  transition: background-color var(--transition-base), color var(--transition-base),
+    transform var(--transition-base), box-shadow var(--transition-base);
 }
 
 .provider-sidebar-footer button:hover {
-  background: var(--color-neutral-0);
-  color: var(--color-error);
+  background-color: #b91c1c;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(220, 38, 38, 0.25);
+}
+
+.provider-sidebar-footer button:active {
+  transform: translateY(0);
+}
+
+/* Diagonal shine sweep on hover, same mechanic as .btn-shine on the
+   login button, tinted red instead of green. */
+.provider-sidebar-footer button::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -60%;
+  width: 25%;
+  height: 100%;
+  background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.55), transparent);
+  transform: skewX(-20deg);
+  transition: left 0.4s ease;
+  pointer-events: none;
+}
+
+.provider-sidebar-footer button:hover::after {
+  left: 130%;
 }
 
 /* --------------------------------------------------------------------------
