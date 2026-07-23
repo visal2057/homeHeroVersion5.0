@@ -22,7 +22,7 @@ export default function AcceptancePieChart({ accepted = 0, rejected = 0, pending
   return (
     <div className="provider-chart-wrap">
       <div className="provider-chart-donut" aria-label="Booking acceptance chart">
-        <svg viewBox="0 0 120 120" width="160" height="160">
+        <svg viewBox="-4 -4 128 128" width="160" height="160">
           <circle cx="60" cy="60" r={R} fill="none" stroke="var(--color-neutral-100)" strokeWidth="16" />
           {accepted > 0 && (
             <circle
