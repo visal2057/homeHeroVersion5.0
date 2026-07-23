@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import { ROUTES } from '../../../constants/routes.js';
 import { getAssetUrl } from '../../../utils/storageUtils.js';
@@ -91,20 +90,7 @@ export default function ProviderCard({ provider }) {
         </div>
       </div>
 
-      {hovered && provider.workPreview?.images?.length > 0 && (
-        <>
-          {/* Blurs everything else on the page while this card's own preview
-              stays sharp on top of it (spec: "the page background becomes
-              blurred" on hover). Portaled to document.body because
-              .provider-card:hover sets a transform, and a transform on any
-              ancestor becomes the containing block for a position: fixed
-              descendant -- without the portal, the "page-wide" blur was
-              trapped inside this card's own box instead, blurring and
-              blocking clicks on the card itself. */}
-          {createPortal(<div className="pc-hover-blur" aria-hidden="true" />, document.body)}
-          <ProviderWorkPreview preview={provider.workPreview} />
-        </>
-      )}
+      {hovered && hasPreview && <ProviderWorkPreview preview={provider.workPreview} />}
 
       <style>{`
         .provider-card {
@@ -114,11 +100,6 @@ export default function ProviderCard({ provider }) {
           z-index: 1;
         }
         .provider-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); z-index: 25; }
-        .pc-hover-blur {
-          position: fixed; inset: 0; z-index: 15;
-          background: rgba(15, 23, 42, 0.08);
-          backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
-        }
         .pc-inner { display: flex; gap: var(--space-md); }
         .pc-avatar {
           position: relative; width: 86px; height: 86px; border-radius: 50%;
