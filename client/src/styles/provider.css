@@ -122,6 +122,15 @@
   font-weight: 600;
 }
 
+/* Same specificity issue as the plain hover rule above: without both
+   ancestor classes, global.css's a:not(.btn):not(.card):hover rule would
+   still win and force dark text onto the already-dark active background,
+   making the current page's link unreadable on hover. */
+.provider-sidebar .provider-sidebar-nav .provider-nav-link.active:hover {
+  background: rgba(16, 185, 129, 0.18);
+  color: var(--color-primary-300);
+}
+
 .provider-nav-link.active::before {
   content: '';
   position: absolute;
