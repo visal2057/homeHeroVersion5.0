@@ -17,7 +17,12 @@ export default function BanRequestCard({ request, onApply }) {
             </p>
           )}
         </div>
-        <button type="button" className="btn" style={{ backgroundColor: '#dc2626', color: '#fff' }} onClick={() => onApply(request)}>
+        <button
+          type="button"
+          className="btn"
+          style={{ backgroundColor: '#dc2626', color: '#fff' }}
+          onClick={(event) => onApply(request, event.currentTarget.getBoundingClientRect())}
+        >
           Ban
         </button>
       </div>

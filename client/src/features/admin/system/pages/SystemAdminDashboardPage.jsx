@@ -106,8 +106,8 @@ export default function SystemAdminDashboardPage() {
           <RevenueBarChart data={overview.revenueChart} />
         </div>
         <div className="card chart-card chart-card-interactive animate-fade-in-up delay-3">
-          <h3>Booking Distribution by Status</h3>
-          <BookingPieChart statuses={overview.statusDistribution} />
+          <h3>Booking Distribution by Category</h3>
+          <BookingPieChart categories={overview.categoryDistribution} />
         </div>
       </div>
 

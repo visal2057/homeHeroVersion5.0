@@ -1368,7 +1368,9 @@ CREATE TABLE public.sp_verification_applications (
     submitted_at timestamp with time zone DEFAULT now() NOT NULL,
     reviewed_by_user_id bigint,
     reviewed_at timestamp with time zone,
-    rejection_reason text
+    rejection_reason text,
+    opened_by_user_id bigint,
+    opened_at timestamp with time zone
 );
 
 
@@ -3045,6 +3047,14 @@ ALTER TABLE ONLY public.sp_verification_applications
 
 ALTER TABLE ONLY public.sp_verification_applications
     ADD CONSTRAINT sp_verification_applications_reviewed_by_user_id_fkey FOREIGN KEY (reviewed_by_user_id) REFERENCES public.users(user_id);
+
+
+--
+-- Name: sp_verification_applications sp_verification_applications_opened_by_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sp_verification_applications
+    ADD CONSTRAINT sp_verification_applications_opened_by_user_id_fkey FOREIGN KEY (opened_by_user_id) REFERENCES public.users(user_id);
 
 
 --
