@@ -1,15 +1,36 @@
 import { query } from '../../db/query.js';
 import { pool } from '../../db/pool.js';
 
+// Dashboard list: only complaints still awaiting the admin's attention.
+// Filtered here rather than on the client so the "disappearing complaint"
+// bug (opening a complaint flips it to UNDER_REVIEW, and a client-side
+// filter for SUBMITTED-only then hid it) can't come back - once a complaint
+// leaves this set it belongs to the Complaints history page instead.
 export function listComplaints() {
   return query(
-    `SELECT c.complaint_id, c.complaint_status, c.submitted_at, c.related_booking_id,
+    `SELECT c.complaint_id, c.complaint_status, c.submitted_at, c.resolved_at, c.related_booking_id,
             cu.full_name AS complainant_name, cu.user_token AS complainant_token,
             tu.full_name AS target_name, tu.user_token AS target_token
      FROM complaints c
      JOIN users cu ON cu.user_id = c.complainant_user_id
      JOIN users tu ON tu.user_id = c.target_user_id
+     WHERE c.complaint_status IN ('SUBMITTED', 'UNDER_REVIEW')
      ORDER BY c.submitted_at DESC`,
+  );
+}
+
+// Complaints history page (Change 2): every complaint the admin has already
+// recorded a verdict for, regardless of whether a ban was recommended.
+export function listResolvedComplaints() {
+  return query(
+    `SELECT c.complaint_id, c.complaint_status, c.submitted_at, c.resolved_at, c.related_booking_id,
+            cu.full_name AS complainant_name, cu.user_token AS complainant_token,
+            tu.full_name AS target_name, tu.user_token AS target_token
+     FROM complaints c
+     JOIN users cu ON cu.user_id = c.complainant_user_id
+     JOIN users tu ON tu.user_id = c.target_user_id
+     WHERE c.complaint_status IN ('RESOLVED', 'BAN_RECOMMENDED', 'CLOSED')
+     ORDER BY COALESCE(c.resolved_at, c.submitted_at) DESC`,
   );
 }
 

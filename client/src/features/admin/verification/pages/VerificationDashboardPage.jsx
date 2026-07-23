@@ -13,10 +13,17 @@ export default function VerificationDashboardPage() {
   const { showError } = useAlert();
 
   useEffect(() => {
+    // Both lists are already filtered server-side to "still needs my
+    // attention" (PENDING applications; SUBMITTED/UNDER_REVIEW complaints).
+    // A previous client-side filter here kept only SUBMITTED complaints,
+    // which meant opening a complaint (server flips it to UNDER_REVIEW)
+    // made it vanish from the dashboard the moment the admin came back -
+    // it now stays visible, just with its badge switched to "Processing",
+    // until a verdict is actually recorded.
     Promise.all([fetchPendingApplications(), fetchComplaints()])
       .then(([appsRes, complaintsRes]) => {
         setApplications(appsRes.data.data.applications);
-        setComplaints(complaintsRes.data.data.complaints.filter((c) => c.status === 'SUBMITTED'));
+        setComplaints(complaintsRes.data.data.complaints);
       })
       .catch((error) => showError(extractErrorMessage(error)))
       .finally(() => setIsLoading(false));

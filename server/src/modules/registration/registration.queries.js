@@ -27,13 +27,47 @@ export function insertProviderCategory(client, userId, serviceCategoryId) {
   );
 }
 
-export function insertVerificationApplication(client, { providerUserId, policeStationName, policeReportDate, termsVersion }) {
+// A reapplication (see reapplyAsProvider in registration.service.js) replaces
+// the previous category selection wholesale rather than diffing it, since the
+// applicant resubmits the whole form each time.
+export function deleteProviderCategories(client, userId) {
+  return client.query(`DELETE FROM provider_service_categories WHERE provider_user_id = $1`, [userId]);
+}
+
+export function insertVerificationApplication(client, { providerUserId, attemptNumber, policeStationName, policeReportDate, termsVersion }) {
   return client.query(
     `INSERT INTO sp_verification_applications
        (provider_user_id, attempt_number, police_station_name, police_report_date, terms_version, terms_accepted_at)
-     VALUES ($1, 1, $2, $3, $4, now())
+     VALUES ($1, $2, $3, $4, $5, now())
      RETURNING *`,
-    [providerUserId, policeStationName, policeReportDate, termsVersion],
+    [providerUserId, attemptNumber, policeStationName, policeReportDate, termsVersion],
+  );
+}
+
+// Used to work out the next attempt_number for a rejected provider who is
+// reapplying, and to enforce the 3-attempt cap.
+export function countVerificationApplications(providerUserId) {
+  return query(`SELECT COUNT(*)::int AS count FROM sp_verification_applications WHERE provider_user_id = $1`, [providerUserId]);
+}
+
+// Resets an existing (previously rejected) provider back to PENDING with
+// the freshly submitted profile details, instead of inserting a brand-new
+// service_provider_profiles row (that table's PK is provider_user_id, so a
+// reapplication must UPDATE the row it already owns).
+export function updateProviderProfileForReapplication(client, { userId, homeDistrictId, serviceDistrictId, bio, workHoursDetails, hourlyChargeEstimate }) {
+  return client.query(
+    `UPDATE service_provider_profiles
+     SET home_district_id = $1, service_district_id = $2, bio = $3, work_hours_details = $4, hourly_charge_estimate = $5,
+         verification_status = 'PENDING', verified_at = NULL, updated_at = now()
+     WHERE provider_user_id = $6`,
+    [homeDistrictId, serviceDistrictId, bio, workHoursDetails, hourlyChargeEstimate, userId],
+  );
+}
+
+export function updateUserForReapplication(client, { userId, fullName, phone }) {
+  return client.query(
+    `UPDATE users SET full_name = $1, phone = $2, updated_at = now() WHERE user_id = $3`,
+    [fullName, phone, userId],
   );
 }
 

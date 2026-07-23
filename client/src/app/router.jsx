@@ -46,6 +46,8 @@ import AnnouncementsPage from '../features/admin/system/pages/AnnouncementsPage.
 import VerificationDashboardPage from '../features/admin/verification/pages/VerificationDashboardPage.jsx';
 import VerificationReviewPage from '../features/admin/verification/pages/VerificationReviewPage.jsx';
 import ComplaintReviewPage from '../features/admin/verification/pages/ComplaintReviewPage.jsx';
+import ApplicationsPage from '../features/admin/verification/pages/ApplicationsPage.jsx';
+import ComplaintsHistoryPage from '../features/admin/verification/pages/ComplaintsHistoryPage.jsx';
 
 import ExploreServicePage from '../features/client/pages/ExploreServicePage.jsx';
 import ProviderPublicProfilePage from '../features/client/pages/ProviderPublicProfilePage.jsx';
@@ -157,9 +159,11 @@ export default function AppRouter() {
         <Route element={<VerificationAdminLayout />}>
           <Route path="/admin/verification" element={<Navigate to={ROUTES.VERIFICATION_ADMIN_DASHBOARD} replace />} />
 
-          <Route path={ROUTES.VERIFICATION_ADMIN_DASHBOARD}  element={<VerificationDashboardPage />} />
-          <Route path={ROUTES.VERIFICATION_ADMIN_REVIEW}     element={<VerificationReviewPage />} />
-          <Route path={ROUTES.VERIFICATION_ADMIN_COMPLAINT}  element={<ComplaintReviewPage />} />
+          <Route path={ROUTES.VERIFICATION_ADMIN_DASHBOARD}    element={<VerificationDashboardPage />} />
+          <Route path={ROUTES.VERIFICATION_ADMIN_APPLICATIONS} element={<ApplicationsPage />} />
+          <Route path={ROUTES.VERIFICATION_ADMIN_REVIEW}       element={<VerificationReviewPage />} />
+          <Route path={ROUTES.VERIFICATION_ADMIN_COMPLAINTS}   element={<ComplaintsHistoryPage />} />
+          <Route path={ROUTES.VERIFICATION_ADMIN_COMPLAINT}    element={<ComplaintReviewPage />} />
         </Route>
       </Route>
     </Routes>

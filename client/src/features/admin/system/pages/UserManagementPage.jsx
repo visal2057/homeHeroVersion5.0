@@ -18,7 +18,15 @@ export default function UserManagementPage() {
   const [banTarget, setBanTarget] = useState(null);
   const [unbanTarget, setUnbanTarget] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [banAnchor, setBanAnchor] = useState(null);
   const { showError, showSuccess } = useAlert();
+
+  // Shared by the table's per-row Ban button and the Ban Request cards above
+  // it, so the popover always opens next to whichever button was clicked.
+  function openBanPopover(target, rect) {
+    setBanTarget(target);
+    setBanAnchor(rect);
+  }
 
   const loadUsers = useCallback(() => {
     setIsLoading(true);
@@ -49,6 +57,7 @@ export default function UserManagementPage() {
       });
       showSuccess('User has been banned.');
       setBanTarget(null);
+      setBanAnchor(null);
       await loadUsers();
     } catch (error) {
       showError(extractErrorMessage(error));
@@ -84,7 +93,7 @@ export default function UserManagementPage() {
         <div className="card chart-card" style={{ marginBottom: 'var(--space-xl)' }}>
           <h3>Pending Ban Requests from Verification Admin</h3>
           {banRequests.map((request) => (
-            <BanRequestCard key={request.banRequestId} request={request} onApply={setBanTarget} />
+            <BanRequestCard key={request.banRequestId} request={request} onApply={openBanPopover} />
           ))}
         </div>
       )}
@@ -115,16 +124,20 @@ export default function UserManagementPage() {
           <LoadingSpinner />
         </div>
       ) : (
-        <AdminUsersTable users={users} onBan={setBanTarget} onUnban={setUnbanTarget} />
+        <AdminUsersTable users={users} onBan={openBanPopover} onUnban={setUnbanTarget} />
       )}
 
       <BanUserModal
         isOpen={Boolean(banTarget)}
-        onClose={() => setBanTarget(null)}
+        onClose={() => {
+          setBanTarget(null);
+          setBanAnchor(null);
+        }}
         onSubmit={handleApplyBan}
         targetName={banTarget?.fullName ?? banTarget?.requestedUserName}
         isSubmitting={isSubmitting}
         recommendation={banTarget}
+        anchorRect={banAnchor}
       />
 
       <ConfirmModal
