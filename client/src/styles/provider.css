@@ -81,7 +81,6 @@
 .provider-nav-link {
   display: flex;
   align-items: center;
-  gap: var(--space-md);
   padding: 0.65rem var(--space-lg);
   color: rgba(255, 255, 255, 0.75);
   font-weight: 500;
@@ -92,6 +91,13 @@
   position: relative;
 }
 
+.provider-nav-content {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  transition: transform var(--transition-base);
+}
+
 .provider-nav-link:hover {
   background: var(--color-secondary-900);
   color: var(--color-primary-200);
@@ -100,6 +106,10 @@
 
 .provider-nav-link:hover::after {
   display: none;
+}
+
+.provider-nav-link:hover .provider-nav-content {
+  transform: translateX(4px);
 }
 
 .provider-nav-link.active {
