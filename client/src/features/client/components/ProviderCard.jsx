@@ -96,10 +96,20 @@ export default function ProviderCard({ provider }) {
         .provider-card {
           background: white; border-radius: var(--radius-lg);
           border: 1px solid var(--color-neutral-200); padding: var(--space-lg);
-          transition: transform 0.2s ease, box-shadow 0.2s ease; position: relative;
+          transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease; position: relative;
           z-index: 1;
         }
         .provider-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); z-index: 25; }
+        /* Dims every other card in the grid while one card's work preview is
+           open, without touching the hovered card itself - so it (and its
+           "View Profile" link) always stays sharp and clickable, no matter
+           where it sits in the DOM or what wraps it. Pure sibling selectors,
+           so this works for any grid of provider cards, present or future,
+           with no coordination needed from the page that renders them. */
+        .provider-card:has(~ .provider-card.has-preview:hover),
+        .provider-card.has-preview:hover ~ .provider-card {
+          filter: blur(3px);
+        }
         .pc-inner { display: flex; gap: var(--space-md); }
         .pc-avatar {
           position: relative; width: 86px; height: 86px; border-radius: 50%;
