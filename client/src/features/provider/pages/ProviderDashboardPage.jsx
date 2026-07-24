@@ -91,9 +91,11 @@ export default function ProviderDashboardPage() {
       const { data } = await axiosClient.get(API_ENDPOINTS.PROVIDER.UNAVAILABLE_DATES);
       const existing = data?.data ?? data ?? [];
       const merged = [...new Set([...(Array.isArray(existing) ? existing : []), ...dateKeys])];
+      // Blocking specific dates must not flip the account-wide manualOnline
+      // flag: that flag drives search visibility and bookability on every
+      // date, not just the ones picked here. The provider stays online and
+      // bookable outside this range, same as the Jobs To Do calendar.
       await axiosClient.put(API_ENDPOINTS.PROVIDER.UNAVAILABLE_DATES, { dates: merged });
-      await axiosClient.patch(API_ENDPOINTS.PROVIDER.AVAILABILITY, { manualOnline: false });
-      setIsOnline(false);
       setShowOfflinePicker(false);
     } catch (err) {
       setStatusError(err?.response?.data?.message ?? 'Could not save unavailable dates. Please try again.');
