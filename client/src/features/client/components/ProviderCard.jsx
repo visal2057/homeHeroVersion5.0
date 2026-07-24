@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import { ROUTES } from '../../../constants/routes.js';
@@ -35,11 +35,15 @@ import { IconMapPin, IconStar } from '../../../components/common/icons.jsx';
 // (see git log: "Fix provider cards with a work preview becoming unclickable
 // on hover" / "Remove the fixed-overlay/portal hover-blur mechanism") got
 // wrong by covering the page with a hit-testable overlay.
-function ProviderWorkPreview({ posts }) {
+function ProviderWorkPreview({ posts, onMouseEnter, onMouseLeave }) {
   if (!posts?.length) return null;
   return createPortal(
     <div className="pc-preview-overlay">
-      <div className="pc-preview animate-fade-in-up">
+      <div
+        className="pc-preview animate-fade-in-up"
+        onMouseEnter={onMouseEnter}
+        onMouseLeave={onMouseLeave}
+      >
         <div className="pc-preview-header">Previous Work</div>
         <div className="pc-preview-scroll">
           {posts.slice(0, 5).map((post, idx) => (
@@ -90,15 +94,43 @@ function StarRating({ rating }) {
 
 export default function ProviderCard({ provider }) {
   const [hovered, setHovered] = useState(false);
+  const closeTimerRef = useRef(null);
   const profileHref = ROUTES.CLIENT_PROVIDER_PROFILE.replace(':providerId', provider.providerId ?? provider.id);
 
   const hasPreview = provider.workPreview?.posts?.length > 0;
 
+  // The popup now lives in the middle of the screen instead of right below
+  // the card, so the pointer has to travel across the page to reach it.
+  // Closing on the card's plain onMouseLeave would hide the popup the
+  // instant the pointer starts that trip. A short grace period - cancelled
+  // if the pointer lands on the card or popup again in time - keeps it
+  // open long enough to reach, while still honoring "closes when the
+  // pointer leaves" (system flow 13.4) once the pointer truly moves away.
+  const openPreview = useCallback(() => {
+    if (closeTimerRef.current) {
+      clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = null;
+    }
+    setHovered(true);
+  }, []);
+
+  const scheduleClosePreview = useCallback(() => {
+    if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
+    closeTimerRef.current = setTimeout(() => {
+      setHovered(false);
+      closeTimerRef.current = null;
+    }, 250);
+  }, []);
+
+  useEffect(() => () => {
+    if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
+  }, []);
+
   return (
     <div
       className={`provider-card${hasPreview ? ' has-preview' : ''}`}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+      onMouseEnter={openPreview}
+      onMouseLeave={scheduleClosePreview}
     >
       <div className="pc-inner">
         <div className="pc-avatar">
@@ -133,7 +165,13 @@ export default function ProviderCard({ provider }) {
         </div>
       </div>
 
-      {hovered && hasPreview && <ProviderWorkPreview posts={provider.workPreview.posts} />}
+      {hovered && hasPreview && (
+        <ProviderWorkPreview
+          posts={provider.workPreview.posts}
+          onMouseEnter={openPreview}
+          onMouseLeave={scheduleClosePreview}
+        />
+      )}
 
       <style>{`
         .provider-card {
