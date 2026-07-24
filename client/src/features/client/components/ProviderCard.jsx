@@ -35,10 +35,10 @@ import { IconMapPin, IconStar } from '../../../components/common/icons.jsx';
 // (see git log: "Fix provider cards with a work preview becoming unclickable
 // on hover" / "Remove the fixed-overlay/portal hover-blur mechanism") got
 // wrong by covering the page with a hit-testable overlay.
-function ProviderWorkPreview({ posts, onMouseEnter, onMouseLeave }) {
+function ProviderWorkPreview({ posts, align, onMouseEnter, onMouseLeave }) {
   if (!posts?.length) return null;
   return createPortal(
-    <div className="pc-preview-overlay">
+    <div className={`pc-preview-overlay${align !== 'center' ? ` pc-preview-overlay-${align}` : ''}`}>
       <div
         className="pc-preview animate-fade-in-up"
         onMouseEnter={onMouseEnter}
@@ -92,9 +92,16 @@ function StarRating({ rating }) {
   );
 }
 
+// Half the popup's own max-width (420px, see .pc-preview) plus the overlay's
+// side padding - i.e. how far the centered popup box extends out from the
+// exact middle of the viewport in either direction.
+const PREVIEW_HALF_WIDTH = 420 / 2 + 24;
+
 export default function ProviderCard({ provider }) {
   const [hovered, setHovered] = useState(false);
+  const [previewAlign, setPreviewAlign] = useState('center');
   const closeTimerRef = useRef(null);
+  const cardRef = useRef(null);
   const profileHref = ROUTES.CLIENT_PROVIDER_PROFILE.replace(':providerId', provider.providerId ?? provider.id);
 
   const hasPreview = provider.workPreview?.posts?.length > 0;
@@ -110,6 +117,23 @@ export default function ProviderCard({ provider }) {
     if (closeTimerRef.current) {
       clearTimeout(closeTimerRef.current);
       closeTimerRef.current = null;
+    }
+    // A dead-center popup hides whichever card sits in the middle column of
+    // the grid, since it opens directly on top of it. Only nudge the popup
+    // aside when the hovered card actually falls under where a centered
+    // popup would sit - side-column cards are already clear of it and stay
+    // exactly centered, same as before.
+    const cardRect = cardRef.current?.getBoundingClientRect();
+    if (cardRect) {
+      const viewportMid = window.innerWidth / 2;
+      const overlapsCenter = cardRect.left < viewportMid + PREVIEW_HALF_WIDTH
+        && cardRect.right > viewportMid - PREVIEW_HALF_WIDTH;
+      if (overlapsCenter) {
+        const roomOnRight = window.innerWidth - cardRect.right;
+        setPreviewAlign(roomOnRight >= PREVIEW_HALF_WIDTH * 2 ? 'right' : 'left');
+      } else {
+        setPreviewAlign('center');
+      }
     }
     setHovered(true);
   }, []);
@@ -128,6 +152,7 @@ export default function ProviderCard({ provider }) {
 
   return (
     <div
+      ref={cardRef}
       className={`provider-card${hasPreview ? ' has-preview' : ''}`}
       onMouseEnter={openPreview}
       onMouseLeave={scheduleClosePreview}
@@ -168,6 +193,7 @@ export default function ProviderCard({ provider }) {
       {hovered && hasPreview && (
         <ProviderWorkPreview
           posts={provider.workPreview.posts}
+          align={previewAlign}
           onMouseEnter={openPreview}
           onMouseLeave={scheduleClosePreview}
         />
@@ -237,6 +263,11 @@ export default function ProviderCard({ provider }) {
           display: flex; align-items: center; justify-content: center;
           padding: var(--space-lg); pointer-events: none;
         }
+        /* A dead-center popup would sit directly on top of a middle-column
+           card, hiding the very card being previewed - shift to whichever
+           side actually has room instead, still vertically centered. */
+        .pc-preview-overlay-right { justify-content: flex-end; }
+        .pc-preview-overlay-left { justify-content: flex-start; }
         .pc-preview {
           pointer-events: auto;
           background: white; border-radius: var(--radius-lg); box-shadow: var(--shadow-lg);
