@@ -4,15 +4,28 @@ import { ROUTES } from '../../../constants/routes.js';
 import { getAssetUrl } from '../../../utils/storageUtils.js';
 import { IconMapPin, IconStar } from '../../../components/common/icons.jsx';
 
-function ProviderWorkPreview({ preview }) {
-  if (!preview?.images?.length) return null;
+// The "All Providers" hover-preview popup (system flow section 13.4): shows
+// up to the provider's five most recent portfolio posts, most recent first,
+// scrollable so all five stay reachable without growing the popup without
+// bound.
+function ProviderWorkPreview({ posts }) {
+  if (!posts?.length) return null;
   return (
     <div className="pc-preview animate-fade-in-up">
-      {preview.title && <div className="pc-preview-title">{preview.title}</div>}
-      {preview.description && <p className="pc-preview-desc">{preview.description}</p>}
-      <div className="pc-preview-grid">
-        {preview.images.slice(0, 3).map((img, i) => (
-          <img key={i} src={getAssetUrl(img)} alt={preview.title ? `${preview.title} ${i + 1}` : ''} />
+      <div className="pc-preview-header">Previous Work</div>
+      <div className="pc-preview-scroll">
+        {posts.slice(0, 5).map((post, idx) => (
+          <div className="pc-preview-post" key={idx}>
+            {post.title && <div className="pc-preview-title">{post.title}</div>}
+            {post.description && <p className="pc-preview-desc">{post.description}</p>}
+            {post.images?.length > 0 && (
+              <div className="pc-preview-grid">
+                {post.images.slice(0, 3).map((img, i) => (
+                  <img key={i} src={getAssetUrl(img)} alt={post.title ? `${post.title} ${i + 1}` : ''} />
+                ))}
+              </div>
+            )}
+          </div>
         ))}
       </div>
     </div>
@@ -49,7 +62,7 @@ export default function ProviderCard({ provider }) {
   const [hovered, setHovered] = useState(false);
   const profileHref = ROUTES.CLIENT_PROVIDER_PROFILE.replace(':providerId', provider.providerId ?? provider.id);
 
-  const hasPreview = provider.workPreview?.images?.length > 0;
+  const hasPreview = provider.workPreview?.posts?.length > 0;
 
   return (
     <div
@@ -90,7 +103,7 @@ export default function ProviderCard({ provider }) {
         </div>
       </div>
 
-      {hovered && hasPreview && <ProviderWorkPreview preview={provider.workPreview} />}
+      {hovered && hasPreview && <ProviderWorkPreview posts={provider.workPreview.posts} />}
 
       <style>{`
         .provider-card {
@@ -100,15 +113,27 @@ export default function ProviderCard({ provider }) {
           z-index: 1;
         }
         .provider-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); z-index: 25; }
-        /* Dims every other card in the grid while one card's work preview is
-           open, without touching the hovered card itself - so it (and its
-           "View Profile" link) always stays sharp and clickable, no matter
-           where it sits in the DOM or what wraps it. Pure sibling selectors,
-           so this works for any grid of provider cards, present or future,
-           with no coordination needed from the page that renders them. */
-        .provider-card:has(~ .provider-card.has-preview:hover),
-        .provider-card.has-preview:hover ~ .provider-card {
+        /* System flow section 13.4: "the Explore page background becomes
+           blurred" while a card's work preview is open - the whole page,
+           not just its neighbors in the grid. Each region (header, hero,
+           top-providers, filters, results count, other cards) is blurred
+           individually by name rather than by wrapping the page in one
+           blurred container, because filter has no "exclude this nested
+           descendant" mechanism - a parent-level blur would blur the
+           hovered card too, since it's a descendant of everything here.
+           Scoped from body via :has() so this rule can only ever match on
+           an Explore page (.provider-card only renders there) and needs no
+           fixed positioning, portal, or z-index racing against anything -
+           the exact approach a full-page overlay in this file's history
+           broke on (see "Fix provider cards with a work preview becoming
+           unclickable on hover" / "Remove the fixed-overlay/portal
+           hover-blur mechanism" in git log). The hovered card and its
+           popup are never matched by any selector below, so they're
+           excluded by construction and stay sharp and fully clickable. */
+        body:has(.provider-card.has-preview:hover)
+          :is(header, footer, .ep-hero, .top-providers-section, .ep-filters, .ep-results-header, .provider-card:not(:hover)) {
           filter: blur(3px);
+          transition: filter 0.2s ease;
         }
         .pc-inner { display: flex; gap: var(--space-md); }
         .pc-avatar {
@@ -142,6 +167,14 @@ export default function ProviderCard({ provider }) {
           border: 1px solid var(--color-neutral-200); padding: var(--space-md);
           z-index: 20; width: 288px; margin-top: 8px;
         }
+        .pc-preview-header {
+          font-weight: 700; font-size: var(--font-size-xs); text-transform: uppercase;
+          letter-spacing: 0.04em; color: var(--color-neutral-400); margin-bottom: 8px;
+        }
+        /* Up to 5 posts (system flow 13.4), scrollable instead of growing
+           the popup without bound. */
+        .pc-preview-scroll { max-height: 340px; overflow-y: auto; display: flex; flex-direction: column; gap: var(--space-sm); }
+        .pc-preview-post + .pc-preview-post { padding-top: var(--space-sm); border-top: 1px solid var(--color-neutral-100); }
         .pc-preview-title { font-weight: 600; font-size: var(--font-size-sm); color: var(--color-secondary-700); margin-bottom: 4px; }
         .pc-preview-desc {
           font-size: var(--font-size-xs); color: var(--color-neutral-500); margin: 0 0 8px;

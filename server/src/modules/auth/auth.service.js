@@ -22,6 +22,8 @@ import {
   markResetTokenUsed,
   updateUserPassword,
   updateLastLogin,
+  insertAuthSession,
+  revokeAuthSession,
 } from './auth.queries.js';
 
 async function generateUniqueToken() {
@@ -49,7 +51,7 @@ function toPublicUser(user) {
   };
 }
 
-function signSession(user) {
+function signSession(user, sessionId) {
   return jwt.sign(
     {
       userId: user.user_id,
@@ -57,10 +59,23 @@ function signSession(user) {
       role: user.role_code,
       accountStatus: user.account_status,
       verificationStatus: user.verification_status ?? null,
+      sid: sessionId,
     },
     env.authSecret,
     { expiresIn: `${env.sessionExpiryDays}d` },
   );
+}
+
+// Creates the auth_sessions row this login's JWT is tied to, so the session
+// can be individually revoked later (logout, or a ban touching every active
+// session for the user) instead of only ever expiring on its own.
+async function createSession(userId) {
+  const sessionSecret = crypto.randomBytes(32).toString('hex');
+  const refreshTokenHash = crypto.createHash('sha256').update(sessionSecret).digest('hex');
+  const expiresAt = new Date(Date.now() + env.sessionExpiryDays * 24 * 60 * 60 * 1000);
+
+  const { rows } = await insertAuthSession({ userId, refreshTokenHash, expiresAt });
+  return rows[0].session_id;
 }
 
 export async function registerClient(input) {
@@ -154,8 +169,14 @@ export async function login({ identifier, password }) {
 
   await updateLastLogin(user.user_id);
 
-  const token = signSession(user);
+  const sessionId = await createSession(user.user_id);
+  const token = signSession(user, sessionId);
   return { token, user: toPublicUser(user) };
+}
+
+export async function logout(userId, sessionId) {
+  if (!sessionId) return;
+  await revokeAuthSession(sessionId, userId);
 }
 
 export async function getCurrentUser(userId) {
