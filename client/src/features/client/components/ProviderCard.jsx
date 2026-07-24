@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import { ROUTES } from '../../../constants/routes.js';
 import { getAssetUrl } from '../../../utils/storageUtils.js';
@@ -7,28 +8,57 @@ import { IconMapPin, IconStar } from '../../../components/common/icons.jsx';
 // The "All Providers" hover-preview popup (system flow section 13.4): shows
 // up to the provider's five most recent portfolio posts, most recent first,
 // scrollable so all five stay reachable without growing the popup without
-// bound.
+// bound, centered in the middle of the screen while the rest of the page
+// blurs behind it.
+//
+// Portaled straight to document.body rather than rendered as a child of the
+// card: `.provider-card:hover` sets `transform: translateY(-4px)`, and any
+// transform on an ancestor becomes the containing block for a `position:
+// fixed` descendant (the same reason client/src/components/common/Modal.jsx
+// portals itself). Without the portal, "centered on screen" would actually
+// mean "centered on the hovered card", which is what made this feature look
+// unfinished - the popup was rendering, just off in a 288px box glued to the
+// bottom of the card instead of the middle of the viewport.
+//
+// Centering uses a fixed, full-viewport flex wrapper (like Modal.jsx) rather
+// than the common `top/left: 50%; transform: translate(-50%, -50%)` trick,
+// because .pc-preview also carries the shared `.animate-fade-in-up` entrance
+// class, whose keyframes animate `transform` too - two rules writing to the
+// same `transform` property on one element don't combine, so the animation
+// would silently win and strand the popup wherever its keyframe leaves
+// `transform` (not centered) once it finishes. Flex centering never touches
+// `transform`, so it can't collide with the entrance animation.
+//
+// The wrapper is `pointer-events: none` so it never intercepts clicks on the
+// rest of the page - only the popup box itself (pointer-events: auto) is
+// interactive - which is what the earlier "fixed-overlay/portal" attempt
+// (see git log: "Fix provider cards with a work preview becoming unclickable
+// on hover" / "Remove the fixed-overlay/portal hover-blur mechanism") got
+// wrong by covering the page with a hit-testable overlay.
 function ProviderWorkPreview({ posts }) {
   if (!posts?.length) return null;
-  return (
-    <div className="pc-preview animate-fade-in-up">
-      <div className="pc-preview-header">Previous Work</div>
-      <div className="pc-preview-scroll">
-        {posts.slice(0, 5).map((post, idx) => (
-          <div className="pc-preview-post" key={idx}>
-            {post.title && <div className="pc-preview-title">{post.title}</div>}
-            {post.description && <p className="pc-preview-desc">{post.description}</p>}
-            {post.images?.length > 0 && (
-              <div className="pc-preview-grid">
-                {post.images.slice(0, 3).map((img, i) => (
-                  <img key={i} src={getAssetUrl(img)} alt={post.title ? `${post.title} ${i + 1}` : ''} />
-                ))}
-              </div>
-            )}
-          </div>
-        ))}
+  return createPortal(
+    <div className="pc-preview-overlay">
+      <div className="pc-preview animate-fade-in-up">
+        <div className="pc-preview-header">Previous Work</div>
+        <div className="pc-preview-scroll">
+          {posts.slice(0, 5).map((post, idx) => (
+            <div className="pc-preview-post" key={idx}>
+              {post.title && <div className="pc-preview-title">{post.title}</div>}
+              {post.description && <p className="pc-preview-desc">{post.description}</p>}
+              {post.images?.length > 0 && (
+                <div className="pc-preview-grid">
+                  {post.images.slice(0, 3).map((img, i) => (
+                    <img key={i} src={getAssetUrl(img)} alt={post.title ? `${post.title} ${i + 1}` : ''} />
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 
@@ -161,19 +191,32 @@ export default function ProviderCard({ provider }) {
         }
         .pc-footer { display: flex; align-items: center; justify-content: space-between; }
         .pc-rate { font-weight: 700; color: var(--color-primary-700); font-size: var(--font-size-sm); }
+        /* Full-viewport, pointer-events-free flex wrapper that centers the
+           actual popup box (see the portal note above for why flex, not a
+           transform, does the centering). */
+        .pc-preview-overlay {
+          position: fixed; inset: 0; z-index: 1200;
+          display: flex; align-items: center; justify-content: center;
+          padding: var(--space-lg); pointer-events: none;
+        }
         .pc-preview {
-          position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
-          background: white; border-radius: var(--radius-md); box-shadow: var(--shadow-lg);
-          border: 1px solid var(--color-neutral-200); padding: var(--space-md);
-          z-index: 20; width: 288px; margin-top: 8px;
+          pointer-events: auto;
+          background: white; border-radius: var(--radius-lg); box-shadow: var(--shadow-lg);
+          border: 1px solid var(--color-neutral-200); padding: var(--space-lg);
+          width: min(420px, calc(100vw - 48px));
+          max-height: min(520px, calc(100vh - 48px));
+          display: flex; flex-direction: column;
         }
         .pc-preview-header {
           font-weight: 700; font-size: var(--font-size-xs); text-transform: uppercase;
           letter-spacing: 0.04em; color: var(--color-neutral-400); margin-bottom: 8px;
+          flex-shrink: 0;
         }
         /* Up to 5 posts (system flow 13.4), scrollable instead of growing
-           the popup without bound. */
-        .pc-preview-scroll { max-height: 340px; overflow-y: auto; display: flex; flex-direction: column; gap: var(--space-sm); }
+           the popup without bound. flex: 1 + min-height: 0 lets this fill
+           whatever space is left under the max-height above, rather than
+           overflowing it, however many posts/images each provider has. */
+        .pc-preview-scroll { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: var(--space-md); }
         .pc-preview-post + .pc-preview-post { padding-top: var(--space-sm); border-top: 1px solid var(--color-neutral-100); }
         .pc-preview-title { font-weight: 600; font-size: var(--font-size-sm); color: var(--color-secondary-700); margin-bottom: 4px; }
         .pc-preview-desc {
