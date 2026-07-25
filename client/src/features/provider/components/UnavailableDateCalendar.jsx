@@ -1,6 +1,5 @@
 import { useState, useMemo } from 'react';
 import DayTasksPreview from './DayTasksPreview.jsx';
-import { rowPreviewPosition } from '../rowPreviewPosition.js';
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const MONTHS = [
@@ -8,8 +7,29 @@ const MONTHS = [
   'July','August','September','October','November','December',
 ];
 
+const PREVIEW_WIDTH = 280;
+const PREVIEW_GAP = 8; // clear gap so the popup never touches the tile's own border
+const VIEWPORT_MARGIN = 12;
+
 function toKey(date) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+}
+
+// Unlike rowPreviewPosition.js (wide rows, anchored below-left), a calendar
+// tile is small and square, so the popup is centered above it instead.
+// Positioned with `bottom` rather than `top` so its bottom edge stays
+// pinned just above the tile regardless of how tall the popup's content
+// makes it -- growing upward, never downward into the tile.
+function dayPreviewPosition(tileRect) {
+  let left = tileRect.left + tileRect.width / 2 - PREVIEW_WIDTH / 2;
+  if (left + PREVIEW_WIDTH + VIEWPORT_MARGIN > window.innerWidth) {
+    left = window.innerWidth - PREVIEW_WIDTH - VIEWPORT_MARGIN;
+  }
+  if (left < VIEWPORT_MARGIN) left = VIEWPORT_MARGIN;
+
+  const bottom = window.innerHeight - tileRect.top + PREVIEW_GAP;
+
+  return { left, bottom };
 }
 
 // Marking a day unavailable already has a home on the Provider Dashboard's
@@ -21,7 +41,7 @@ export default function UnavailableDateCalendar({ unavailableDates = [], onToggl
   const [viewDate, setViewDate] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
   const [activeDay, setActiveDay] = useState(null); // date key string, e.g. "2026-09-05"
   const [isPinned, setIsPinned] = useState(false);
-  const [previewPos, setPreviewPos] = useState({ top: 0, left: 0 });
+  const [previewPos, setPreviewPos] = useState({ bottom: 0, left: 0 });
 
   const year  = viewDate.getFullYear();
   const month = viewDate.getMonth();
@@ -63,7 +83,7 @@ export default function UnavailableDateCalendar({ unavailableDates = [], onToggl
   function handleDayEnter(day, e) {
     if (isPinned) return;
     setActiveDay(toKey(new Date(year, month, day)));
-    setPreviewPos(rowPreviewPosition(e.currentTarget.getBoundingClientRect()));
+    setPreviewPos(dayPreviewPosition(e.currentTarget.getBoundingClientRect()));
   }
 
   function handleDayLeave() {
@@ -79,7 +99,7 @@ export default function UnavailableDateCalendar({ unavailableDates = [], onToggl
     }
     setActiveDay(key);
     setIsPinned(true);
-    setPreviewPos(rowPreviewPosition(e.currentTarget.getBoundingClientRect()));
+    setPreviewPos(dayPreviewPosition(e.currentTarget.getBoundingClientRect()));
   }
 
   function handleRemoveUnavailable() {
@@ -159,7 +179,7 @@ export default function UnavailableDateCalendar({ unavailableDates = [], onToggl
           pinned={isPinned}
           onRemoveUnavailable={handleRemoveUnavailable}
           onClose={closePreview}
-          style={{ top: previewPos.top, left: previewPos.left }}
+          style={{ bottom: previewPos.bottom, left: previewPos.left }}
         />
       )}
     </div>
