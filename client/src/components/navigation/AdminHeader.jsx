@@ -71,7 +71,7 @@ export default function AdminHeader({ roleLabel, homeRoute, navItems, variant = 
       <div className="container admin-header-inner">
         <div className="admin-brand">
           <NavLink to={homeRoute} style={{ color: 'inherit' }}>
-            🛠️ HomeHero
+            HomeHero
           </NavLink>
           {isModern && <span className="admin-header-divider" aria-hidden="true" />}
           <span className="admin-role-badge">{roleLabel}</span>
