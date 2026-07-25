@@ -641,6 +641,7 @@ CREATE TABLE public.bookings (
     service_category_id smallint NOT NULL,
     job_description text NOT NULL,
     scheduled_at timestamp with time zone NOT NULL,
+    scheduled_end_at timestamp with time zone,
     booking_status public.booking_status DEFAULT 'PENDING'::public.booking_status NOT NULL,
     requested_at timestamp with time zone DEFAULT now() NOT NULL,
     responded_at timestamp with time zone,
@@ -1508,7 +1509,8 @@ CREATE VIEW public.vw_booking_overview AS
     bp.payment_method,
     bp.payment_status,
     b.requested_at,
-    b.completed_at
+    b.completed_at,
+    b.scheduled_end_at
    FROM ((((public.bookings b
      JOIN public.users cu ON ((cu.user_id = b.client_user_id)))
      JOIN public.users pu ON ((pu.user_id = b.provider_user_id)))
