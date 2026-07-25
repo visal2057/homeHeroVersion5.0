@@ -5,6 +5,32 @@ import {
   markNotificationAsRead,
 } from './notification.queries.js';
 import { getActiveAnnouncementsForRole, markRead as markAnnouncementRead } from '../announcements/announcement.service.js';
+import { findBookingStatusesByIds } from '../bookings/booking.queries.js';
+
+const RESCHEDULE_PROPOSED = 'BOOKING_RESCHEDULE_PROPOSED';
+
+// A reschedule-proposal notification's actionability can't be tracked on
+// the client (a page refresh loses any in-memory "already responded" state,
+// and the notification's own relatedType never changes once resolved) --
+// this looks up the underlying booking's *current* status so the bell can
+// correctly decide whether Accept/Reject still make sense, every time it
+// fetches, regardless of refreshes or other sessions.
+async function annotateRescheduleActionability(notifications) {
+  const bookingIds = [...new Set(
+    notifications.filter((n) => n.relatedType === RESCHEDULE_PROPOSED).map((n) => n.relatedId),
+  )];
+  if (bookingIds.length === 0) return notifications;
+
+  const { rows } = await findBookingStatusesByIds(bookingIds);
+  const statusByBookingId = new Map(rows.map((r) => [String(r.booking_id), r.booking_status]));
+
+  return notifications.map((n) => ({
+    ...n,
+    actionable: n.relatedType === RESCHEDULE_PROPOSED
+      ? statusByBookingId.get(String(n.relatedId)) === 'RESCHEDULE_PENDING'
+      : undefined,
+  }));
+}
 
 // Called by any module to raise a personal notification for one user.
 // Currently only Visal's payment-received event uses this.
@@ -37,10 +63,11 @@ export async function markAsRead(notificationId, userId) {
 // announcements targeted at the caller's role, most recent first, each
 // item tagged with its type so the bell can label it correctly.
 export async function getCombinedFeed(role, userId) {
-  const [announcements, notifications] = await Promise.all([
+  const [announcements, rawNotifications] = await Promise.all([
     getActiveAnnouncementsForRole(role, userId),
     listNotifications(userId),
   ]);
+  const notifications = await annotateRescheduleActionability(rawNotifications);
 
   const feed = [
     ...announcements.map((announcement) => ({
@@ -66,6 +93,7 @@ export async function getCombinedFeed(role, userId) {
       relatedId: notification.relatedId,
       isRead: notification.isRead,
       createdAt: notification.createdAt,
+      actionable: notification.actionable,
     })),
   ];
 

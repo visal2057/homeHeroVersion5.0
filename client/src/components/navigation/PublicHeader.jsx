@@ -22,7 +22,7 @@ const POLL_INTERVAL_MS = 30_000; // refresh announcements every 30 s
 
 export default function PublicHeader() {
   const { user, logout } = useAuth();
-  const { showSuccess } = useAlert();
+  const { showSuccess, showError } = useAlert();
   const navigate = useNavigate();
 
   const isClient = user?.role === ROLES.CLIENT;
@@ -38,10 +38,12 @@ export default function PublicHeader() {
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [announcements, setAnnouncements] = useState([]);
   const [rescheduleActingId, setRescheduleActingId] = useState(null);
-  // A reschedule-proposal notification's relatedType never changes once the
-  // booking is resolved (accepted/rejected), so this session-local set is
-  // what actually hides its Accept/Reject buttons after the client responds
-  // -- refetching alone would keep showing them on the same stale row.
+  // Purely an optimistic, instant-hide layer for the brief window between
+  // clicking Accept/Reject and the follow-up fetchAnnouncements() landing.
+  // The actual source of truth for whether a reschedule notification is
+  // still actionable is the server-computed `actionable` field on each feed
+  // item (see notification.service.js), which reflects the booking's real
+  // current status -- that's what makes this survive a page refresh.
   const [resolvedRescheduleIds, setResolvedRescheduleIds] = useState(() => new Set());
 
   const accountRef = useRef(null);
@@ -107,14 +109,30 @@ export default function PublicHeader() {
     });
   }
 
+  // Once a reschedule proposal is no longer actionable (the server says the
+  // underlying booking has already moved past RESCHEDULE_PENDING) it drops
+  // out of the bell entirely, per spec: an already-decided notification
+  // would just be clutter. `actionable === false` is the server's ground
+  // truth (survives refresh); resolvedRescheduleIds is only for the
+  // instant, same-session hide right after a click, before the refetch lands.
+  function isHiddenResolvedReschedule(a) {
+    return a.type === 'PERSONAL' && a.relatedType === 'BOOKING_RESCHEDULE_PROPOSED'
+      && (a.actionable === false || resolvedRescheduleIds.has(a.relatedId));
+  }
+  const visibleAnnouncements = announcements.filter((a) => !isHiddenResolvedReschedule(a));
+
   function markAllRead() {
-    announcements.filter((a) => !a.isRead).forEach((a) => markRead(getId(a), a.type));
+    visibleAnnouncements.filter((a) => !a.isRead).forEach((a) => markRead(getId(a), a.type));
   }
 
   // The bell is the only place a Client acts on a Service Provider's
   // reschedule proposal -- Accept/Reject fire immediately (no second
-  // confirmation on this side, matching the request's exact wording), then
-  // the feed is refetched so the resolved notification drops its buttons.
+  // confirmation on this side, matching the request's exact wording).
+  // Either outcome refetches the feed so the actionable state (and thus
+  // whether the notification stays visible at all) reflects the server's
+  // current truth, and either outcome tells the client what happened --
+  // silently doing nothing on failure previously made a genuine conflict
+  // (e.g. the slot was taken) look identical to a successful accept.
   async function handleRescheduleDecision(bookingId, decision) {
     setRescheduleActingId(bookingId);
     try {
@@ -125,20 +143,16 @@ export default function PublicHeader() {
       // the instant it happens, instead of waiting on its own poll interval.
       emitBookingsChanged();
       await fetchAnnouncements();
+      showSuccess(decision === 'accept' ? 'Rescheduling accepted successfully.' : 'Rescheduling rejected.');
     } catch (err) {
-      // A failure here almost always means the proposal was already
-      // resolved (e.g. reopened from a stale page) rather than a transient
-      // error worth retrying, so hide the buttons instead of leaving a
-      // dead-end action in place.
-      if (err?.response?.status === 409) {
-        setResolvedRescheduleIds((prev) => new Set(prev).add(bookingId));
-      }
+      await fetchAnnouncements();
+      showError(err?.response?.data?.message ?? 'Could not process this reschedule decision. Please try again.');
     } finally {
       setRescheduleActingId(null);
     }
   }
 
-  const unreadCount = announcements.filter((a) => !a.isRead).length;
+  const unreadCount = visibleAnnouncements.filter((a) => !a.isRead).length;
 
   async function handleLogout() {
     // Awaited so `user` is already cleared by the time we navigate --
@@ -193,11 +207,11 @@ export default function PublicHeader() {
                         </button>
                       )}
                     </div>
-                    {announcements.length === 0 ? (
+                    {visibleAnnouncements.length === 0 ? (
                       <div className="ph-notif-empty">No notifications at the moment.</div>
                     ) : (
                       <div className="ph-notif-list">
-                        {announcements.slice(0, 6).map((a) => {
+                        {visibleAnnouncements.slice(0, 6).map((a) => {
                           const id = getId(a);
                           const isRead = a.isRead;
                           return (
@@ -221,7 +235,7 @@ export default function PublicHeader() {
                                 <div className={`ph-notif-item-msg${a.type === 'PERSONAL' && a.relatedType === 'BOOKING_RESCHEDULE_PROPOSED' ? ' ph-notif-item-msg-full' : ''}`}>
                                   {a.message}
                                 </div>
-                                {a.type === 'PERSONAL' && a.relatedType === 'BOOKING_RESCHEDULE_PROPOSED' && !resolvedRescheduleIds.has(a.relatedId) && (
+                                {a.type === 'PERSONAL' && a.relatedType === 'BOOKING_RESCHEDULE_PROPOSED' && (
                                   <div className="ph-notif-item-actions" onClick={(e) => e.stopPropagation()}>
                                     <button
                                       type="button"

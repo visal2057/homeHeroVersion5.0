@@ -1,5 +1,17 @@
 import { query } from '../../db/query.js';
 
+// Used by the notifications feed to check whether a reschedule-proposal
+// notification is still actionable (i.e. the booking is still
+// RESCHEDULE_PENDING) rather than trusting client-side state that's lost on
+// every page refresh.
+export function findBookingStatusesByIds(bookingIds) {
+  if (bookingIds.length === 0) return Promise.resolve({ rows: [] });
+  return query(
+    `SELECT booking_id, booking_status FROM bookings WHERE booking_id = ANY($1::bigint[])`,
+    [bookingIds],
+  );
+}
+
 export function findClientLocation(clientUserId) {
   return query(
     `SELECT latitude, longitude, address_text FROM client_locations
