@@ -3,7 +3,7 @@ import SPTrackingResultsTable from '../components/SPTrackingResultsTable.jsx';
 import SPTrackingStats from '../components/SPTrackingStats.jsx';
 import MvpProvidersSection from '../components/MvpProvidersSection.jsx';
 import LoadingSpinner from '../../../../components/common/LoadingSpinner.jsx';
-import { IconSearch } from '../../../../components/common/icons.jsx';
+import { IconSearch, IconXCircle } from '../../../../components/common/icons.jsx';
 import { searchSPTracking, fetchMvpProviders, downloadSpReport } from '../systemAdminApi.js';
 import { useAlert } from '../../../../hooks/useAlert.js';
 import { extractErrorMessage } from '../../../../api/apiErrorHandler.js';
@@ -99,7 +99,29 @@ export default function SPTrackingPage() {
           placeholder="Search by Service Provider name or token"
           value={search}
           onChange={(event) => setSearch(event.target.value)}
+          style={isSearching ? { paddingRight: '2.75rem' } : undefined}
         />
+        {isSearching && (
+          <button
+            type="button"
+            onClick={() => setSearch('')}
+            aria-label="Clear search"
+            style={{
+              position: 'absolute',
+              top: '50%',
+              right: '1.1rem',
+              transform: 'translateY(-50%)',
+              background: 'none',
+              border: 'none',
+              padding: 0,
+              display: 'flex',
+              cursor: 'pointer',
+              color: 'var(--color-text-muted)',
+            }}
+          >
+            <IconXCircle size={19} />
+          </button>
+        )}
       </div>
 
       {isSearching ? (
