@@ -99,6 +99,7 @@ export default function ProviderJobsToDoPage() {
               <UnavailableDateCalendar
                 unavailableDates={unavailableDates}
                 onToggleDate={handleToggleDate}
+                jobs={jobs}
               />
             </div>
           </div>

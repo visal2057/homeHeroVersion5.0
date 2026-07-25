@@ -1,4 +1,6 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
+import DayTasksPreview from './DayTasksPreview.jsx';
+import { rowPreviewPosition } from '../rowPreviewPosition.js';
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const MONTHS = [
@@ -10,9 +12,16 @@ function toKey(date) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 }
 
-export default function UnavailableDateCalendar({ unavailableDates = [], onToggleDate }) {
+// Marking a day unavailable already has a home on the Provider Dashboard's
+// Go Offline flow -- this calendar's job is primarily to show what's due
+// each day, so the only availability action kept here is removing an
+// existing unavailable mark, folded into the same day popup.
+export default function UnavailableDateCalendar({ unavailableDates = [], onToggleDate, jobs = [] }) {
   const today = new Date();
   const [viewDate, setViewDate] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
+  const [activeDay, setActiveDay] = useState(null); // date key string, e.g. "2026-09-05"
+  const [isPinned, setIsPinned] = useState(false);
+  const [previewPos, setPreviewPos] = useState({ top: 0, left: 0 });
 
   const year  = viewDate.getFullYear();
   const month = viewDate.getMonth();
@@ -21,18 +30,72 @@ export default function UnavailableDateCalendar({ unavailableDates = [], onToggl
 
   const unavailableSet = new Set(unavailableDates);
 
-  function prevMonth() { setViewDate(new Date(year, month - 1, 1)); }
-  function nextMonth() { setViewDate(new Date(year, month + 1, 1)); }
+  const jobsByDay = useMemo(() => {
+    const map = new Map();
+    for (const job of jobs) {
+      if (!job.service_date) continue;
+      const key = toKey(new Date(job.service_date));
+      if (!map.has(key)) map.set(key, []);
+      map.get(key).push(job);
+    }
+    for (const list of map.values()) {
+      list.sort((a, b) => new Date(a.service_date) - new Date(b.service_date));
+    }
+    return map;
+  }, [jobs]);
 
-  function handleDayClick(day) {
-    const d = new Date(year, month, day);
-    if (d < new Date(today.getFullYear(), today.getMonth(), today.getDate())) return;
-    onToggleDate?.(toKey(d));
+  function prevMonth() {
+    setViewDate(new Date(year, month - 1, 1));
+    setActiveDay(null);
+    setIsPinned(false);
+  }
+  function nextMonth() {
+    setViewDate(new Date(year, month + 1, 1));
+    setActiveDay(null);
+    setIsPinned(false);
+  }
+
+  function closePreview() {
+    setActiveDay(null);
+    setIsPinned(false);
+  }
+
+  function handleDayEnter(day, e) {
+    if (isPinned) return;
+    setActiveDay(toKey(new Date(year, month, day)));
+    setPreviewPos(rowPreviewPosition(e.currentTarget.getBoundingClientRect()));
+  }
+
+  function handleDayLeave() {
+    if (isPinned) return;
+    setActiveDay(null);
+  }
+
+  function handleDayClick(day, e) {
+    const key = toKey(new Date(year, month, day));
+    if (isPinned && activeDay === key) {
+      closePreview();
+      return;
+    }
+    setActiveDay(key);
+    setIsPinned(true);
+    setPreviewPos(rowPreviewPosition(e.currentTarget.getBoundingClientRect()));
+  }
+
+  function handleRemoveUnavailable() {
+    if (activeDay) onToggleDate?.(activeDay);
+    closePreview();
   }
 
   const cells = [];
   for (let i = 0; i < firstDay; i++) cells.push(null);
   for (let d = 1; d <= daysInMonth; d++) cells.push(d);
+
+  const [activeYear, activeMonth, activeDate] = activeDay ? activeDay.split('-').map(Number) : [];
+  const activeDateObj = activeDay ? new Date(activeYear, activeMonth - 1, activeDate) : null;
+  const activeLabel = activeDateObj
+    ? activeDateObj.toLocaleDateString('en-LK', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
+    : '';
 
   return (
     <div className="provider-calendar-wrap">
@@ -59,31 +122,46 @@ export default function UnavailableDateCalendar({ unavailableDates = [], onToggl
           const isPast = d < new Date(today.getFullYear(), today.getMonth(), today.getDate());
           const isToday = d.toDateString() === today.toDateString();
           const isUnavailable = unavailableSet.has(key);
+          const taskCount = jobsByDay.get(key)?.length ?? 0;
 
           let cls = 'provider-calendar-day';
           if (isPast)        cls += ' past';
           else if (isToday)  cls += ' today';
           if (isUnavailable) cls += ' unavailable';
+          if (activeDay === key) cls += ' active';
 
           return (
             <button
               key={key}
               type="button"
               className={cls}
-              onClick={() => handleDayClick(day)}
-              aria-label={`${isUnavailable ? 'Remove unavailable: ' : 'Mark unavailable: '}${MONTHS[month]} ${day}`}
-              aria-pressed={isUnavailable}
-              disabled={isPast}
+              onClick={(e) => handleDayClick(day, e)}
+              onMouseEnter={(e) => handleDayEnter(day, e)}
+              onMouseLeave={handleDayLeave}
+              aria-label={`${MONTHS[month]} ${day}${taskCount > 0 ? `, ${taskCount} job${taskCount > 1 ? 's' : ''}` : ''}${isUnavailable ? ', marked unavailable' : ''}`}
             >
-              {day}
+              <span className="provider-calendar-day-num">{day}</span>
+              {taskCount > 0 && <span className="provider-calendar-day-badge">{taskCount}</span>}
             </button>
           );
         })}
       </div>
 
-      <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)' }}>
-        Click a date to mark / unmark it as unavailable. Red dates are blocked for new bookings.
+      <p className="provider-calendar-hint">
+        Hover or click a day to see what's due. Red dates are blocked for new bookings — go offline from the Dashboard to mark a day unavailable.
       </p>
+
+      {activeDay && (
+        <DayTasksPreview
+          dateLabel={activeLabel}
+          jobs={jobsByDay.get(activeDay) ?? []}
+          isUnavailable={unavailableSet.has(activeDay)}
+          pinned={isPinned}
+          onRemoveUnavailable={handleRemoveUnavailable}
+          onClose={closePreview}
+          style={{ top: previewPos.top, left: previewPos.left }}
+        />
+      )}
     </div>
   );
 }
