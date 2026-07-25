@@ -119,7 +119,7 @@ export default function SPTrackingPage() {
               color: 'var(--color-text-muted)',
             }}
           >
-            <IconXCircle size={19} />
+            <IconXCircle size={22} />
           </button>
         )}
       </div>
