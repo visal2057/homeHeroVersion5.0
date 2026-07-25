@@ -58,6 +58,7 @@ export default function ApplicationsPage() {
           applications={activeList}
           emptyMessage={`No ${activeTab} applications yet.`}
           onSelect={(application) => setSelectedApplicationId(application.applicationId)}
+          showAttempt={activeTab === 'approved'}
         />
       )}
 

@@ -1,6 +1,6 @@
 const STATUS_VARIANT = { APPROVED: 'is-success', REJECTED: 'is-error' };
 
-export default function ApplicationsHistoryTable({ applications, emptyMessage, onSelect }) {
+export default function ApplicationsHistoryTable({ applications, emptyMessage, onSelect, showAttempt = false }) {
   if (applications.length === 0) {
     return <p className="empty-state">{emptyMessage}</p>;
   }
@@ -17,6 +17,7 @@ export default function ApplicationsHistoryTable({ applications, emptyMessage, o
             <th>Applied</th>
             <th>Reviewed</th>
             <th>Status</th>
+            {showAttempt && <th>Attempt</th>}
           </tr>
         </thead>
         <tbody>
@@ -37,6 +38,9 @@ export default function ApplicationsHistoryTable({ applications, emptyMessage, o
                   {application.verificationStatus}
                 </span>
               </td>
+              {showAttempt && (
+                <td>{application.attemptNumber > 1 ? `Attempt ${application.attemptNumber}` : '—'}</td>
+              )}
             </tr>
           ))}
         </tbody>
