@@ -3,8 +3,8 @@ import SPTrackingResultsTable from '../components/SPTrackingResultsTable.jsx';
 import SPTrackingStats from '../components/SPTrackingStats.jsx';
 import MvpProvidersSection from '../components/MvpProvidersSection.jsx';
 import LoadingSpinner from '../../../../components/common/LoadingSpinner.jsx';
-import { IconSearch } from '../../../../components/common/icons.jsx';
-import { searchSPTracking, fetchMvpProviders } from '../systemAdminApi.js';
+import { IconSearch, IconXCircle } from '../../../../components/common/icons.jsx';
+import { searchSPTracking, fetchMvpProviders, downloadSpReport } from '../systemAdminApi.js';
 import { useAlert } from '../../../../hooks/useAlert.js';
 import { extractErrorMessage } from '../../../../api/apiErrorHandler.js';
 
@@ -17,12 +17,13 @@ export default function SPTrackingPage() {
   const [stats, setStats] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   const [mvpProviders, setMvpProviders] = useState([]);
   const [isMvpLoading, setIsMvpLoading] = useState(true);
   const mvpPollRef = useRef(null);
 
-  const { showError } = useAlert();
+  const { showError, showSuccess } = useAlert();
 
   const isSearching = Boolean(search.trim());
 
@@ -70,12 +71,24 @@ export default function SPTrackingPage() {
     return () => clearTimeout(timeout);
   }, [search, showError]);
 
+  async function handleGenerateReport() {
+    setIsDownloading(true);
+    try {
+      await downloadSpReport(search.trim(), provider.userToken);
+      showSuccess('Service Provider report downloaded.');
+    } catch (error) {
+      showError(extractErrorMessage(error));
+    } finally {
+      setIsDownloading(false);
+    }
+  }
+
   return (
     <div className="container admin-page animate-fade-in-up">
       <div className="admin-page-header">
         <div>
           <h1 className="section-title">SP Tracking</h1>
-          <p className="section-subtitle">Look up a Service Provider's completed jobs and invoices.</p>
+          <p className="section-subtitle">Look up a Service Provider's completed jobs.</p>
         </div>
       </div>
 
@@ -86,7 +99,29 @@ export default function SPTrackingPage() {
           placeholder="Search by Service Provider name or token"
           value={search}
           onChange={(event) => setSearch(event.target.value)}
+          style={isSearching ? { paddingRight: '2.75rem' } : undefined}
         />
+        {isSearching && (
+          <button
+            type="button"
+            onClick={() => setSearch('')}
+            aria-label="Clear search"
+            style={{
+              position: 'absolute',
+              top: '50%',
+              right: '1.1rem',
+              transform: 'translateY(-50%)',
+              background: 'none',
+              border: 'none',
+              padding: 0,
+              display: 'flex',
+              cursor: 'pointer',
+              color: 'var(--color-text-muted)',
+            }}
+          >
+            <IconXCircle size={22} />
+          </button>
+        )}
       </div>
 
       {isSearching ? (
@@ -102,6 +137,10 @@ export default function SPTrackingPage() {
               <h2 className="section-title" style={{ fontSize: 'var(--font-size-lg)' }}>
                 {provider.fullName} <span style={{ color: 'var(--color-text-muted)' }}>({provider.userToken})</span>
               </h2>
+              <button type="button" className="btn btn-primary" onClick={handleGenerateReport} disabled={isDownloading}>
+                {isDownloading && <span className="btn-spinner" aria-hidden="true" />}
+                {isDownloading ? 'Generating...' : 'Generate Report'}
+              </button>
             </div>
             <SPTrackingStats stats={stats} />
             <div className="card chart-card">
@@ -111,7 +150,7 @@ export default function SPTrackingPage() {
           </>
         ) : null
       ) : (
-        <MvpProvidersSection providers={mvpProviders} isLoading={isMvpLoading} />
+        <MvpProvidersSection providers={mvpProviders} isLoading={isMvpLoading} onSelectProvider={setSearch} />
       )}
     </div>
   );

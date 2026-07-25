@@ -14,7 +14,10 @@ export default function PendingVerificationCard({ application }) {
           <p className="review-card-meta">District: {application.districtName}</p>
           <p className="review-card-meta">Applied {new Date(application.submittedAt).toLocaleDateString()}</p>
         </div>
-        <Link className="btn btn-primary" to={ROUTES.VERIFICATION_ADMIN_REVIEW.replace(':applicationId', application.applicationId)}>
+        <Link
+          className="btn btn-primary review-card-action"
+          to={ROUTES.VERIFICATION_ADMIN_REVIEW.replace(':applicationId', application.applicationId)}
+        >
           Review Documents
         </Link>
       </div>

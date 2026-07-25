@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import AdminUsersTable from '../components/AdminUsersTable.jsx';
+import AddUserMenu from '../components/AddUserMenu.jsx';
 import BanUserModal from '../components/BanUserModal.jsx';
 import BanRequestCard from '../components/BanRequestCard.jsx';
 import ConfirmModal from '../../../../components/common/ConfirmModal.jsx';
@@ -87,6 +88,7 @@ export default function UserManagementPage() {
           <h1 className="section-title">User Management</h1>
           <p className="section-subtitle">Search Clients and Service Providers, and act on ban recommendations.</p>
         </div>
+        <AddUserMenu onCreated={loadUsers} />
       </div>
 
       {banRequests.length > 0 && (

@@ -44,3 +44,17 @@
   margin: 0;
   font-size: var(--font-size-sm);
 }
+
+/* User Management's table only: even column widths instead of the default
+   content-driven auto layout, so the 7 columns read as a neat, regular
+   grid rather than ragged widths. Scoped to this one extra class so every
+   other .data-table in the app keeps its normal auto layout. */
+.users-data-table {
+  table-layout: fixed;
+}
+
+.users-data-table th,
+.users-data-table td {
+  width: calc(100% / 7);
+  overflow-wrap: break-word;
+}

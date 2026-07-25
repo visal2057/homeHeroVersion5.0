@@ -78,6 +78,7 @@ export async function searchProviderJobs(search) {
       providerUserId: providerRow.user_id,
       fullName: providerRow.full_name,
       userToken: providerRow.user_token,
+      profileImageUrl: providerRow.profile_image_url ?? null,
     },
     jobs: jobRows.map(toJobDto),
     stats: toStatsDto(statsRows[0]),

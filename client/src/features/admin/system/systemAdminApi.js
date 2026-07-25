@@ -48,14 +48,15 @@ export function fetchMvpProviders() {
   return axiosClient.get(API_ENDPOINTS.SYSTEM_ADMIN.SP_TRACKING_MVP);
 }
 
-export async function downloadTrackedInvoice(bookingId) {
-  const { data } = await axiosClient.get(API_ENDPOINTS.PROVIDER.INVOICE_DOWNLOAD(bookingId), {
+export async function downloadSpReport(search, userToken) {
+  const { data } = await axiosClient.get(API_ENDPOINTS.SYSTEM_ADMIN.SP_REPORT, {
+    params: { search },
     responseType: 'blob',
   });
   const url = window.URL.createObjectURL(data);
   const link = document.createElement('a');
   link.href = url;
-  link.download = `homehero-invoice-${bookingId}.pdf`;
+  link.download = `homehero-sp-report-${userToken}.pdf`;
   document.body.appendChild(link);
   link.click();
   link.remove();

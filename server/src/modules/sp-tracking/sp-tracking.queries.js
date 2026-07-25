@@ -5,7 +5,7 @@ import { query } from '../../db/query.js';
 // so a token search never gets shadowed by an unrelated name substring hit.
 export function findProviderBySearch(search) {
   return query(
-    `SELECT u.user_id, u.full_name, u.user_token
+    `SELECT u.user_id, u.full_name, u.user_token, u.profile_image_url
      FROM users u
      JOIN roles r ON r.role_id = u.role_id
      JOIN service_provider_profiles spp ON spp.provider_user_id = u.user_id

@@ -143,6 +143,16 @@ export function IconUserCheck(props) {
   );
 }
 
+export function IconUserPlus(props) {
+  return (
+    <Stroke {...props}>
+      <circle cx="9" cy="7.5" r="3" />
+      <path d="M3 20c0-3.5 2.7-6 6-6s6 2.5 6 6" />
+      <path d="M18 9v6M15 12h6" />
+    </Stroke>
+  );
+}
+
 export function IconStar(props) {
   return (
     <Stroke {...props}>

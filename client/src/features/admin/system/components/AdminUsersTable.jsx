@@ -7,7 +7,7 @@ export default function AdminUsersTable({ users, onBan, onUnban }) {
 
   return (
     <div className="data-table-wrapper">
-      <table className="data-table">
+      <table className="data-table users-data-table">
         <thead>
           <tr>
             <th>Name</th>

@@ -1,7 +1,4 @@
 import { Fragment, useState } from 'react';
-import { downloadTrackedInvoice } from '../systemAdminApi.js';
-import { useAlert } from '../../../../hooks/useAlert.js';
-import { extractErrorMessage } from '../../../../api/apiErrorHandler.js';
 
 function formatAmount(amount) {
   return amount === null ? '—' : `LKR ${Number(amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
@@ -9,19 +6,10 @@ function formatAmount(amount) {
 
 export default function SPTrackingResultsTable({ jobs }) {
   const [expandedId, setExpandedId] = useState(null);
-  const { showError } = useAlert();
 
   if (jobs.length === 0) {
     return <p className="empty-state">This Service Provider has no completed jobs yet.</p>;
   }
-
-  const handleViewInvoice = async (bookingId) => {
-    try {
-      await downloadTrackedInvoice(bookingId);
-    } catch (error) {
-      showError(extractErrorMessage(error));
-    }
-  };
 
   return (
     <div className="data-table-wrapper">
@@ -64,18 +52,6 @@ export default function SPTrackingResultsTable({ jobs }) {
                         <p><strong>Completion date:</strong> {job.completionDate ? new Date(job.completionDate).toLocaleString() : '—'}</p>
                         <p><strong>Payment method:</strong> {job.paymentMethod ?? '—'}</p>
                         <p><strong>Amount:</strong> {formatAmount(job.amount)}</p>
-                        {job.hasInvoice && (
-                          <button
-                            type="button"
-                            className="btn btn-primary"
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              handleViewInvoice(job.bookingId);
-                            }}
-                          >
-                            View Invoice
-                          </button>
-                        )}
                       </div>
                     </td>
                   </tr>

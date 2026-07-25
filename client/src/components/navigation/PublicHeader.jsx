@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { ROUTES } from '../../constants/routes.js';
 import { useAuth } from '../../hooks/useAuth.js';
+import { useAlert } from '../../hooks/useAlert.js';
 import { ROLES } from '../../constants/roles.js';
 import { axiosClient } from '../../api/axiosClient.js';
 import { API_ENDPOINTS } from '../../api/apiEndpoints.js';
@@ -19,6 +20,7 @@ const POLL_INTERVAL_MS = 30_000; // refresh announcements every 30 s
 
 export default function PublicHeader() {
   const { user, logout } = useAuth();
+  const { showSuccess } = useAlert();
   const navigate = useNavigate();
 
   const isClient = user?.role === ROLES.CLIENT;
@@ -103,8 +105,11 @@ export default function PublicHeader() {
 
   const unreadCount = announcements.filter((a) => !a.isRead).length;
 
-  function handleLogout() {
-    logout();
+  async function handleLogout() {
+    // Awaited so `user` is already cleared by the time we navigate --
+    // see AdminHeader.jsx's handleLogout for why this ordering matters.
+    await logout();
+    showSuccess('You have logged out successfully.');
     setIsAccountOpen(false);
     setIsMobileMenuOpen(false);
     navigate(ROUTES.HOME, { replace: true });

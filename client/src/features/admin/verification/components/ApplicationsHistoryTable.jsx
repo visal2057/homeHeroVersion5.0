@@ -17,6 +17,7 @@ export default function ApplicationsHistoryTable({ applications, emptyMessage, o
             <th>Applied</th>
             <th>Reviewed</th>
             <th>Status</th>
+            <th>Attempt</th>
           </tr>
         </thead>
         <tbody>
@@ -37,6 +38,7 @@ export default function ApplicationsHistoryTable({ applications, emptyMessage, o
                   {application.verificationStatus}
                 </span>
               </td>
+              <td>Attempt {application.attemptNumber}</td>
             </tr>
           ))}
         </tbody>
