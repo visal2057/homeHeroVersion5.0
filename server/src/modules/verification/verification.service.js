@@ -43,6 +43,7 @@ function toHistoryDto(row) {
     reviewedAt: row.reviewed_at,
     verificationStatus: row.verification_status,
     rejectionReason: row.rejection_reason,
+    attemptNumber: row.attempt_number,
   };
 }
 

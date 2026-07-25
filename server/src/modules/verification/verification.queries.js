@@ -23,6 +23,13 @@ export function listPendingApplications() {
 // rejected), for the Applications history page (Change 2). Kept as a
 // separate query rather than widening listPendingApplications's WHERE
 // clause so the dashboard query plan/shape stays untouched.
+//
+// A rejected attempt is excluded once the same provider has since been
+// approved (spp.verification_status reflects their current, latest
+// outcome) -- a provider rejected on attempt 1 and approved on attempt 2
+// should only appear under Approved, not linger under Rejected too. A
+// provider who is still rejected (no later approval) keeps showing up
+// here exactly as before.
 export function listResolvedApplications(status) {
   return query(
     `SELECT va.verification_application_id, va.provider_user_id, va.submitted_at, va.attempt_number,
@@ -37,6 +44,7 @@ export function listResolvedApplications(status) {
      LEFT JOIN provider_service_categories psc ON psc.provider_user_id = va.provider_user_id
      LEFT JOIN service_categories sc ON sc.service_category_id = psc.service_category_id
      WHERE va.verification_status = $1
+       AND ($1 <> 'REJECTED' OR spp.verification_status <> 'APPROVED')
      GROUP BY va.verification_application_id, va.provider_user_id, va.submitted_at, va.attempt_number,
               va.verification_status, va.reviewed_at, va.rejection_reason,
               u.username, u.full_name, u.user_token, d.district_name
