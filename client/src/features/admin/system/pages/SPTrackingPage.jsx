@@ -75,7 +75,7 @@ export default function SPTrackingPage() {
       <div className="admin-page-header">
         <div>
           <h1 className="section-title">SP Tracking</h1>
-          <p className="section-subtitle">Look up a Service Provider's completed jobs and invoices.</p>
+          <p className="section-subtitle">Look up a Service Provider's completed jobs.</p>
         </div>
       </div>
 
