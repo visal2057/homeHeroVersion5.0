@@ -105,7 +105,7 @@ export default function ProviderTopbar({ onMenuToggle }) {
               ) : (
                 announcements.map((a) => (
                   <div
-                    key={a.id}
+                    key={a.feedKey ?? a.id}
                     className={`provider-notification-item${a.isRead ? '' : ' unread'}`}
                     onMouseEnter={() => markAsRead(a.id, a.type)}
                     onClick={() => markAsRead(a.id, a.type)}

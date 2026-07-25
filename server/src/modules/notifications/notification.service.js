@@ -45,6 +45,11 @@ export async function getCombinedFeed(role, userId) {
   const feed = [
     ...announcements.map((announcement) => ({
       id: announcement.announcementId,
+      // announcementId and notificationId are independent sequences, so the
+      // same numeric id can appear in both halves of this feed -- feedKey
+      // namespaces by type for a React key that's actually unique. id stays
+      // as the raw underlying id since markFeedItemRead looks rows up by it.
+      feedKey: `ANNOUNCEMENT-${announcement.announcementId}`,
       type: 'ANNOUNCEMENT',
       title: announcement.title,
       message: announcement.messageBody,
@@ -53,6 +58,7 @@ export async function getCombinedFeed(role, userId) {
     })),
     ...notifications.map((notification) => ({
       id: notification.notificationId,
+      feedKey: `PERSONAL-${notification.notificationId}`,
       type: 'PERSONAL',
       title: notification.title,
       message: notification.message,

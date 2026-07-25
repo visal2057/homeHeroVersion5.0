@@ -198,7 +198,7 @@ export default function PublicHeader() {
                           const isRead = a.isRead;
                           return (
                             <div
-                              key={id}
+                              key={a.feedKey ?? id}
                               className={`ph-notif-item${isRead ? '' : ' ph-notif-item-unread'}`}
                               onMouseEnter={() => markRead(id, a.type)}
                               onClick={() => markRead(id, a.type)}
