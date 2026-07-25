@@ -42,8 +42,13 @@ export default function AdminHeader({ roleLabel, homeRoute, navItems, variant = 
     };
   }, []);
 
-  function handleLogout() {
-    logout();
+  async function handleLogout() {
+    // Awaited so `user` is already cleared by the time we navigate --
+    // otherwise GuestRoute (guarding /login) still sees the stale
+    // logged-in user, bounces straight back to the dashboard, and that
+    // extra mount's data fetches race the now-revoked session, each
+    // showing their own "session has ended" alert (the double-message bug).
+    await logout();
     navigate(ROUTES.LOGIN);
   }
 

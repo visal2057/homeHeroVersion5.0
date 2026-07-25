@@ -103,8 +103,10 @@ export default function PublicHeader() {
 
   const unreadCount = announcements.filter((a) => !a.isRead).length;
 
-  function handleLogout() {
-    logout();
+  async function handleLogout() {
+    // Awaited so `user` is already cleared by the time we navigate --
+    // see AdminHeader.jsx's handleLogout for why this ordering matters.
+    await logout();
     setIsAccountOpen(false);
     setIsMobileMenuOpen(false);
     navigate(ROUTES.HOME, { replace: true });

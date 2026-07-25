@@ -26,8 +26,12 @@ export default function ProviderSidebar({ isOpen, onClose }) {
   const { logout } = useAuth();
   const navigate = useNavigate();
 
-  function handleLogout() {
-    logout();
+  async function handleLogout() {
+    // Awaited so `user` is already cleared by the time we navigate --
+    // otherwise GuestRoute (guarding /login) still sees the stale
+    // logged-in user and bounces straight back, causing a duplicate
+    // "session has ended" alert (see AdminHeader.jsx's handleLogout).
+    await logout();
     navigate(ROUTES.LOGIN);
   }
 
