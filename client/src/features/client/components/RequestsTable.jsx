@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { bookingApi } from '../bookingApi.js';
 import { IconClipboardList } from '../../../components/common/icons.jsx';
+import { formatTimeRange } from '../../../utils/timeUtils.js';
 
 const STATUS_STYLES = {
   PENDING:   { bg: '#fffbeb', color: '#d97706', label: 'Pending' },
@@ -70,7 +71,7 @@ export default function RequestsTable({ bookings = [], onRefresh }) {
                   <td>{b.category ?? '—'}</td>
                   <td>
                     {b.scheduledAt
-                      ? new Date(b.scheduledAt).toLocaleString('en-LK', { dateStyle: 'medium', timeStyle: 'short' })
+                      ? `${new Date(b.scheduledAt).toLocaleDateString('en-LK', { dateStyle: 'medium' })}, ${formatTimeRange(b.scheduledAt, b.scheduledEndAt)}`
                       : '—'}
                   </td>
                   <td>
