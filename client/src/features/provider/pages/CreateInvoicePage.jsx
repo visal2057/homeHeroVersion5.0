@@ -6,6 +6,7 @@ import AlertMessage from '../../../components/common/AlertMessage.jsx';
 import ConfirmModal from '../../../components/common/ConfirmModal.jsx';
 import { extractErrorMessage } from '../../../api/apiErrorHandler.js';
 import { invoiceApi } from '../invoiceApi.js';
+import { formatTimeRange } from '../../../utils/timeUtils.js';
 
 const HERO_IMAGE = 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=1600&q=80';
 
@@ -109,7 +110,14 @@ export default function CreateInvoicePage() {
             <DetailRow label="Service category" value={form.serviceCategory} />
             <DetailRow label="Client" value={form.clientName} />
             <DetailRow label="Job location" value={form.jobLocation} />
-            <DetailRow label="Booking date" value={form.scheduledAt ? new Date(form.scheduledAt).toLocaleString() : null} />
+            <DetailRow
+              label="Booking date"
+              value={
+                form.scheduledAt
+                  ? `${new Date(form.scheduledAt).toLocaleDateString()}, ${formatTimeRange(form.scheduledAt, form.scheduledEndAt)}`
+                  : null
+              }
+            />
             <DetailRow label="Completion date" value={form.completedAt ? new Date(form.completedAt).toLocaleDateString() : null} />
             <DetailRow label="Payment method" value={form.paymentMethod} />
             <DetailRow label="Job description" value={form.jobDescription} />

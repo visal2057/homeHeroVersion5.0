@@ -1,5 +1,6 @@
 import { IconCheckCircle, IconStar, IconImage } from '../../../components/common/icons.jsx';
 import InvoiceRowAction from './InvoiceRowAction.jsx';
+import { formatTimeRange } from '../../../utils/timeUtils.js';
 
 const MIN_ROWS = 6;
 const COLUMN_COUNT = 10;
@@ -53,7 +54,17 @@ export default function CompletedJobsTable({ jobs, postedBookingIds, onCreatePos
                 <td>{j.client_name ?? '—'}</td>
                 <td>{j.client_token ?? '—'}</td>
                 <td>{j.service_title ?? '—'}</td>
-                <td>{j.service_date ? new Date(j.service_date).toLocaleDateString() : '—'}</td>
+                <td>
+                  {j.service_date ? (
+                    <>
+                      {new Date(j.service_date).toLocaleDateString()}
+                      <br />
+                      <span style={{ color: 'var(--color-text-muted)', fontSize: 'var(--font-size-xs)' }}>
+                        {formatTimeRange(j.service_date, j.service_end_time)}
+                      </span>
+                    </>
+                  ) : '—'}
+                </td>
                 <td>{j.completed_at ? new Date(j.completed_at).toLocaleDateString() : '—'}</td>
                 <td>
                   <span className="provider-badge completed">

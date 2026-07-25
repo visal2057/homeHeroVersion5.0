@@ -5,7 +5,7 @@ import { fetchBookings } from '../systemAdminApi.js';
 import { useAlert } from '../../../../hooks/useAlert.js';
 import { extractErrorMessage } from '../../../../api/apiErrorHandler.js';
 
-const STATUS_OPTIONS = ['PENDING', 'ACCEPTED', 'COMPLETED', 'REJECTED', 'CANCELLED'];
+const STATUS_OPTIONS = ['PENDING', 'ACCEPTED', 'COMPLETED', 'REJECTED', 'CANCELLED', 'RESCHEDULE_PENDING', 'RESCHEDULE_REJECTED'];
 
 export default function BookingManagementPage() {
   const [bookings, setBookings] = useState([]);

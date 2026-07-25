@@ -24,6 +24,14 @@ function formatDate(value) {
   return new Date(value).toLocaleString('en-LK', { dateStyle: 'medium', timeStyle: 'short' });
 }
 
+function formatDateRange(start, end) {
+  if (!start) return '-';
+  if (!end) return formatDate(start);
+  const startLabel = formatDate(start);
+  const endLabel = new Date(end).toLocaleTimeString('en-LK', { timeStyle: 'short' });
+  return `${startLabel} - ${endLabel}`;
+}
+
 // Full-bleed green band across the top of the page with the HomeHero
 // wordmark centered inside it, in white.
 function drawHeaderBand(doc) {
@@ -115,7 +123,7 @@ export function writeInvoicePdf(destinationPath, invoice) {
       { label: 'Service Category', value: invoice.serviceCategory },
       { label: 'Client', value: invoice.clientName },
       { label: 'Job Location', value: invoice.jobLocation },
-      { label: 'Booking Date', value: formatDate(invoice.scheduledAt) },
+      { label: 'Booking Date', value: formatDateRange(invoice.scheduledAt, invoice.scheduledEndAt) },
       { label: 'Completion Date', value: formatDate(invoice.completedAt) },
       { label: 'Payment Method', value: invoice.paymentMethod },
       { label: 'Job Description', value: invoice.jobDescription },

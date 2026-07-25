@@ -137,7 +137,9 @@ CREATE TYPE public.booking_status AS ENUM (
     'ACCEPTED',
     'REJECTED',
     'CANCELLED',
-    'COMPLETED'
+    'COMPLETED',
+    'RESCHEDULE_PENDING',
+    'RESCHEDULE_REJECTED'
 );
 
 
@@ -359,11 +361,14 @@ CREATE FUNCTION public.trg_validate_booking_transition() RETURNS trigger
     AS $$
 BEGIN
     IF OLD.booking_status = NEW.booking_status THEN RETURN NEW; END IF;
-    IF OLD.booking_status IN ('REJECTED','CANCELLED','COMPLETED') THEN
+    IF OLD.booking_status IN ('REJECTED','CANCELLED','COMPLETED','RESCHEDULE_REJECTED') THEN
         RAISE EXCEPTION 'Cannot transition from terminal status %', OLD.booking_status;
     END IF;
-    IF OLD.booking_status = 'PENDING' AND NEW.booking_status NOT IN ('ACCEPTED','REJECTED','CANCELLED') THEN
+    IF OLD.booking_status = 'PENDING' AND NEW.booking_status NOT IN ('ACCEPTED','REJECTED','CANCELLED','RESCHEDULE_PENDING') THEN
         RAISE EXCEPTION 'Invalid transition PENDING → %', NEW.booking_status;
+    END IF;
+    IF OLD.booking_status = 'RESCHEDULE_PENDING' AND NEW.booking_status NOT IN ('ACCEPTED','RESCHEDULE_REJECTED') THEN
+        RAISE EXCEPTION 'Invalid transition RESCHEDULE_PENDING → %', NEW.booking_status;
     END IF;
     IF OLD.booking_status = 'ACCEPTED' AND NEW.booking_status NOT IN ('COMPLETED','CANCELLED') THEN
         RAISE EXCEPTION 'Invalid transition ACCEPTED → %', NEW.booking_status;
@@ -641,6 +646,7 @@ CREATE TABLE public.bookings (
     service_category_id smallint NOT NULL,
     job_description text NOT NULL,
     scheduled_at timestamp with time zone NOT NULL,
+    scheduled_end_at timestamp with time zone,
     booking_status public.booking_status DEFAULT 'PENDING'::public.booking_status NOT NULL,
     requested_at timestamp with time zone DEFAULT now() NOT NULL,
     responded_at timestamp with time zone,
@@ -650,6 +656,9 @@ CREATE TABLE public.bookings (
     completed_at timestamp with time zone,
     cancelled_by_user_id bigint,
     cancellation_reason text,
+    proposed_scheduled_at timestamp with time zone,
+    proposed_scheduled_end_at timestamp with time zone,
+    rejection_reason text,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
@@ -1508,7 +1517,8 @@ CREATE VIEW public.vw_booking_overview AS
     bp.payment_method,
     bp.payment_status,
     b.requested_at,
-    b.completed_at
+    b.completed_at,
+    b.scheduled_end_at
    FROM ((((public.bookings b
      JOIN public.users cu ON ((cu.user_id = b.client_user_id)))
      JOIN public.users pu ON ((pu.user_id = b.provider_user_id)))
