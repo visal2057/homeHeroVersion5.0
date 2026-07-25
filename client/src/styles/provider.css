@@ -1204,6 +1204,12 @@
   white-space: nowrap;
 }
 
+.provider-go-to-calendar-btn {
+  padding: 6px 14px;
+  font-size: var(--font-size-sm);
+  flex-shrink: 0;
+}
+
 /* --------------------------------------------------------------------------
    Calendar (unavailable dates + jobs due per day)
    -------------------------------------------------------------------------- */
@@ -1213,11 +1219,13 @@
   gap: var(--space-lg);
   /* A distinct panel rather than flush against the surrounding white
      .provider-card -- otherwise the whole calendar reads as unstyled text
-     floating on the page. */
+     floating on the page. A thin light-green halo (border + soft outer
+     glow) sets it apart further still. */
   background: var(--color-neutral-50);
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-primary-200);
   border-radius: var(--radius-lg);
   padding: var(--space-lg);
+  box-shadow: 0 0 0 4px var(--color-primary-50);
 }
 
 .provider-calendar-header {

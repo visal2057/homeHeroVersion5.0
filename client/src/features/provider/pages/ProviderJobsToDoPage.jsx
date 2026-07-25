@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { axiosClient } from '../../../api/axiosClient.js';
 import { API_ENDPOINTS } from '../../../api/apiEndpoints.js';
 import ProviderJobsTable       from '../components/ProviderJobsTable.jsx';
 import UnavailableDateCalendar from '../components/UnavailableDateCalendar.jsx';
 import ProviderPageHero        from '../components/ProviderPageHero.jsx';
+import { IconChevronDown } from '../../../components/common/icons.jsx';
 
 const HERO_IMAGE = 'https://images.unsplash.com/photo-1621905251918-48416bd8575a?auto=format&fit=crop&w=1600&q=80';
 const POLL_INTERVAL_MS = 30_000; // pick up a newly-accepted reschedule (decided in another tab/device) without a manual refresh
@@ -13,6 +14,11 @@ export default function ProviderJobsToDoPage() {
   const [unavailableDates, setUnavailableDates] = useState([]);
   const [loading,          setLoading]          = useState(true);
   const [calendarSaving,   setCalendarSaving]   = useState(false);
+  const calendarSectionRef = useRef(null);
+
+  function scrollToCalendar() {
+    calendarSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
 
   useEffect(() => {
     // silent=true (the poll below) only ever refreshes the jobs table, never
@@ -83,14 +89,18 @@ export default function ProviderJobsToDoPage() {
           <div className="provider-card">
             <div className="provider-card-header">
               <h2 className="provider-card-title">Active Jobs ({jobs.length})</h2>
+              <button type="button" className="btn btn-outline provider-go-to-calendar-btn" onClick={scrollToCalendar}>
+                <IconChevronDown size={16} />
+                Go to Calendar
+              </button>
             </div>
             <ProviderJobsTable jobs={jobs} />
           </div>
 
-          {/* Availability calendar */}
-          <div className="provider-card">
+          {/* Task calendar */}
+          <div className="provider-card" ref={calendarSectionRef}>
             <div className="provider-card-header">
-              <h2 className="provider-card-title">Manage Availability</h2>
+              <h2 className="provider-card-title">Task Calendar</h2>
               {calendarSaving && (
                 <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)' }}>Saving…</span>
               )}
