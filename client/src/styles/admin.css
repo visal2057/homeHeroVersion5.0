@@ -334,6 +334,17 @@
   margin: 0;
 }
 
+/* Fixed to a slim, single-line size regardless of how wide the card's left
+   content (name/badges) gets -- without this, the button is a shrinkable
+   flex item and its text wraps onto two lines on narrower cards, making it
+   render at inconsistent sizes/shapes from card to card. */
+.review-card-action {
+  flex-shrink: 0;
+  white-space: nowrap;
+  padding: 0.55rem 1.2rem;
+  font-size: var(--font-size-sm);
+}
+
 .doc-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
