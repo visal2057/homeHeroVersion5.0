@@ -3,7 +3,8 @@ import { query } from '../../db/query.js';
 export function promoteDueScheduledAnnouncements() {
   return query(
     `UPDATE announcements SET announcement_status = 'ACTIVE', published_at = now()
-     WHERE announcement_status = 'SCHEDULED' AND scheduled_for <= now()`,
+     WHERE announcement_status = 'SCHEDULED' AND scheduled_for <= now()
+     RETURNING announcement_id, title`,
   );
 }
 

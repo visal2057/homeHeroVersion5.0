@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import AnnouncementForm from '../components/AnnouncementForm.jsx';
 import AnnouncementsTable from '../components/AnnouncementsTable.jsx';
 import LoadingSpinner from '../../../../components/common/LoadingSpinner.jsx';
+import ConfirmModal from '../../../../components/common/ConfirmModal.jsx';
 import { fetchAnnouncements, createAnnouncement, updateAnnouncement, archiveAnnouncement } from '../systemAdminApi.js';
 import { useAlert } from '../../../../hooks/useAlert.js';
 import { extractErrorMessage } from '../../../../api/apiErrorHandler.js';
@@ -21,6 +22,7 @@ export default function AnnouncementsPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [archiveTarget, setArchiveTarget] = useState(null);
   const { showError, showSuccess } = useAlert();
 
   function load() {
@@ -65,10 +67,11 @@ export default function AnnouncementsPage() {
     }
   }
 
-  async function handleArchive(item) {
+  async function handleConfirmArchive() {
     try {
-      await archiveAnnouncement(item.announcementId);
+      await archiveAnnouncement(archiveTarget.announcementId);
       showSuccess('Announcement archived.');
+      setArchiveTarget(null);
       load();
     } catch (error) {
       showError(extractErrorMessage(error));
@@ -105,7 +108,7 @@ export default function AnnouncementsPage() {
           <LoadingSpinner />
         </div>
       ) : (
-        <AnnouncementsTable announcements={announcements} onEdit={openEdit} onArchive={handleArchive} />
+        <AnnouncementsTable announcements={announcements} onEdit={openEdit} onArchive={setArchiveTarget} />
       )}
 
       <AnnouncementForm
@@ -114,6 +117,15 @@ export default function AnnouncementsPage() {
         onSubmit={handleSubmit}
         initialValue={editingItem}
         isSubmitting={isSubmitting}
+      />
+
+      <ConfirmModal
+        isOpen={Boolean(archiveTarget)}
+        title="Archive announcement"
+        message={`Archive "${archiveTarget?.title}"? It will no longer be shown to users.`}
+        confirmLabel="Archive"
+        onConfirm={handleConfirmArchive}
+        onCancel={() => setArchiveTarget(null)}
       />
     </div>
   );

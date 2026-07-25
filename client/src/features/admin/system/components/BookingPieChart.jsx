@@ -7,19 +7,19 @@ const HOVER_STROKE = 33;
 const CENTER = SIZE / 2;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
-// Five fixed colors for the five HomeHero service categories, matched by
-// name so the legend stays consistent regardless of category order from
-// the database. Falls back to grey for any unexpected category.
+// One fixed, distinct color per service category so a slice always means
+// the same category no matter how the API orders the rows. Falls back to
+// grey for any category added later that hasn't been assigned one yet.
 const CATEGORY_COLORS = {
-  gardening: '#059669',
-  cleaning: '#14b8a6',
-  'pet care': '#6366f1',
-  plumbing: '#3b82f6',
-  'ac repair': '#f59e0b',
+  GARDENING: 'var(--color-primary-600)',
+  CLEANING: '#0ea5e9',
+  PET_CARE: '#d97706',
+  PLUMBING: '#7c3aed',
+  AC_REPAIR: '#0891b2',
 };
 
-function colorFor(categoryName) {
-  return CATEGORY_COLORS[String(categoryName).toLowerCase()] ?? '#94a3b8';
+function colorFor(categoryCode) {
+  return CATEGORY_COLORS[categoryCode] ?? '#94a3b8';
 }
 
 export default function BookingPieChart({ categories }) {
@@ -30,14 +30,17 @@ export default function BookingPieChart({ categories }) {
     return <p className="empty-state">No bookings recorded yet.</p>;
   }
 
+  // Zero-count categories are kept (not filtered out) so the legend always
+  // lists all 5 categories -- a 0-length arc just contributes nothing
+  // visually, which is the correct outcome for "0%".
   let offsetSoFar = 0;
   const segments = categories.map((category) => {
     const length = (category.count / total) * CIRCUMFERENCE;
     const segment = {
-      label: category.categoryName,
+      label: category.label,
       value: category.count,
       percentage: category.percentage,
-      color: colorFor(category.categoryName),
+      color: colorFor(category.categoryCode),
       length,
       offset: offsetSoFar,
     };
@@ -66,13 +69,16 @@ export default function BookingPieChart({ categories }) {
             onMouseLeave={() => setHoveredIndex((current) => (current === index ? null : current))}
           />
         ))}
-        <text x={CENTER} y={CENTER - 3} textAnchor="middle">
+        <text x={CENTER} y={CENTER - 5} textAnchor="middle">
           <tspan fontSize="26" fontWeight="800" fill="var(--color-secondary-700)">
             {total}
           </tspan>
         </text>
-        <text x={CENTER} y={CENTER + 16} textAnchor="middle" fontSize="9" fontWeight="700" fill="var(--color-text-muted)" letterSpacing="0.5">
-          TOTAL BOOKINGS
+        <text x={CENTER} y={CENTER + 13} textAnchor="middle" fontSize="7.5" fontWeight="700" fill="var(--color-text-muted)" letterSpacing="0.4">
+          JOBS TO DO
+        </text>
+        <text x={CENTER} y={CENTER + 22} textAnchor="middle" fontSize="7.5" fontWeight="700" fill="var(--color-text-muted)" letterSpacing="0.4">
+          + COMPLETED
         </text>
       </svg>
 

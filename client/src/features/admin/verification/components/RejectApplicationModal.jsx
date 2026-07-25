@@ -1,12 +1,38 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Modal from '../../../../components/common/Modal.jsx';
+import ConfirmModal from '../../../../components/common/ConfirmModal.jsx';
 
 export default function RejectApplicationModal({ isOpen, onClose, onConfirm, fullName, isSubmitting }) {
   const [reason, setReason] = useState('');
+  const [isConfirming, setIsConfirming] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setReason('');
+      setIsConfirming(false);
+    }
+  }, [isOpen]);
 
   function handleSubmit(event) {
     event.preventDefault();
+    setIsConfirming(true);
+  }
+
+  function handleConfirmedReject() {
     onConfirm(reason);
+  }
+
+  if (isConfirming) {
+    return (
+      <ConfirmModal
+        isOpen={isOpen}
+        title="Confirm rejection"
+        message={`Reject ${fullName}'s application with this reason? "${reason}" They will be notified by email and cannot be reconsidered without reapplying.`}
+        confirmLabel={isSubmitting ? 'Rejecting…' : 'Reject Application'}
+        onConfirm={handleConfirmedReject}
+        onCancel={() => setIsConfirming(false)}
+      />
+    );
   }
 
   return (

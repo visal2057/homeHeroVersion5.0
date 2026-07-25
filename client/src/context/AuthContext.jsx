@@ -45,9 +45,19 @@ export function AuthProvider({ children }) {
     return data.data.user;
   }, []);
 
-  const logout = useCallback(() => {
-    localStorage.removeItem('hh_token');
-    setUser(null);
+  const logout = useCallback(async () => {
+    try {
+      // Best-effort: revokes the session server-side so the token can't be
+      // replayed after logout. Local state is still cleared below even if
+      // this fails (e.g. the token already expired, or the network is down)
+      // so the user is never stuck "logged in" on their own device.
+      await axiosClient.post(API_ENDPOINTS.AUTH.LOGOUT);
+    } catch {
+      // Ignored — see comment above.
+    } finally {
+      localStorage.removeItem('hh_token');
+      setUser(null);
+    }
   }, []);
 
   const value = { user, isLoading, login, logout, refreshUser: loadCurrentUser };

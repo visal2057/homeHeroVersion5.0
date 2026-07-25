@@ -17,7 +17,10 @@ export default function ApplicationRejectedPage() {
           <strong>Reason:</strong> {reason}
         </p>
       )}
-      <p>You may correct the stated issue and apply again.</p>
+      <p>
+        You may correct the stated issue and apply again using the same username, email and password -
+        up to 3 total attempts. If this was your 3rd rejected attempt, this account can no longer reapply.
+      </p>
       <Link to={ROUTES.REGISTER_PROVIDER} className="btn btn-primary">
         Apply Again
       </Link>

@@ -30,8 +30,11 @@ export default function ProviderSummaryCard({ profile }) {
 
       <p className="provider-summary-meta">
         {profile?.categories?.map((c) => c.categoryName).join(' · ') ?? '—'}
-        {profile?.serviceDistrictName && <> &bull; {profile.serviceDistrictName}</>}
+        {profile?.homeDistrictName && <> &bull; {profile.homeDistrictName}</>}
       </p>
+      {profile?.serviceDistrictName && (
+        <p className="provider-summary-meta">Service area: {profile.serviceDistrictName}</p>
+      )}
 
       <div className="provider-summary-rating">
         <StarRating value={averageRating} />

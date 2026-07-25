@@ -77,6 +77,7 @@ export default function VerificationReviewPage() {
             <p><strong>Email:</strong> {application.email}</p>
             <p><strong>Phone:</strong> {application.phone}</p>
             <p><strong>Categories:</strong> {application.categories.join(', ')}</p>
+            <p><strong>Application Date:</strong> {application.submittedAt ? new Date(application.submittedAt).toLocaleString() : '—'}</p>
           </div>
           <div>
             <p><strong>Home District:</strong> {application.homeDistrictName}</p>

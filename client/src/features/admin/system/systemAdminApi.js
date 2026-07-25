@@ -40,6 +40,29 @@ export async function downloadEarningsReport(year, month) {
   window.URL.revokeObjectURL(url);
 }
 
+export function searchSPTracking(search) {
+  return axiosClient.get(API_ENDPOINTS.SYSTEM_ADMIN.SP_TRACKING, { params: { search } });
+}
+
+export function fetchMvpProviders() {
+  return axiosClient.get(API_ENDPOINTS.SYSTEM_ADMIN.SP_TRACKING_MVP);
+}
+
+export async function downloadSpReport(search, userToken) {
+  const { data } = await axiosClient.get(API_ENDPOINTS.SYSTEM_ADMIN.SP_REPORT, {
+    params: { search },
+    responseType: 'blob',
+  });
+  const url = window.URL.createObjectURL(data);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `homehero-sp-report-${userToken}.pdf`;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.URL.revokeObjectURL(url);
+}
+
 export function fetchSiteImages() {
   return axiosClient.get(API_ENDPOINTS.CONTENT.SITE_IMAGES);
 }

@@ -36,7 +36,7 @@ export default function RecentRequests({ requests }) {
                 <td>#{r.id}</td>
                 <td>{r.client_name ?? '—'}</td>
                 <td>{r.service_title ?? '—'}</td>
-                <td>{r.service_date ? new Date(r.service_date).toLocaleDateString() : '—'}</td>
+                <td>{r.service_date ? new Date(r.service_date).toLocaleString('en-LK', { dateStyle: 'medium', timeStyle: 'short' }) : '—'}</td>
                 <td>{statusBadge(r.status ?? 'pending')}</td>
               </tr>
             ))}

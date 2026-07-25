@@ -38,7 +38,7 @@ export default function BookingManagementPage() {
       <div className="admin-toolbar">
         <input
           className="form-control"
-          placeholder="Search by Booking ID, name or token"
+          placeholder="Search by Booking ID, name, token or service category"
           value={search}
           onChange={(event) => setSearch(event.target.value)}
         />

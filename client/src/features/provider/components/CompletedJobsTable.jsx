@@ -1,4 +1,8 @@
 import { IconCheckCircle, IconStar, IconImage } from '../../../components/common/icons.jsx';
+import InvoiceRowAction from './InvoiceRowAction.jsx';
+
+const MIN_ROWS = 6;
+const COLUMN_COUNT = 10;
 
 function StarRow({ value }) {
   return (
@@ -21,6 +25,8 @@ export default function CompletedJobsTable({ jobs, postedBookingIds, onCreatePos
     );
   }
 
+  const fillerRowCount = Math.max(0, MIN_ROWS - jobs.length);
+
   return (
     <div className="provider-table-wrap">
       <table className="provider-table">
@@ -32,9 +38,10 @@ export default function CompletedJobsTable({ jobs, postedBookingIds, onCreatePos
             <th>Service</th>
             <th>Booking Date</th>
             <th>Completed On</th>
+            <th>Status</th>
             <th>Rating</th>
-            <th>Review</th>
             <th>Post</th>
+            <th>Invoice</th>
           </tr>
         </thead>
         <tbody>
@@ -49,13 +56,15 @@ export default function CompletedJobsTable({ jobs, postedBookingIds, onCreatePos
                 <td>{j.service_date ? new Date(j.service_date).toLocaleDateString() : '—'}</td>
                 <td>{j.completed_at ? new Date(j.completed_at).toLocaleDateString() : '—'}</td>
                 <td>
+                  <span className="provider-badge completed">
+                    <IconCheckCircle size={12} /> Completed
+                  </span>
+                </td>
+                <td>
                   {j.rating != null
                     ? <StarRow value={j.rating} />
                     : <span style={{ color: 'var(--color-text-muted)' }}>Not rated</span>
                   }
-                </td>
-                <td style={{ maxWidth: 200, fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)' }}>
-                  {j.review_text ?? '—'}
                 </td>
                 <td>
                   {hasPost ? (
@@ -72,9 +81,21 @@ export default function CompletedJobsTable({ jobs, postedBookingIds, onCreatePos
                     </button>
                   )}
                 </td>
+                <td>
+                  <InvoiceRowAction
+                    bookingId={j.id}
+                    paymentMethod={j.payment_method}
+                    hasInvoice={j.has_invoice}
+                  />
+                </td>
               </tr>
             );
           })}
+          {Array.from({ length: fillerRowCount }).map((_, i) => (
+            <tr className="provider-table-filler-row" key={`filler-${i}`}>
+              <td colSpan={COLUMN_COUNT}>&nbsp;</td>
+            </tr>
+          ))}
         </tbody>
       </table>
     </div>

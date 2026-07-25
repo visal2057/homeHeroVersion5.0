@@ -1,7 +1,10 @@
 export default function ComplaintDetails({ complaint }) {
   return (
     <div className="card chart-card" style={{ marginBottom: 'var(--space-lg)' }}>
-      <h3>Complaint #{complaint.complaintId}</h3>
+      <h3>
+        Complaint #{complaint.complaintId}
+        {complaint.status && <span className="status-badge is-neutral" style={{ marginLeft: 10 }}>{complaint.status}</span>}
+      </h3>
       <div className="dashboard-grid" style={{ marginBottom: 0 }}>
         <div>
           <p><strong>Sender:</strong> {complaint.complainant.name} ({complaint.complainant.role})</p>

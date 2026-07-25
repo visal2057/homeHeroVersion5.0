@@ -4,7 +4,7 @@ import {
   verifiedProvidersCount,
   newClientsThisMonth,
   lastSixMonthsRevenue,
-  categoryBookingDistribution,
+  bookingCategoryDistribution,
 } from './dashboard.queries.js';
 import { getRecentActions } from '../audit/audit.service.js';
 
@@ -31,7 +31,7 @@ export async function getDashboardOverview() {
       verifiedProvidersCount(),
       newClientsThisMonth(),
       lastSixMonthsRevenue(),
-      categoryBookingDistribution(),
+      bookingCategoryDistribution(),
       getRecentActions(10),
     ]);
 
@@ -51,12 +51,13 @@ export async function getDashboardOverview() {
     };
   });
 
-  const totalCategoryBookings = categoryRes.rows.reduce((sum, row) => sum + Number(row.booking_count), 0);
+  const totalCategoryBookings = categoryRes.rows.reduce((sum, row) => sum + Number(row.count), 0);
   const categoryDistribution = categoryRes.rows.map((row) => ({
-    categoryId: row.service_category_id,
-    categoryName: row.category_name,
-    count: Number(row.booking_count),
-    percentage: totalCategoryBookings > 0 ? Math.round((Number(row.booking_count) / totalCategoryBookings) * 1000) / 10 : 0,
+    categoryCode: row.category_code,
+    label: row.category_name,
+    count: Number(row.count),
+    percentage:
+      totalCategoryBookings > 0 ? Math.round((Number(row.count) / totalCategoryBookings) * 1000) / 10 : 0,
   }));
 
   return {

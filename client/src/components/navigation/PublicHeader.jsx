@@ -2,8 +2,10 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { ROUTES } from '../../constants/routes.js';
 import { useAuth } from '../../hooks/useAuth.js';
+import { useAlert } from '../../hooks/useAlert.js';
 import { ROLES } from '../../constants/roles.js';
-import { clientApi } from '../../features/client/clientApi.js';
+import { axiosClient } from '../../api/axiosClient.js';
+import { API_ENDPOINTS } from '../../api/apiEndpoints.js';
 import {
   IconHome, IconUser, IconClipboardList, IconFlag,
   IconLogOut, IconChevronDown, IconBell,
@@ -18,18 +20,21 @@ const POLL_INTERVAL_MS = 30_000; // refresh announcements every 30 s
 
 export default function PublicHeader() {
   const { user, logout } = useAuth();
+  const { showSuccess } = useAlert();
   const navigate = useNavigate();
 
   const isClient = user?.role === ROLES.CLIENT;
+  // A Service Provider only ever renders this header while PENDING or
+  // REJECTED (an APPROVED provider lives under the separate provider
+  // layout/sidebar) - either way they get an account bubble whose only
+  // menu item is Logout, no provider navigation.
+  const isProvider = user?.role === ROLES.SERVICE_PROVIDER;
 
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isAccountOpen, setIsAccountOpen] = useState(false);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [announcements, setAnnouncements] = useState([]);
-  const [readIds, setReadIds] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('hh_read_notifs') ?? '[]'); } catch { return []; }
-  });
 
   const accountRef = useRef(null);
   const notifRef = useRef(null);
@@ -60,19 +65,14 @@ export default function PublicHeader() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Fetch announcements (called on mount and every POLL_INTERVAL_MS)
+  // Fetch the combined personal-notification + announcement feed (called on
+  // mount and every POLL_INTERVAL_MS)
   const fetchAnnouncements = useCallback(async () => {
     if (!isClient) return;
     try {
-      const res = await clientApi.getAnnouncements();
-      const list = res.data?.data?.announcements ?? res.data?.announcements ?? [];
+      const res = await axiosClient.get(API_ENDPOINTS.NOTIFICATIONS.FEED);
+      const list = res.data?.data ?? [];
       setAnnouncements(list);
-
-      // If any previously "read" IDs are no longer in the active list, remove them to keep the store clean
-      setReadIds((prev) => {
-        const activeIds = list.map((a) => getId(a));
-        return prev.filter((id) => activeIds.includes(id));
-      });
     } catch { /* non-critical */ }
   }, [isClient]);
 
@@ -85,28 +85,31 @@ export default function PublicHeader() {
   }, [fetchAnnouncements, isClient]);
 
   function getId(a) {
-    return a.announcementId ?? a.announcement_id ?? a.id;
+    return a.id;
   }
 
-  function markRead(id) {
-    setReadIds((prev) => {
-      if (prev.includes(id)) return prev;
-      const next = [...prev, id];
-      localStorage.setItem('hh_read_notifs', JSON.stringify(next));
-      return next;
+  // Persists read-state on the server (same endpoint the Provider bell uses)
+  // so it survives across devices instead of living only in localStorage.
+  function markRead(id, type) {
+    const target = announcements.find((a) => getId(a) === id);
+    if (!target || target.isRead) return;
+    setAnnouncements((prev) => prev.map((a) => (getId(a) === id ? { ...a, isRead: true } : a)));
+    axiosClient.patch(API_ENDPOINTS.NOTIFICATIONS.MARK_READ(type, id)).catch(() => {
+      setAnnouncements((prev) => prev.map((a) => (getId(a) === id ? { ...a, isRead: false } : a)));
     });
   }
 
   function markAllRead() {
-    const ids = announcements.map(getId);
-    localStorage.setItem('hh_read_notifs', JSON.stringify(ids));
-    setReadIds(ids);
+    announcements.filter((a) => !a.isRead).forEach((a) => markRead(getId(a), a.type));
   }
 
-  const unreadCount = announcements.filter((a) => !readIds.includes(getId(a))).length;
+  const unreadCount = announcements.filter((a) => !a.isRead).length;
 
-  function handleLogout() {
-    logout();
+  async function handleLogout() {
+    // Awaited so `user` is already cleared by the time we navigate --
+    // see AdminHeader.jsx's handleLogout for why this ordering matters.
+    await logout();
+    showSuccess('You have logged out successfully.');
     setIsAccountOpen(false);
     setIsMobileMenuOpen(false);
     navigate(ROUTES.HOME, { replace: true });
@@ -148,7 +151,7 @@ export default function PublicHeader() {
                 {isNotifOpen && (
                   <div className="ph-notif-dropdown animate-fade-in-up">
                     <div className="ph-notif-header">
-                      <span className="ph-notif-title">Announcements</span>
+                      <span className="ph-notif-title">Notifications</span>
                       {unreadCount > 0 && (
                         <button type="button" className="ph-notif-mark-read" onClick={markAllRead}>
                           Mark all read
@@ -156,29 +159,34 @@ export default function PublicHeader() {
                       )}
                     </div>
                     {announcements.length === 0 ? (
-                      <div className="ph-notif-empty">No announcements at the moment.</div>
+                      <div className="ph-notif-empty">No notifications at the moment.</div>
                     ) : (
                       <div className="ph-notif-list">
                         {announcements.slice(0, 6).map((a) => {
                           const id = getId(a);
-                          const isRead = readIds.includes(id);
+                          const isRead = a.isRead;
                           return (
                             <div
                               key={id}
                               className={`ph-notif-item${isRead ? '' : ' ph-notif-item-unread'}`}
-                              onMouseEnter={() => markRead(id)}
-                              onClick={() => markRead(id)}
+                              onMouseEnter={() => markRead(id, a.type)}
+                              onClick={() => markRead(id, a.type)}
                               role="button"
                               tabIndex={0}
-                              onKeyDown={(e) => e.key === 'Enter' && markRead(id)}
+                              onKeyDown={(e) => e.key === 'Enter' && markRead(id, a.type)}
                             >
                               {!isRead && <span className="ph-notif-dot" />}
                               <div className="ph-notif-item-body">
+                                <div className="ph-notif-item-title-row">
+                                  <span className={`ph-notif-type-badge${a.type === 'ANNOUNCEMENT' ? ' is-announcement' : ' is-personal'}`}>
+                                    {a.type === 'ANNOUNCEMENT' ? 'Announcement' : 'Personal'}
+                                  </span>
+                                </div>
                                 <div className="ph-notif-item-title">{a.title}</div>
-                                <div className="ph-notif-item-msg">{a.messageBody ?? a.message_body}</div>
+                                <div className="ph-notif-item-msg">{a.message}</div>
                                 <div className="ph-notif-item-date">
-                                  {(a.publishedAt ?? a.published_at)
-                                    ? new Date(a.publishedAt ?? a.published_at).toLocaleDateString('en-LK', { day: 'numeric', month: 'short' })
+                                  {a.createdAt
+                                    ? new Date(a.createdAt).toLocaleDateString('en-LK', { day: 'numeric', month: 'short' })
                                     : ''}
                                 </div>
                               </div>
@@ -224,6 +232,31 @@ export default function PublicHeader() {
                       <IconFlag size={16} /> Complaints
                     </Link>
                     <div className="ph-dropdown-divider" />
+                    <button type="button" className="ph-dropdown-item ph-dropdown-logout" onClick={handleLogout}>
+                      <IconLogOut size={16} /> Logout
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : isProvider ? (
+              <div ref={accountRef} style={{ position: 'relative' }}>
+                <button
+                  type="button"
+                  className="ph-avatar-btn"
+                  aria-label="Account menu"
+                  onClick={() => { setIsAccountOpen((v) => !v); setIsNotifOpen(false); }}
+                >
+                  <span className="ph-avatar-initials">{initials}</span>
+                  <span className="ph-avatar-name">{displayName}</span>
+                  <IconChevronDown size={14} style={{ color: 'var(--color-neutral-500)', flexShrink: 0 }} />
+                </button>
+
+                {isAccountOpen && (
+                  <div className="ph-dropdown animate-fade-in-up">
+                    <div className="ph-dropdown-header">
+                      <div className="ph-dropdown-fullname">{fullName}</div>
+                      <div className="ph-dropdown-email">{user?.email}</div>
+                    </div>
                     <button type="button" className="ph-dropdown-item ph-dropdown-logout" onClick={handleLogout}>
                       <IconLogOut size={16} /> Logout
                     </button>
@@ -326,6 +359,13 @@ export default function PublicHeader() {
         .ph-notif-item-unread:hover { background: var(--color-primary-100); }
         .ph-notif-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--color-primary-600); flex-shrink: 0; margin-top: 5px; }
         .ph-notif-item-body { flex: 1; min-width: 0; }
+        .ph-notif-item-title-row { margin-bottom: 3px; }
+        .ph-notif-type-badge {
+          display: inline-block; font-size: 10px; font-weight: 700; text-transform: uppercase;
+          letter-spacing: 0.03em; padding: 1px 7px; border-radius: var(--radius-full);
+        }
+        .ph-notif-type-badge.is-announcement { background: #eff6ff; color: #1d4ed8; }
+        .ph-notif-type-badge.is-personal { background: var(--color-primary-50); color: var(--color-primary-700); }
         .ph-notif-item-title { font-weight: 700; font-size: var(--font-size-sm); color: var(--color-secondary-700); margin-bottom: 2px; }
         .ph-notif-item-msg { font-size: var(--font-size-xs); color: var(--color-neutral-600); line-height: 1.5; margin-bottom: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
         .ph-notif-item-date { font-size: var(--font-size-xs); color: var(--color-neutral-400); }

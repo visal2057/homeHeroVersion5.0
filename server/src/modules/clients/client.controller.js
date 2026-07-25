@@ -28,6 +28,11 @@ export const updateLocationHandler = asyncHandler(async (req, res) => {
   sendSuccess(res, location);
 });
 
+export const getReviewEligibilityHandler = asyncHandler(async (req, res) => {
+  const eligibility = await clientService.getReviewEligibility(req.user.userId, Number(req.params.providerId));
+  sendSuccess(res, eligibility);
+});
+
 export const changePasswordHandler = asyncHandler(async (req, res) => {
   await clientService.changeClientPassword(req.user.userId, req.body);
   sendSuccess(res, { message: 'Password updated successfully' });

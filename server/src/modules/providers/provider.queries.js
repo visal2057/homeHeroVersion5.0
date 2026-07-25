@@ -49,10 +49,10 @@ export function getProviderBookability(userId) {
   return query(`SELECT * FROM vw_provider_bookability WHERE provider_user_id = $1`, [userId]);
 }
 
-export function updateProviderBasicInfo(client, userId, { fullName, phone }) {
+export function updateProviderBasicInfo(client, userId, { username, fullName, phone }) {
   return client.query(
-    `UPDATE users SET full_name = $1, phone = $2, updated_at = now() WHERE user_id = $3 RETURNING *`,
-    [fullName, phone, userId],
+    `UPDATE users SET username = $1, full_name = $2, phone = $3, updated_at = now() WHERE user_id = $4 RETURNING *`,
+    [username, fullName, phone, userId],
   );
 }
 
@@ -116,14 +116,66 @@ export function updateProviderProfileImage(userId, profileImageUrl) {
   );
 }
 
+// Used by findTopProviders below: the single most recent active portfolio
+// post for a provider, with its images. Top Five never shows the Explore
+// hover-preview popup, so it only ever needs this one post's worth of data.
+const WORK_PREVIEW_LATERAL_JOIN = `
+     LEFT JOIN LATERAL (
+       SELECT pp.title, pp.description,
+              COALESCE(
+                array_agg(ppi.storage_path ORDER BY ppi.display_order) FILTER (WHERE ppi.storage_path IS NOT NULL),
+                '{}'
+              ) AS images
+       FROM portfolio_posts pp
+       LEFT JOIN portfolio_post_images ppi ON ppi.portfolio_post_id = pp.portfolio_post_id
+       WHERE pp.provider_user_id = vs.provider_user_id AND pp.is_active = true
+       GROUP BY pp.portfolio_post_id
+       ORDER BY pp.created_at DESC
+       LIMIT 1
+     ) wp ON true`;
+
+// Used only by findAvailableProviders below: the Explore page's "All
+// Providers" hover-preview popup (system flow section 13.4) lets a Client
+// scroll through a provider's five most recent active portfolio posts, not
+// just the latest one, so this returns a JSON array instead of one row.
+const WORK_PREVIEW_POSTS_LATERAL_JOIN = `
+     LEFT JOIN LATERAL (
+       SELECT json_agg(
+                json_build_object('title', post.title, 'description', post.description, 'images', post.images)
+                ORDER BY post.created_at DESC
+              ) AS posts
+       FROM (
+         SELECT pp.title, pp.description, pp.created_at,
+                COALESCE(
+                  array_agg(ppi.storage_path ORDER BY ppi.display_order) FILTER (WHERE ppi.storage_path IS NOT NULL),
+                  '{}'
+                ) AS images
+         FROM portfolio_posts pp
+         LEFT JOIN portfolio_post_images ppi ON ppi.portfolio_post_id = pp.portfolio_post_id
+         WHERE pp.provider_user_id = vs.provider_user_id AND pp.is_active = true
+         GROUP BY pp.portfolio_post_id
+         ORDER BY pp.created_at DESC
+         LIMIT 5
+       ) post
+     ) wp ON true`;
+
 export function findTopProviders(categoryId, { district, search }, limit = 5) {
   return query(
-    `SELECT vs.*, bk.is_verified, bk.has_active_ban
+    `SELECT vs.*, bk.is_verified, bk.has_active_ban, up.unavailable_from, up.unavailable_to,
+            wp.title AS work_title, wp.description AS work_description, wp.images AS work_images
      FROM vw_provider_search vs
      JOIN vw_provider_bookability bk ON bk.provider_user_id = vs.provider_user_id
+     LEFT JOIN LATERAL (
+       SELECT unavailable_from, unavailable_to
+       FROM provider_unavailable_periods
+       WHERE provider_user_id = vs.provider_user_id AND unavailable_to >= CURRENT_DATE
+       ORDER BY unavailable_from
+       LIMIT 1
+     ) up ON true${WORK_PREVIEW_LATERAL_JOIN}
      WHERE vs.service_category_id = $1
        AND bk.is_verified = true
        AND bk.has_active_ban = false
+       AND bk.is_bookable = true
        AND ($2::text IS NULL OR vs.district_name ILIKE $2)
        AND ($3::text IS NULL OR vs.provider_name ILIKE '%' || $3 || '%')
      ORDER BY vs.current_month_completed_jobs DESC, vs.average_rating DESC NULLS LAST
@@ -134,13 +186,22 @@ export function findTopProviders(categoryId, { district, search }, limit = 5) {
 
 export function findAvailableProviders(categoryId, { district, search }, limit = 20) {
   return query(
-    `SELECT vs.*, bk.is_verified, bk.has_active_ban, bk.has_valid_membership_or_grace
+    `SELECT vs.*, bk.is_verified, bk.has_active_ban, bk.has_valid_membership_or_grace, up.unavailable_from, up.unavailable_to,
+            wp.posts AS work_posts
      FROM vw_provider_search vs
      JOIN vw_provider_bookability bk ON bk.provider_user_id = vs.provider_user_id
+     LEFT JOIN LATERAL (
+       SELECT unavailable_from, unavailable_to
+       FROM provider_unavailable_periods
+       WHERE provider_user_id = vs.provider_user_id AND unavailable_to >= CURRENT_DATE
+       ORDER BY unavailable_from
+       LIMIT 1
+     ) up ON true${WORK_PREVIEW_POSTS_LATERAL_JOIN}
      WHERE vs.service_category_id = $1
        AND bk.is_verified = true
        AND bk.has_active_ban = false
        AND bk.has_valid_membership_or_grace = true
+       AND bk.is_bookable = true
        AND vs.is_newcomer = true
        AND ($2::text IS NULL OR vs.district_name ILIKE $2)
        AND ($3::text IS NULL OR vs.provider_name ILIKE '%' || $3 || '%')
@@ -181,14 +242,17 @@ export function getProviderUnavailablePeriods(providerId) {
 export function getProviderPortfolioPosts(providerId) {
   return query(
     `SELECT pp.portfolio_post_id, pp.title, pp.description, pp.created_at,
+            sc.category_name,
             COALESCE(
               array_agg(ppi.storage_path ORDER BY ppi.display_order) FILTER (WHERE ppi.storage_path IS NOT NULL),
               '{}'
             ) AS image_paths
      FROM portfolio_posts pp
+     JOIN bookings b ON b.booking_id = pp.booking_id
+     JOIN service_categories sc ON sc.service_category_id = b.service_category_id
      LEFT JOIN portfolio_post_images ppi ON ppi.portfolio_post_id = pp.portfolio_post_id
      WHERE pp.provider_user_id = $1 AND pp.is_active = true
-     GROUP BY pp.portfolio_post_id
+     GROUP BY pp.portfolio_post_id, sc.category_name
      ORDER BY pp.created_at DESC`,
     [providerId],
   );
@@ -196,10 +260,12 @@ export function getProviderPortfolioPosts(providerId) {
 
 export function getProviderReviews(providerId) {
   return query(
-    `SELECT r.review_id, r.rating, r.review_text, r.created_at, u.full_name AS client_name
+    `SELECT r.review_id, r.rating, r.review_text, r.created_at, u.full_name AS client_name,
+            b.booking_id, sc.category_name
      FROM reviews r
      JOIN bookings b ON b.booking_id = r.booking_id
      JOIN users u ON u.user_id = b.client_user_id
+     JOIN service_categories sc ON sc.service_category_id = b.service_category_id
      WHERE b.provider_user_id = $1
      ORDER BY r.created_at DESC`,
     [providerId],

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import AdminUsersTable from '../components/AdminUsersTable.jsx';
+import AddUserMenu from '../components/AddUserMenu.jsx';
 import BanUserModal from '../components/BanUserModal.jsx';
 import BanRequestCard from '../components/BanRequestCard.jsx';
 import ConfirmModal from '../../../../components/common/ConfirmModal.jsx';
@@ -13,16 +14,25 @@ export default function UserManagementPage() {
   const [banRequests, setBanRequests] = useState([]);
   const [role, setRole] = useState('');
   const [search, setSearch] = useState('');
+  const [bookingId, setBookingId] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [banTarget, setBanTarget] = useState(null);
   const [unbanTarget, setUnbanTarget] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [banAnchor, setBanAnchor] = useState(null);
   const { showError, showSuccess } = useAlert();
+
+  // Shared by the table's per-row Ban button and the Ban Request cards above
+  // it, so the popover always opens next to whichever button was clicked.
+  function openBanPopover(target, rect) {
+    setBanTarget(target);
+    setBanAnchor(rect);
+  }
 
   const loadUsers = useCallback(() => {
     setIsLoading(true);
     return Promise.all([
-      fetchUsers({ role: role || undefined, search: search || undefined }),
+      fetchUsers({ role: role || undefined, search: search || undefined, bookingId: bookingId || undefined }),
       fetchBanRequests(),
     ])
       .then(([usersRes, banRes]) => {
@@ -31,7 +41,7 @@ export default function UserManagementPage() {
       })
       .catch((error) => showError(extractErrorMessage(error)))
       .finally(() => setIsLoading(false));
-  }, [role, search, showError]);
+  }, [role, search, bookingId, showError]);
 
   useEffect(() => {
     const timeout = setTimeout(loadUsers, 250);
@@ -48,6 +58,7 @@ export default function UserManagementPage() {
       });
       showSuccess('User has been banned.');
       setBanTarget(null);
+      setBanAnchor(null);
       await loadUsers();
     } catch (error) {
       showError(extractErrorMessage(error));
@@ -77,13 +88,14 @@ export default function UserManagementPage() {
           <h1 className="section-title">User Management</h1>
           <p className="section-subtitle">Search Clients and Service Providers, and act on ban recommendations.</p>
         </div>
+        <AddUserMenu onCreated={loadUsers} />
       </div>
 
       {banRequests.length > 0 && (
         <div className="card chart-card" style={{ marginBottom: 'var(--space-xl)' }}>
           <h3>Pending Ban Requests from Verification Admin</h3>
           {banRequests.map((request) => (
-            <BanRequestCard key={request.banRequestId} request={request} onApply={setBanTarget} />
+            <BanRequestCard key={request.banRequestId} request={request} onApply={openBanPopover} />
           ))}
         </div>
       )}
@@ -100,6 +112,13 @@ export default function UserManagementPage() {
           <option value="CLIENT">Clients</option>
           <option value="SERVICE_PROVIDER">Service Providers</option>
         </select>
+        <input
+          className="form-control"
+          type="number"
+          placeholder="Search by Booking ID"
+          value={bookingId}
+          onChange={(event) => setBookingId(event.target.value)}
+        />
       </div>
 
       {isLoading ? (
@@ -107,15 +126,20 @@ export default function UserManagementPage() {
           <LoadingSpinner />
         </div>
       ) : (
-        <AdminUsersTable users={users} onBan={setBanTarget} onUnban={setUnbanTarget} />
+        <AdminUsersTable users={users} onBan={openBanPopover} onUnban={setUnbanTarget} />
       )}
 
       <BanUserModal
         isOpen={Boolean(banTarget)}
-        onClose={() => setBanTarget(null)}
+        onClose={() => {
+          setBanTarget(null);
+          setBanAnchor(null);
+        }}
         onSubmit={handleApplyBan}
         targetName={banTarget?.fullName ?? banTarget?.requestedUserName}
         isSubmitting={isSubmitting}
+        recommendation={banTarget}
+        anchorRect={banAnchor}
       />
 
       <ConfirmModal

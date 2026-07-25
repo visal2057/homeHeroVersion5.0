@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import AlertMessage from '../../../components/common/AlertMessage.jsx';
 
 function toDateKey(date) {
   const year = date.getFullYear();
@@ -44,7 +45,7 @@ export default function OfflineDateRangePicker({ onConfirm, onCancel, saving }) 
         Choose the date range you'll be offline for. You'll stay visible to clients but cannot be booked on these days.
       </p>
 
-      {error && <div className="provider-alert error">{error}</div>}
+      {error && <AlertMessage type="error" message={error} />}
 
       <div className="provider-offline-picker-row">
         <div className="provider-form-group">

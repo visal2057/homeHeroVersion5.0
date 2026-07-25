@@ -2,9 +2,10 @@ import { query } from '../../db/query.js';
 
 export function findUserByUsernameOrEmail(identifier) {
   return query(
-    `SELECT u.*, r.role_code
+    `SELECT u.*, r.role_code, spp.verification_status
      FROM users u
      JOIN roles r ON r.role_id = u.role_id
+     LEFT JOIN service_provider_profiles spp ON spp.provider_user_id = u.user_id
      WHERE u.username = $1 OR u.email = $1`,
     [identifier],
   );
@@ -19,7 +20,11 @@ export function findUserByEmail(email) {
 
 export function findUserById(userId) {
   return query(
-    `SELECT u.*, r.role_code FROM users u JOIN roles r ON r.role_id = u.role_id WHERE u.user_id = $1`,
+    `SELECT u.*, r.role_code, spp.verification_status
+     FROM users u
+     JOIN roles r ON r.role_id = u.role_id
+     LEFT JOIN service_provider_profiles spp ON spp.provider_user_id = u.user_id
+     WHERE u.user_id = $1`,
     [userId],
   );
 }
@@ -28,6 +33,50 @@ export function findActiveBan(userId) {
   return query(
     `SELECT * FROM user_bans WHERE user_id = $1 AND ban_status = 'ACTIVE'`,
     [userId],
+  );
+}
+
+// One-query check used on every authenticated request (not just login) so a
+// ban, deactivation, or logout invalidates an already-issued session
+// immediately. sessionId is the auth_sessions row created at login and
+// embedded in the JWT as `sid`; it is left-joined (not inner-joined) so a
+// token issued before this check existed still authenticates normally, just
+// without the extra revoked-session check.
+export function findSessionValidity(userId, sessionId) {
+  return query(
+    `SELECT u.account_status, ub.ban_type, ub.reason, ub.ends_at, s.revoked_at AS session_revoked_at
+     FROM users u
+     LEFT JOIN user_bans ub ON ub.user_id = u.user_id AND ub.ban_status = 'ACTIVE'
+     LEFT JOIN auth_sessions s ON s.session_id = $2
+     WHERE u.user_id = $1`,
+    [userId, sessionId ?? null],
+  );
+}
+
+// Creates the session row a login issues a JWT for. auth_sessions.session_id
+// is embedded in that JWT as `sid` so a specific session (not just "all of
+// this user's sessions") can be revoked on logout. refresh_token_hash has no
+// consumer yet (no refresh-token flow exists), so it is populated with a
+// random per-session value only to satisfy the column's NOT NULL/UNIQUE
+// constraint.
+export function insertAuthSession({ userId, refreshTokenHash, expiresAt }) {
+  return query(
+    `INSERT INTO auth_sessions (user_id, refresh_token_hash, expires_at)
+     VALUES ($1, $2, $3)
+     RETURNING session_id`,
+    [userId, refreshTokenHash, expiresAt],
+  );
+}
+
+// Logout: revokes exactly the session the caller authenticated with.
+// Scoped to both session_id and user_id so a session can never be revoked
+// by anyone other than the user it belongs to.
+export function revokeAuthSession(sessionId, userId) {
+  return query(
+    `UPDATE auth_sessions SET revoked_at = now()
+     WHERE session_id = $1 AND user_id = $2 AND revoked_at IS NULL
+     RETURNING session_id`,
+    [sessionId, userId],
   );
 }
 

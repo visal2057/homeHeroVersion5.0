@@ -14,7 +14,7 @@ import {
   validateRequired,
 } from '../authValidation.js';
 import { ROUTES } from '../../../constants/routes.js';
-import { REGISTER_PROVIDER_HERO_IMAGE_URL } from '../../../constants/pageImages.js';
+import { REGISTER_PROVIDER_STEP1_HERO_IMAGE_URL, REGISTER_PROVIDER_STEP2_HERO_IMAGE_URL } from '../../../constants/pageImages.js';
 import { IconHardHat } from '../../../components/common/icons.jsx';
 
 const initialPersonalForm = {
@@ -117,28 +117,32 @@ export default function ProviderRegistrationPage() {
     }
   }
 
+  const heroImage = step === 1 ? REGISTER_PROVIDER_STEP1_HERO_IMAGE_URL : REGISTER_PROVIDER_STEP2_HERO_IMAGE_URL;
+  const heroLabel = step === 1
+    ? 'A professional gardener tending a lush vegetable garden'
+    : 'A pet-care provider walking a dog across a green lawn';
+  const subtitle = step === 1
+    ? 'Step 1 of 2 — Set up your account and tell us about the services you provide.'
+    : 'Step 2 of 2 — Upload your documents so we can verify your application.';
+
   return (
-    <div>
-      <section className="glass-hero register-hero">
-        <div
-          className="glass-hero-bg"
-          style={{ backgroundImage: `url(${REGISTER_PROVIDER_HERO_IMAGE_URL})` }}
-          role="img"
-          aria-label="A skilled tradesperson at work with their tools"
-        />
-        <div className="glass-hero-overlay" aria-hidden="true" />
-        <div className="container glass-hero-inner">
-          <div className="glass-panel glass-hero-panel text-center animate-fade-in-up" style={{ margin: '0 auto' }}>
-            <div className="hh-float-gentle">
-              <span className="hh-eyebrow"><IconHardHat size={16} /> Service Provider Sign Up</span>
-              <h1 className="register-hero-title">Become a Service Provider</h1>
-              <p>Step {step} of 2</p>
-            </div>
+    <div className="register-page">
+      <div
+        className="register-page-bg"
+        style={{ backgroundImage: `url(${heroImage})` }}
+        role="img"
+        aria-label={heroLabel}
+      />
+      <div className="register-page-overlay" aria-hidden="true" />
+      <div className="container register-page-inner">
+        <div className="text-center register-page-heading animate-fade-in-up">
+          <div className="hh-float-gentle">
+            <span className="hh-eyebrow"><IconHardHat size={16} /> Service Provider Sign Up</span>
+            <h1 className="register-page-title">Become a Service Provider</h1>
+            <p className="register-page-subtitle">{subtitle}</p>
           </div>
         </div>
-      </section>
 
-      <div className="container section">
         {step === 1 ? (
           <ProviderPersonalForm
             form={personalForm}

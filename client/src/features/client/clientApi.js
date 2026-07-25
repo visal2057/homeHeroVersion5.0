@@ -24,6 +24,9 @@ export const clientApi = {
   getProviderReviews: (providerId) =>
     axiosClient.get(`/providers/${providerId}/reviews`),
 
+  getReviewEligibility: (providerId) =>
+    axiosClient.get(`/client/providers/${providerId}/review-eligibility`),
+
   submitComplaint: (data) => axiosClient.post('/client/complaints', data),
   getComplaints: () => axiosClient.get('/client/complaints'),
 

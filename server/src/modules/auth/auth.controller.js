@@ -17,6 +17,11 @@ export const meHandler = asyncHandler(async (req, res) => {
   sendSuccess(res, { user });
 });
 
+export const logoutHandler = asyncHandler(async (req, res) => {
+  await authService.logout(req.user.userId, req.user.sid);
+  sendSuccess(res, { message: 'You have been logged out.' });
+});
+
 export const forgotPasswordHandler = asyncHandler(async (req, res) => {
   await authService.forgotPassword(req.body.email);
   sendSuccess(res, {

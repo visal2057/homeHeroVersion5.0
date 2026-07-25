@@ -1,0 +1,157 @@
+import { useCallback, useEffect, useRef, useState } from 'react';
+import SPTrackingResultsTable from '../components/SPTrackingResultsTable.jsx';
+import SPTrackingStats from '../components/SPTrackingStats.jsx';
+import MvpProvidersSection from '../components/MvpProvidersSection.jsx';
+import LoadingSpinner from '../../../../components/common/LoadingSpinner.jsx';
+import { IconSearch, IconXCircle } from '../../../../components/common/icons.jsx';
+import { searchSPTracking, fetchMvpProviders, downloadSpReport } from '../systemAdminApi.js';
+import { useAlert } from '../../../../hooks/useAlert.js';
+import { extractErrorMessage } from '../../../../api/apiErrorHandler.js';
+
+const MVP_POLL_INTERVAL_MS = 20000;
+
+export default function SPTrackingPage() {
+  const [search, setSearch] = useState('');
+  const [provider, setProvider] = useState(null);
+  const [jobs, setJobs] = useState([]);
+  const [stats, setStats] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
+
+  const [mvpProviders, setMvpProviders] = useState([]);
+  const [isMvpLoading, setIsMvpLoading] = useState(true);
+  const mvpPollRef = useRef(null);
+
+  const { showError, showSuccess } = useAlert();
+
+  const isSearching = Boolean(search.trim());
+
+  const loadMvpProviders = useCallback(async () => {
+    try {
+      const { data } = await fetchMvpProviders();
+      setMvpProviders(data.data.providers);
+    } catch {
+      // Non-critical: the leaderboard just keeps showing its last-known state.
+    } finally {
+      setIsMvpLoading(false);
+    }
+  }, []);
+
+  // The MVP leaderboard keeps polling in the background even while the admin
+  // is viewing a searched provider, so it's already fresh the moment the
+  // search box is cleared.
+  useEffect(() => {
+    loadMvpProviders();
+    mvpPollRef.current = setInterval(loadMvpProviders, MVP_POLL_INTERVAL_MS);
+    return () => clearInterval(mvpPollRef.current);
+  }, [loadMvpProviders]);
+
+  useEffect(() => {
+    if (!search.trim()) {
+      setProvider(null);
+      setJobs([]);
+      setStats(null);
+      setHasSearched(false);
+      return undefined;
+    }
+
+    setIsLoading(true);
+    const timeout = setTimeout(() => {
+      searchSPTracking(search.trim())
+        .then(({ data }) => {
+          setProvider(data.data.provider);
+          setJobs(data.data.jobs);
+          setStats(data.data.stats);
+          setHasSearched(true);
+        })
+        .catch((error) => showError(extractErrorMessage(error)))
+        .finally(() => setIsLoading(false));
+    }, 250);
+    return () => clearTimeout(timeout);
+  }, [search, showError]);
+
+  async function handleGenerateReport() {
+    setIsDownloading(true);
+    try {
+      await downloadSpReport(search.trim(), provider.userToken);
+      showSuccess('Service Provider report downloaded.');
+    } catch (error) {
+      showError(extractErrorMessage(error));
+    } finally {
+      setIsDownloading(false);
+    }
+  }
+
+  return (
+    <div className="container admin-page animate-fade-in-up">
+      <div className="admin-page-header">
+        <div>
+          <h1 className="section-title">SP Tracking</h1>
+          <p className="section-subtitle">Look up a Service Provider's completed jobs.</p>
+        </div>
+      </div>
+
+      <div className="sp-search-wrap">
+        <IconSearch size={19} className="sp-search-icon" />
+        <input
+          className="sp-search-input"
+          placeholder="Search by Service Provider name or token"
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+          style={isSearching ? { paddingRight: '2.75rem' } : undefined}
+        />
+        {isSearching && (
+          <button
+            type="button"
+            onClick={() => setSearch('')}
+            aria-label="Clear search"
+            style={{
+              position: 'absolute',
+              top: '50%',
+              right: '1.1rem',
+              transform: 'translateY(-50%)',
+              background: 'none',
+              border: 'none',
+              padding: 0,
+              display: 'flex',
+              cursor: 'pointer',
+              color: 'var(--color-text-muted)',
+            }}
+          >
+            <IconXCircle size={22} />
+          </button>
+        )}
+      </div>
+
+      {isSearching ? (
+        isLoading ? (
+          <div className="text-center">
+            <LoadingSpinner />
+          </div>
+        ) : hasSearched && !provider ? (
+          <p className="empty-state">No Service Provider matches that search.</p>
+        ) : provider ? (
+          <>
+            <div className="admin-page-header">
+              <h2 className="section-title" style={{ fontSize: 'var(--font-size-lg)' }}>
+                {provider.fullName} <span style={{ color: 'var(--color-text-muted)' }}>({provider.userToken})</span>
+              </h2>
+              <button type="button" className="btn btn-primary" onClick={handleGenerateReport} disabled={isDownloading}>
+                {isDownloading && <span className="btn-spinner" aria-hidden="true" />}
+                {isDownloading ? 'Generating...' : 'Generate Report'}
+              </button>
+            </div>
+            <SPTrackingStats stats={stats} />
+            <div className="card chart-card">
+              <h3>Completed Jobs</h3>
+              <SPTrackingResultsTable jobs={jobs} />
+            </div>
+          </>
+        ) : null
+      ) : (
+        <MvpProvidersSection providers={mvpProviders} isLoading={isMvpLoading} onSelectProvider={setSearch} />
+      )}
+    </div>
+  );
+}

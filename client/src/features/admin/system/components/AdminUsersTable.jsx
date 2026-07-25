@@ -7,7 +7,7 @@ export default function AdminUsersTable({ users, onBan, onUnban }) {
 
   return (
     <div className="data-table-wrapper">
-      <table className="data-table">
+      <table className="data-table users-data-table">
         <thead>
           <tr>
             <th>Name</th>
@@ -52,7 +52,12 @@ export default function AdminUsersTable({ users, onBan, onUnban }) {
                     Unban
                   </button>
                 ) : (
-                  <button type="button" className="btn btn-ghost" style={{ color: '#dc2626' }} onClick={() => onBan(user)}>
+                  <button
+                    type="button"
+                    className="btn btn-ghost"
+                    style={{ color: '#dc2626' }}
+                    onClick={(event) => onBan(user, event.currentTarget.getBoundingClientRect())}
+                  >
                     Ban
                   </button>
                 )}

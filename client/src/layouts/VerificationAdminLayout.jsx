@@ -2,7 +2,11 @@ import { Outlet } from 'react-router-dom';
 import AdminHeader from '../components/navigation/AdminHeader.jsx';
 import { ROUTES } from '../constants/routes.js';
 
-const NAV_ITEMS = [{ to: ROUTES.VERIFICATION_ADMIN_DASHBOARD, label: 'Dashboard', end: true }];
+const NAV_ITEMS = [
+  { to: ROUTES.VERIFICATION_ADMIN_DASHBOARD, label: 'Dashboard', end: true },
+  { to: ROUTES.VERIFICATION_ADMIN_APPLICATIONS, label: 'Applications', end: true },
+  { to: ROUTES.VERIFICATION_ADMIN_COMPLAINTS, label: 'Complaints', end: true },
+];
 
 export default function VerificationAdminLayout() {
   return (

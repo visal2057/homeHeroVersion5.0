@@ -19,6 +19,7 @@ export const listBookingsHandler = asyncHandler(async (req, res) => {
     paymentStatus: row.payment_status,
     requestedAt: row.requested_at,
     completedAt: row.completed_at,
+    hasInvoice: row.invoice_id !== null,
   }));
 
   sendSuccess(res, { bookings });

@@ -2,8 +2,10 @@ import { z } from 'zod';
 
 const sriLankanPhonePattern = /^(?:\+94|0)[0-9]{9}$/;
 const passwordPattern = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/;
+const usernamePattern = /^[a-zA-Z0-9_]{3,30}$/;
 
 export const updateProviderProfileSchema = z.object({
+  username: z.string().regex(usernamePattern, 'Username must be 3-30 characters using letters, numbers or underscore'),
   fullName: z.string().min(2).max(150),
   phone: z.string().regex(sriLankanPhonePattern, 'Enter a valid Sri Lankan phone number'),
   bio: z.string().min(10).max(1000),

@@ -41,7 +41,7 @@ export default function ClientComplaintsPage() {
         <div className="container" style={{ position: 'relative', zIndex: 1 }}>
           <div className="ccmp-hero-inner">
             <div className="ccmp-hero-icon">
-              <IconFlag size={32} style={{ color: 'white' }} />
+              <IconFlag size={38} style={{ color: 'white' }} />
             </div>
             <div>
               <div className="hh-eyebrow" style={{ color: 'rgba(255,255,255,0.75)', marginBottom: 6 }}>Support</div>
@@ -61,7 +61,7 @@ export default function ClientComplaintsPage() {
             <h2 className="ccmp-card-title">New Complaint</h2>
             {showSuccess && (
               <div className="ccmp-success">
-                <IconCheckCircle size={16} style={{ marginRight: 8, flexShrink: 0 }} />
+                <IconCheckCircle size={19} style={{ marginRight: 8, flexShrink: 0 }} />
                 Your complaint has been submitted. Our team will review it within 2 business days.
               </div>
             )}
@@ -75,7 +75,7 @@ export default function ClientComplaintsPage() {
               <div style={{ color: 'var(--color-neutral-400)', textAlign: 'center', padding: 'var(--space-xl)' }}>Loading...</div>
             ) : complaints.length === 0 ? (
               <div className="ccmp-empty">
-                <IconInbox size={40} style={{ color: 'var(--color-neutral-300)', marginBottom: 'var(--space-md)' }} />
+                <IconInbox size={48} style={{ color: 'var(--color-neutral-300)', marginBottom: 'var(--space-md)' }} />
                 <p>No complaints submitted yet.</p>
               </div>
             ) : (
@@ -86,7 +86,7 @@ export default function ClientComplaintsPage() {
                     <div key={c.id} className="ccmp-item">
                       <div className="ccmp-item-top">
                         <div className="ccmp-item-type-wrap">
-                          <IconAlertCircle size={14} style={{ color: 'var(--color-neutral-400)', flexShrink: 0 }} />
+                          <IconAlertCircle size={17} style={{ color: 'var(--color-neutral-400)', flexShrink: 0 }} />
                           <span className="ccmp-item-type">{c.complaintType ?? 'General'}</span>
                         </div>
                         <span className="ccmp-item-status" style={{ background: st.bg, color: st.color }}>
@@ -117,7 +117,7 @@ export default function ClientComplaintsPage() {
         .ccmp-hero {
           position: relative;
           background-image: url('https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?auto=format&fit=crop&w=2000&q=80');
-          background-size: cover; background-position: center; padding: 64px 0;
+          background-size: cover; background-position: center; padding: 77px 0;
         }
         .ccmp-hero-overlay {
           position: absolute; inset: 0;
@@ -125,7 +125,7 @@ export default function ClientComplaintsPage() {
         }
         .ccmp-hero-inner { display: flex; align-items: center; gap: var(--space-xl); }
         .ccmp-hero-icon {
-          width: 64px; height: 64px; border-radius: var(--radius-lg);
+          width: 77px; height: 77px; border-radius: var(--radius-lg);
           background: rgba(255,255,255,0.15); backdrop-filter: blur(8px);
           display: flex; align-items: center; justify-content: center; flex-shrink: 0;
           border: 1px solid rgba(255,255,255,0.25);
@@ -137,7 +137,7 @@ export default function ClientComplaintsPage() {
         @media (max-width: 768px) { .ccmp-grid { grid-template-columns: 1fr; } }
         .ccmp-card { background: white; border: 1px solid var(--color-neutral-200); border-radius: var(--radius-lg); padding: var(--space-xl); }
         .ccmp-card-title { font-size: var(--font-size-xl); color: var(--color-secondary-700); margin-bottom: var(--space-lg); font-weight: 700; }
-        .ccmp-success { display: flex; align-items: center; padding: 12px 16px; background: #ecfdf5; color: #059669; border-radius: var(--radius-md); margin-bottom: var(--space-lg); font-weight: 600; font-size: var(--font-size-sm); border: 1px solid #a7f3d0; }
+        .ccmp-success { display: flex; align-items: center; padding: 14px 19px; background: #ecfdf5; color: #059669; border-radius: var(--radius-md); margin-bottom: var(--space-lg); font-weight: 600; font-size: var(--font-size-sm); border: 1px solid #a7f3d0; }
         .ccmp-empty { text-align: center; padding: var(--space-xl); color: var(--color-neutral-400); display: flex; flex-direction: column; align-items: center; }
         .ccmp-list { display: flex; flex-direction: column; gap: var(--space-md); }
         .ccmp-item { background: white; border: 1px solid var(--color-neutral-200); border-radius: var(--radius-md); padding: var(--space-lg); }

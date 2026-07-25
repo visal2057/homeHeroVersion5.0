@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { IconXCircle, IconAlertCircle, IconImage } from '../../../components/common/icons.jsx';
+import { IconXCircle, IconImage } from '../../../components/common/icons.jsx';
+import AlertMessage from '../../../components/common/AlertMessage.jsx';
 
 const MAX_IMAGES = 3;
 
@@ -47,11 +48,7 @@ export default function CreatePortfolioPostModal({ bookingId, onClose, onSave, s
 
         <form onSubmit={handleSubmit}>
           <div className="provider-modal-body">
-            {error && (
-              <div className="provider-alert error">
-                <IconAlertCircle size={16} /> {error}
-              </div>
-            )}
+            {error && <AlertMessage type="error" message={error} />}
 
             <div className="provider-form-group" style={{ marginBottom: 'var(--space-md)' }}>
               <label className="provider-form-label" htmlFor="port-title">

@@ -52,11 +52,11 @@ export const HERO_IMAGE_URL =
    on the homepage. */
 export const HERO_VISUAL_PHOTOS = [
   {
-    url: 'https://images.unsplash.com/photo-1758687126864-96b61e1b3af0?auto=format&fit=crop&w=700&q=80',
+    url: 'https://images.unsplash.com/photo-1686178827149-6d55c72d81df?auto=format&fit=crop&w=700&q=80',
     alt: 'A gardener tending to plants in a home garden',
   },
   {
-    url: 'https://images.unsplash.com/photo-1686890121534-ddf6ea532c72?auto=format&fit=crop&w=700&q=80',
+    url: 'https://images.unsplash.com/photo-1562259929-b4e1fd3aef09?auto=format&fit=crop&w=700&q=80',
     alt: 'A happy Labrador relaxing outdoors',
   },
   {

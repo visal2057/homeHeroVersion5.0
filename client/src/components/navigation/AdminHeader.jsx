@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth.js';
+import { useAlert } from '../../hooks/useAlert.js';
 import { axiosClient } from '../../api/axiosClient.js';
 import { API_ENDPOINTS } from '../../api/apiEndpoints.js';
 import { ROUTES } from '../../constants/routes.js';
@@ -22,6 +23,7 @@ function initialsOf(name) {
 
 export default function AdminHeader({ roleLabel, homeRoute, navItems, variant = 'classic' }) {
   const { user, logout } = useAuth();
+  const { showSuccess } = useAlert();
   const navigate = useNavigate();
   const [announcements, setAnnouncements] = useState([]);
   const [isBellOpen, setIsBellOpen] = useState(false);
@@ -42,8 +44,14 @@ export default function AdminHeader({ roleLabel, homeRoute, navItems, variant = 
     };
   }, []);
 
-  function handleLogout() {
-    logout();
+  async function handleLogout() {
+    // Awaited so `user` is already cleared by the time we navigate --
+    // otherwise GuestRoute (guarding /login) still sees the stale
+    // logged-in user, bounces straight back to the dashboard, and that
+    // extra mount's data fetches race the now-revoked session, each
+    // showing their own "session has ended" alert (the double-message bug).
+    await logout();
+    showSuccess('You have logged out successfully.');
     navigate(ROUTES.LOGIN);
   }
 
@@ -66,7 +74,7 @@ export default function AdminHeader({ roleLabel, homeRoute, navItems, variant = 
       <div className="container admin-header-inner">
         <div className="admin-brand">
           <NavLink to={homeRoute} style={{ color: 'inherit' }}>
-            🛠️ HomeHero
+            HomeHero
           </NavLink>
           {isModern && <span className="admin-header-divider" aria-hidden="true" />}
           <span className="admin-role-badge">{roleLabel}</span>

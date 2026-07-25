@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { authenticate } from '../../middleware/authenticate.js';
 import { requireProvider } from '../../middleware/requireProvider.js';
+import { checkProviderVerification } from '../../middleware/checkProviderVerification.js';
 import { validateRequest } from '../../middleware/validateRequest.js';
 import { savePaymentSettingsSchema } from './paymentSettings.validation.js';
 import {
@@ -12,7 +13,7 @@ import {
 // through authenticate + requireProvider. The provider is taken from the
 // token (req.user.userId), never from the request body.
 const router = Router();
-router.use(authenticate, requireProvider);
+router.use(authenticate, requireProvider, checkProviderVerification);
 
 router.get('/', getPaymentSettingsHandler);
 router.put('/', validateRequest(savePaymentSettingsSchema), savePaymentSettingsHandler);

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { membershipApi } from '../membershipApi.js';
 import { extractErrorMessage } from '../../../../api/apiErrorHandler.js';
 import { formatLKR } from '../../client/paymentMath.js';
+import { formatCardNumber, formatExpiryDate, formatCVV } from '../../cardFieldFormatting.js';
 import FormInput from '../../../../components/common/FormInput.jsx';
 import ConfirmModal from '../../../../components/common/ConfirmModal.jsx';
 import AlertMessage from '../../../../components/common/AlertMessage.jsx';
@@ -16,14 +17,24 @@ export default function MembershipPaymentForm({ quote, onCancel, onPaid }) {
   const [submitting, setSubmitting] = useState(false);
   const [apiError, setApiError] = useState('');
 
-  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+  // Card fields get live-masked as the user types (spaced digits, MM/YY,
+  // etc.) so the input always looks like a real card field regardless of
+  // how the value was entered or pasted.
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    let next = value;
+    if (name === 'cardNumber') next = formatCardNumber(value);
+    else if (name === 'expiryDate') next = formatExpiryDate(value);
+    else if (name === 'cvv') next = formatCVV(value);
+    setForm({ ...form, [name]: next });
+  };
 
   const validate = () => {
     const next = {};
     if (!form.cardholderName.trim()) next.cardholderName = 'Cardholder name is required.';
     if (!/^\d{16}$/.test(form.cardNumber.replace(/\s/g, ''))) next.cardNumber = 'Enter the 16-digit card number.';
     if (!/^\d{2}\/\d{2}$/.test(form.expiryDate)) next.expiryDate = 'Use MM/YY format.';
-    if (!/^\d{3,4}$/.test(form.cvv)) next.cvv = 'CVV must be 3 or 4 digits.';
+    if (!/^\d{3}$/.test(form.cvv)) next.cvv = 'CVV must be 3 digits.';
     return next;
   };
 
@@ -67,7 +78,7 @@ export default function MembershipPaymentForm({ quote, onCancel, onPaid }) {
       <FormInput label="Card number" name="cardNumber" value={form.cardNumber} onChange={handleChange} placeholder="1234 5678 9012 3456" inputMode="numeric" maxLength={19} error={errors.cardNumber} />
       <div className="mpf-split">
         <FormInput label="Expiry (MM/YY)" name="expiryDate" value={form.expiryDate} onChange={handleChange} placeholder="08/27" maxLength={5} error={errors.expiryDate} />
-        <FormInput label="CVV" name="cvv" value={form.cvv} onChange={handleChange} placeholder="123" inputMode="numeric" maxLength={4} error={errors.cvv} />
+        <FormInput label="CVV" name="cvv" value={form.cvv} onChange={handleChange} placeholder="123" inputMode="numeric" maxLength={3} error={errors.cvv} />
       </div>
 
       <div className="mpf-actions">

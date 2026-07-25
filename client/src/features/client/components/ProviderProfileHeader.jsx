@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { ROUTES } from '../../../constants/routes.js';
+import { useAuth } from '../../../hooks/useAuth.js';
 import { getAssetUrl } from '../../../utils/storageUtils.js';
 import { IconMapPin, IconToolbox, IconDollarSign, IconCalendar } from '../../../components/common/icons.jsx';
 
@@ -23,6 +24,11 @@ const DISTRICTS = {
   matara: 'Matara', kurunegala: 'Kurunegala', ratnapura: 'Ratnapura',
 };
 
+function formatShortDate(dateStr) {
+  if (!dateStr) return '';
+  return new Date(dateStr).toLocaleDateString('en-LK', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
 function StarRating({ rating, count }) {
   const filled = Math.round(rating ?? 0);
   return (
@@ -37,8 +43,15 @@ function StarRating({ rating, count }) {
   );
 }
 
-export default function ProviderProfileHeader({ provider }) {
-  const bookingHref = ROUTES.CLIENT_BOOKING_CONFIRM.replace(':providerId', provider.providerId ?? provider.id);
+export default function ProviderProfileHeader({ provider, canBook = true }) {
+  const { user } = useAuth();
+  // A logged-out visitor can browse all the way to a provider's profile
+  // (see ProtectedRoute's `allowGuest`), but only gets sent into the actual
+  // booking flow once logged in as a Client - "Book Now" sends them to
+  // client signup instead.
+  const bookingHref = user
+    ? ROUTES.CLIENT_BOOKING_CONFIRM.replace(':providerId', provider.providerId ?? provider.id)
+    : ROUTES.REGISTER_CLIENT;
   const bannerImage = getBannerImage(provider.category);
   const districtLabel = DISTRICTS[provider.district?.toLowerCase()] ?? provider.district;
 
@@ -74,33 +87,41 @@ export default function ProviderProfileHeader({ provider }) {
             <div className="pph-meta">
               {districtLabel && (
                 <span className="pph-meta-item">
-                  <IconMapPin size={13} style={{ color: 'var(--color-neutral-400)' }} />
+                  <IconMapPin size={16} style={{ color: 'var(--color-neutral-400)' }} />
                   {districtLabel}
                 </span>
               )}
               {provider.category && (
                 <span className="pph-meta-item">
-                  <IconToolbox size={13} style={{ color: 'var(--color-neutral-400)' }} />
+                  <IconToolbox size={16} style={{ color: 'var(--color-neutral-400)' }} />
                   {provider.category}
                 </span>
               )}
               {provider.hourlyRate && (
                 <span className="pph-meta-item">
-                  <IconDollarSign size={13} style={{ color: 'var(--color-neutral-400)' }} />
+                  <IconDollarSign size={16} style={{ color: 'var(--color-neutral-400)' }} />
                   Rs. {provider.hourlyRate}/hr
                 </span>
               )}
             </div>
             <StarRating rating={provider.averageRating} count={provider.reviewCount} />
+            {provider.unavailablePeriods?.[0] && (
+              <div className="pph-unavailable-notice">
+                Unavailable {formatShortDate(provider.unavailablePeriods[0].startDate)} – {formatShortDate(provider.unavailablePeriods[0].endDate)}
+              </div>
+            )}
           </div>
 
-          {/* CTA */}
+          {/* CTA - hidden entirely for a viewer who isn't allowed to book
+              (e.g. a pending Service Provider browsing profiles) */}
           <div className="pph-actions">
             {provider.isAvailable !== false ? (
-              <Link to={bookingHref} className="btn btn-primary btn-shine pph-book-btn">
-                <IconCalendar size={16} style={{ marginRight: 6 }} />
-                Book Now
-              </Link>
+              canBook && (
+                <Link to={bookingHref} className="btn btn-primary btn-shine pph-book-btn">
+                  <IconCalendar size={19} style={{ marginRight: 6 }} />
+                  Book Now
+                </Link>
+              )
             ) : (
               <span className="pph-unavailable">Currently Unavailable</span>
             )}
@@ -111,7 +132,7 @@ export default function ProviderProfileHeader({ provider }) {
       <style>{`
         .pph-wrap { background: white; border-bottom: 1px solid var(--color-neutral-200); }
         .pph-banner {
-          height: 200px; background-size: cover; background-position: center;
+          height: 240px; background-size: cover; background-position: center;
           position: relative;
         }
         .pph-banner-overlay {
@@ -122,19 +143,19 @@ export default function ProviderProfileHeader({ provider }) {
           display: flex; gap: var(--space-xl); align-items: center;
           padding: 0 0 var(--space-xl);
         }
-        .pph-avatar-wrap { position: relative; margin-top: -52px; flex-shrink: 0; }
+        .pph-avatar-wrap { position: relative; margin-top: -74px; flex-shrink: 0; }
         .pph-avatar {
-          width: 110px; height: 110px; border-radius: 50%;
+          width: 156px; height: 156px; border-radius: 50%;
           border: 4px solid white; box-shadow: 0 4px 14px rgba(0,0,0,0.12);
           background: var(--color-primary-100); overflow: hidden;
           display: flex; align-items: center; justify-content: center;
-          font-size: 2.5rem; font-weight: 700; color: var(--color-primary-700);
+          font-size: 3.4rem; font-weight: 700; color: var(--color-primary-700);
         }
         .pph-avatar img { width: 100%; height: 100%; object-fit: cover; }
         .pph-badge {
           position: absolute; bottom: 4px; right: 4px;
           background: var(--color-primary-600); color: white;
-          font-size: 10px; font-weight: 700; padding: 2px 8px;
+          font-size: 12px; font-weight: 700; padding: 2px 8px;
           border-radius: var(--radius-full); border: 2px solid white;
           display: flex; align-items: center; gap: 3px;
         }
@@ -142,9 +163,13 @@ export default function ProviderProfileHeader({ provider }) {
         .pph-name { font-size: var(--font-size-2xl); font-weight: 800; color: var(--color-secondary-700); margin-bottom: 8px; }
         .pph-meta { display: flex; gap: var(--space-md); flex-wrap: wrap; margin-bottom: 10px; }
         .pph-meta-item { display: flex; align-items: center; gap: 5px; font-size: var(--font-size-sm); color: var(--color-neutral-500); }
+        .pph-unavailable-notice {
+          display: inline-block; margin-top: 8px; font-size: var(--font-size-sm); font-weight: 600;
+          color: #b45309; background: #fef3c7; border-radius: var(--radius-sm); padding: 4px 10px;
+        }
         .pph-actions { flex-shrink: 0; }
-        .pph-book-btn { display: flex; align-items: center; padding: 12px 28px; font-size: var(--font-size-base); }
-        .pph-unavailable { padding: 10px 20px; border-radius: var(--radius-md); background: var(--color-neutral-100); color: var(--color-neutral-500); font-size: var(--font-size-sm); font-weight: 600; }
+        .pph-book-btn { display: flex; align-items: center; padding: 14px 34px; font-size: var(--font-size-base); }
+        .pph-unavailable { padding: 12px 24px; border-radius: var(--radius-md); background: var(--color-neutral-100); color: var(--color-neutral-500); font-size: var(--font-size-sm); font-weight: 600; }
         @media (max-width: 640px) {
           .pph-card { flex-wrap: wrap; }
           .pph-actions { width: 100%; }

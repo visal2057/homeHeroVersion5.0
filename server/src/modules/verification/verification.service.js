@@ -4,6 +4,8 @@ import { logAction } from '../audit/audit.service.js';
 import { sendVerificationApprovedEmail, sendVerificationRejectedEmail } from '../emails/email.service.js';
 import {
   listPendingApplications,
+  listResolvedApplications,
+  markApplicationOpened,
   findApplicationDetail,
   findApplicationCategories,
   findApplicationDocuments,
@@ -24,7 +26,38 @@ export async function getPendingApplications() {
     categories: row.categories,
     submittedAt: row.submitted_at,
     attemptNumber: row.attempt_number,
+    openedAt: row.opened_at,
   }));
+}
+
+function toHistoryDto(row) {
+  return {
+    applicationId: row.verification_application_id,
+    providerUserId: row.provider_user_id,
+    username: row.username,
+    fullName: row.full_name,
+    userToken: row.user_token,
+    districtName: row.district_name,
+    categories: row.categories,
+    submittedAt: row.submitted_at,
+    reviewedAt: row.reviewed_at,
+    verificationStatus: row.verification_status,
+    rejectionReason: row.rejection_reason,
+    attemptNumber: row.attempt_number,
+  };
+}
+
+// Applications page (Change 2): approved and rejected applications for
+// later reference, split into the two tabs the page renders.
+export async function getApplicationHistory() {
+  const [{ rows: approvedRows }, { rows: rejectedRows }] = await Promise.all([
+    listResolvedApplications('APPROVED'),
+    listResolvedApplications('REJECTED'),
+  ]);
+  return {
+    approved: approvedRows.map(toHistoryDto),
+    rejected: rejectedRows.map(toHistoryDto),
+  };
 }
 
 export async function getApplicationDetail(applicationId) {
@@ -57,6 +90,9 @@ export async function getApplicationDetail(applicationId) {
     policeReportDate: row.police_report_date,
     verificationStatus: row.verification_status,
     submittedAt: row.submitted_at,
+    openedAt: row.opened_at,
+    reviewedAt: row.reviewed_at,
+    rejectionReason: row.rejection_reason,
     documents: documentRows.map((doc) => ({
       documentId: doc.verification_document_id,
       documentType: doc.document_type,
@@ -64,6 +100,17 @@ export async function getApplicationDetail(applicationId) {
       mimeType: doc.mime_type,
     })),
   };
+}
+
+// Used only by the "Review Documents" viewing action (the GET the
+// VerificationReviewPage makes when the admin opens an application) so
+// merely viewing an application's documents flips it from Unread to
+// Processing, mirroring complaint.service.js's getComplaintDetail. The
+// plain getApplicationDetail above stays side-effect-free for internal
+// reuse (approve/reject email lookup, Applications history popup).
+export async function getApplicationDetailForReview(applicationId, viewerUserId) {
+  await markApplicationOpened(applicationId, viewerUserId);
+  return getApplicationDetail(applicationId);
 }
 
 export async function getDocumentFile(documentId) {

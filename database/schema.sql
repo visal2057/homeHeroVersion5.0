@@ -849,6 +849,36 @@ ALTER TABLE public.email_logs ALTER COLUMN email_log_id ADD GENERATED ALWAYS AS 
 
 
 --
+-- Name: invoices; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.invoices (
+    invoice_id bigint NOT NULL,
+    booking_id bigint NOT NULL,
+    provider_user_id bigint NOT NULL,
+    payment_method public.payment_method NOT NULL,
+    amount numeric(12,2) NOT NULL,
+    storage_path text NOT NULL,
+    generated_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT invoices_amount_check CHECK ((amount > (0)::numeric))
+);
+
+
+--
+-- Name: invoices_invoice_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.invoices ALTER COLUMN invoice_id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME public.invoices_invoice_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
 -- Name: membership_payments; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -904,6 +934,36 @@ CREATE TABLE public.membership_pricing_rules (
 
 ALTER TABLE public.membership_pricing_rules ALTER COLUMN membership_pricing_rule_id ADD GENERATED ALWAYS AS IDENTITY (
     SEQUENCE NAME public.membership_pricing_rules_membership_pricing_rule_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: notifications; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.notifications (
+    notification_id bigint NOT NULL,
+    recipient_user_id bigint NOT NULL,
+    title character varying(150) NOT NULL,
+    message text NOT NULL,
+    related_type character varying(40),
+    related_id bigint,
+    is_read boolean DEFAULT false NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: notifications_notification_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.notifications ALTER COLUMN notification_id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME public.notifications_notification_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -993,6 +1053,36 @@ CREATE TABLE public.portfolio_posts (
 
 ALTER TABLE public.portfolio_posts ALTER COLUMN portfolio_post_id ADD GENERATED ALWAYS AS IDENTITY (
     SEQUENCE NAME public.portfolio_posts_portfolio_post_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: provider_earnings; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.provider_earnings (
+    provider_earning_id bigint NOT NULL,
+    booking_payment_id bigint NOT NULL,
+    provider_user_id bigint NOT NULL,
+    amount numeric(12,2) NOT NULL,
+    currency_code character(3) DEFAULT 'LKR'::bpchar NOT NULL,
+    recognized_at timestamp with time zone NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT provider_earnings_amount_check CHECK ((amount > (0)::numeric))
+);
+
+
+--
+-- Name: provider_earnings_provider_earning_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.provider_earnings ALTER COLUMN provider_earning_id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME public.provider_earnings_provider_earning_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -1278,7 +1368,9 @@ CREATE TABLE public.sp_verification_applications (
     submitted_at timestamp with time zone DEFAULT now() NOT NULL,
     reviewed_by_user_id bigint,
     reviewed_at timestamp with time zone,
-    rejection_reason text
+    rejection_reason text,
+    opened_by_user_id bigint,
+    opened_at timestamp with time zone
 );
 
 
@@ -1737,6 +1829,22 @@ ALTER TABLE ONLY public.email_logs
 
 
 --
+-- Name: invoices invoices_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.invoices
+    ADD CONSTRAINT invoices_pkey PRIMARY KEY (invoice_id);
+
+
+--
+-- Name: invoices invoices_booking_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.invoices
+    ADD CONSTRAINT invoices_booking_id_key UNIQUE (booking_id);
+
+
+--
 -- Name: membership_payments membership_payments_gateway_reference_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1774,6 +1882,14 @@ ALTER TABLE ONLY public.membership_pricing_rules
 
 ALTER TABLE ONLY public.membership_pricing_rules
     ADD CONSTRAINT membership_pricing_rules_pkey PRIMARY KEY (membership_pricing_rule_id);
+
+
+--
+-- Name: notifications notifications_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.notifications
+    ADD CONSTRAINT notifications_pkey PRIMARY KEY (notification_id);
 
 
 --
@@ -1822,6 +1938,22 @@ ALTER TABLE ONLY public.portfolio_posts
 
 ALTER TABLE ONLY public.portfolio_posts
     ADD CONSTRAINT portfolio_posts_pkey PRIMARY KEY (portfolio_post_id);
+
+
+--
+-- Name: provider_earnings provider_earnings_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.provider_earnings
+    ADD CONSTRAINT provider_earnings_pkey PRIMARY KEY (provider_earning_id);
+
+
+--
+-- Name: provider_earnings provider_earnings_booking_payment_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.provider_earnings
+    ADD CONSTRAINT provider_earnings_booking_payment_id_key UNIQUE (booking_payment_id);
 
 
 --
@@ -2180,6 +2312,13 @@ CREATE INDEX ix_el_recipient_user_id ON public.email_logs USING btree (recipient
 
 
 --
+-- Name: ix_inv_provider_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_inv_provider_user_id ON public.invoices USING btree (provider_user_id);
+
+
+--
 -- Name: ix_mpy_paid_at; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -2205,6 +2344,27 @@ CREATE INDEX ix_pm_grace_ends_at ON public.provider_memberships USING btree (gra
 --
 
 CREATE INDEX ix_pm_membership_status ON public.provider_memberships USING btree (membership_status);
+
+
+--
+-- Name: ix_notif_recipient_created; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_notif_recipient_created ON public.notifications USING btree (recipient_user_id, created_at);
+
+
+--
+-- Name: ix_notif_recipient_unread; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_notif_recipient_unread ON public.notifications USING btree (recipient_user_id, is_read);
+
+
+--
+-- Name: ix_pe_provider_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_pe_provider_user_id ON public.provider_earnings USING btree (provider_user_id);
 
 
 --
@@ -2690,6 +2850,22 @@ ALTER TABLE ONLY public.email_logs
 
 
 --
+-- Name: invoices invoices_booking_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.invoices
+    ADD CONSTRAINT invoices_booking_id_fkey FOREIGN KEY (booking_id) REFERENCES public.bookings(booking_id);
+
+
+--
+-- Name: invoices invoices_provider_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.invoices
+    ADD CONSTRAINT invoices_provider_user_id_fkey FOREIGN KEY (provider_user_id) REFERENCES public.service_provider_profiles(provider_user_id);
+
+
+--
 -- Name: membership_payments membership_payments_membership_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2703,6 +2879,14 @@ ALTER TABLE ONLY public.membership_payments
 
 ALTER TABLE ONLY public.password_reset_tokens
     ADD CONSTRAINT password_reset_tokens_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(user_id);
+
+
+--
+-- Name: notifications notifications_recipient_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.notifications
+    ADD CONSTRAINT notifications_recipient_user_id_fkey FOREIGN KEY (recipient_user_id) REFERENCES public.users(user_id);
 
 
 --
@@ -2735,6 +2919,22 @@ ALTER TABLE ONLY public.portfolio_posts
 
 ALTER TABLE ONLY public.provider_memberships
     ADD CONSTRAINT provider_memberships_membership_pricing_rule_id_fkey FOREIGN KEY (membership_pricing_rule_id) REFERENCES public.membership_pricing_rules(membership_pricing_rule_id);
+
+
+--
+-- Name: provider_earnings provider_earnings_booking_payment_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.provider_earnings
+    ADD CONSTRAINT provider_earnings_booking_payment_id_fkey FOREIGN KEY (booking_payment_id) REFERENCES public.booking_payments(booking_payment_id);
+
+
+--
+-- Name: provider_earnings provider_earnings_provider_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.provider_earnings
+    ADD CONSTRAINT provider_earnings_provider_user_id_fkey FOREIGN KEY (provider_user_id) REFERENCES public.service_provider_profiles(provider_user_id);
 
 
 --
@@ -2847,6 +3047,14 @@ ALTER TABLE ONLY public.sp_verification_applications
 
 ALTER TABLE ONLY public.sp_verification_applications
     ADD CONSTRAINT sp_verification_applications_reviewed_by_user_id_fkey FOREIGN KEY (reviewed_by_user_id) REFERENCES public.users(user_id);
+
+
+--
+-- Name: sp_verification_applications sp_verification_applications_opened_by_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sp_verification_applications
+    ADD CONSTRAINT sp_verification_applications_opened_by_user_id_fkey FOREIGN KEY (opened_by_user_id) REFERENCES public.users(user_id);
 
 
 --

@@ -5,7 +5,7 @@ import CompletedJobsTable from '../components/CompletedJobsTable.jsx';
 import ProviderReviews   from '../components/ProviderReviews.jsx';
 import ProviderPageHero  from '../components/ProviderPageHero.jsx';
 import CreatePortfolioPostModal from '../components/CreatePortfolioPostModal.jsx';
-import { IconAlertCircle } from '../../../components/common/icons.jsx';
+import AlertMessage from '../../../components/common/AlertMessage.jsx';
 
 const HERO_IMAGE = 'https://images.unsplash.com/photo-1650216600469-bb05741a636f?auto=format&fit=crop&w=1600&q=80';
 
@@ -80,8 +80,8 @@ export default function ProviderCompletedJobsPage() {
       />
 
       {postError && (
-        <div className="provider-alert error" style={{ marginBottom: 'var(--space-lg)' }}>
-          <IconAlertCircle size={16} /> {postError}
+        <div style={{ marginBottom: 'var(--space-lg)' }}>
+          <AlertMessage type="error" message={postError} />
         </div>
       )}
 

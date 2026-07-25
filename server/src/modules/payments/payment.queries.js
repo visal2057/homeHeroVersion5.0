@@ -5,7 +5,7 @@ import { query } from '../../db/query.js';
 // details, and whether a payment already exists for this booking.
 export function getBookingPaymentContext(bookingId) {
   return query(
-    `SELECT b.booking_id, b.booking_status, b.client_user_id,
+    `SELECT b.booking_id, b.booking_status, b.client_user_id, b.provider_user_id,
             pu.full_name AS provider_name,
             cu.full_name AS client_name,
             sc.category_name,
@@ -50,5 +50,40 @@ export function insertCommissionRevenue(executor, bookingPaymentId, amount) {
     `INSERT INTO revenue_entries (revenue_type, booking_payment_id, amount, recognized_at)
      VALUES ('CLIENT_PAYMENT_COMMISSION', $1, $2, now())`,
     [bookingPaymentId, amount],
+  );
+}
+
+// Record what the provider themselves receives from a Card payment. This is
+// separate from revenue_entries (HomeHero's own commission) -- it answers
+// "what did the provider get", which Maheli's dashboard sums as Total
+// Earnings via HomeHero, and Dinuka's invoice module reads per booking.
+export function insertProviderEarning(executor, { bookingPaymentId, providerUserId, amount }) {
+  return executor.query(
+    `INSERT INTO provider_earnings (booking_payment_id, provider_user_id, amount, recognized_at)
+     VALUES ($1, $2, $3, now())`,
+    [bookingPaymentId, providerUserId, amount],
+  );
+}
+
+// Sum of all Card-payment earnings for one provider -- the "Total Earnings
+// via HomeHero" figure shown on the provider dashboard.
+export function getProviderTotalEarnings(providerUserId) {
+  return query(
+    `SELECT COALESCE(SUM(amount), 0) AS total_earnings
+     FROM provider_earnings
+     WHERE provider_user_id = $1`,
+    [providerUserId],
+  );
+}
+
+// The locked Card-payment amount for one booking, read by Dinuka's invoice
+// module to autofill and lock the invoice Amount field.
+export function getCardPaymentAmountForBooking(bookingId) {
+  return query(
+    `SELECT bp.booking_id, bp.payment_method, bp.service_amount, b.provider_user_id
+     FROM booking_payments bp
+     JOIN bookings b ON b.booking_id = bp.booking_id
+     WHERE bp.booking_id = $1`,
+    [bookingId],
   );
 }

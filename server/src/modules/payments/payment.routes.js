@@ -1,21 +1,29 @@
 import { Router } from 'express';
 import { authenticate } from '../../middleware/authenticate.js';
 import { requireClient } from '../../middleware/requireClient.js';
+import { requireProvider } from '../../middleware/requireProvider.js';
+import { checkProviderVerification } from '../../middleware/checkProviderVerification.js';
 import { validateRequest } from '../../middleware/validateRequest.js';
 import { cashPaymentSchema, cardPaymentSchema } from './payment.validation.js';
 import {
   getPaymentContextHandler,
   payCashHandler,
   payCardHandler,
+  getProviderTotalEarningsHandler,
+  getCardPaymentAmountHandler,
 } from './payment.controller.js';
 
-// All payment actions are done by a logged-in client, so every route here
-// runs through authenticate + requireClient first.
 const router = Router();
-router.use(authenticate, requireClient);
+router.use(authenticate);
 
-router.get('/booking/:bookingId', getPaymentContextHandler);
-router.post('/cash', validateRequest(cashPaymentSchema), payCashHandler);
-router.post('/card', validateRequest(cardPaymentSchema), payCardHandler);
+// Client payment actions.
+router.get('/booking/:bookingId', requireClient, getPaymentContextHandler);
+router.post('/cash', requireClient, validateRequest(cashPaymentSchema), payCashHandler);
+router.post('/card', requireClient, validateRequest(cardPaymentSchema), payCardHandler);
+
+// Provider-facing reads: Total Earnings via HomeHero, and the locked
+// Card-payment amount Dinuka's invoice module autofills from.
+router.get('/provider/earnings/total', requireProvider, checkProviderVerification, getProviderTotalEarningsHandler);
+router.get('/booking/:bookingId/card-amount', requireProvider, checkProviderVerification, getCardPaymentAmountHandler);
 
 export default router;

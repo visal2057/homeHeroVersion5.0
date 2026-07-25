@@ -21,7 +21,12 @@ export const listPortfolioPostsHandler = asyncHandler(async (req, res) => {
 });
 
 export const updatePortfolioPostHandler = asyncHandler(async (req, res) => {
-  const post = await portfolioService.updatePortfolioPost(Number(req.params.postId), req.user.userId, req.body);
+  const post = await portfolioService.updatePortfolioPost(
+    Number(req.params.postId),
+    req.user.userId,
+    { title: req.body.title, description: req.body.description },
+    req.files ?? [],
+  );
   sendSuccess(res, post);
 });
 

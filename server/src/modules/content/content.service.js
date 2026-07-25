@@ -1,7 +1,9 @@
 import path from 'path';
+import fs from 'fs/promises';
 import { AppError } from '../../utils/AppError.js';
 import { env } from '../../config/environment.js';
 import { logAction } from '../audit/audit.service.js';
+import { validateImageDimensions } from '../../utils/imageValidation.js';
 import { findActiveAssetByType, replaceActiveAsset } from './content.queries.js';
 
 const ASSET_TYPES = ['HOME_HERO_IMAGE', 'LOGIN_SIDE_IMAGE'];
@@ -35,6 +37,14 @@ export async function updateSiteImage({ assetType, file, altText }, uploadedByUs
     throw new AppError('An image file is required', 422);
   }
 
+  try {
+    const buffer = await fs.readFile(file.path);
+    validateImageDimensions(buffer);
+  } catch (err) {
+    await fs.unlink(file.path).catch(() => {});
+    throw err;
+  }
+
   const asset = await replaceActiveAsset({
     assetType,
     storagePath: file.path,
@@ -50,7 +60,7 @@ export async function updateSiteImage({ assetType, file, altText }, uploadedByUs
     actionCode: 'SITE_IMAGE_UPDATED',
     entityType: 'site_media_asset',
     entityId: asset.site_media_asset_id,
-    description: `${assetType === 'HOME_HERO_IMAGE' ? 'Home page hero image' : 'Login page side image'} was updated`,
+    description: `${assetType === 'HOME_HERO_IMAGE' ? 'Home page hero image' : 'Login page background image'} was updated`,
   });
 
   return toDto(asset);

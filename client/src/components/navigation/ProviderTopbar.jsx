@@ -35,9 +35,9 @@ export default function ProviderTopbar({ onMenuToggle }) {
   useEffect(() => {
     let isMounted = true;
     axiosClient
-      .get(API_ENDPOINTS.ANNOUNCEMENTS.ACTIVE)
+      .get(API_ENDPOINTS.NOTIFICATIONS.FEED)
       .then(({ data }) => {
-        if (isMounted) setAnnouncements(data.data.announcements ?? []);
+        if (isMounted) setAnnouncements(data.data ?? []);
       })
       .catch(() => {});
     return () => {
@@ -55,14 +55,14 @@ export default function ProviderTopbar({ onMenuToggle }) {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  function markAsRead(announcementId) {
-    if (markedRef.current.has(announcementId)) return;
-    markedRef.current.add(announcementId);
+  function markAsRead(id, type) {
+    if (markedRef.current.has(id)) return;
+    markedRef.current.add(id);
     setAnnouncements((prev) =>
-      prev.map((a) => (a.announcementId === announcementId ? { ...a, isRead: true } : a))
+      prev.map((a) => (a.id === id ? { ...a, isRead: true } : a))
     );
-    axiosClient.post(API_ENDPOINTS.ANNOUNCEMENTS.MARK_READ(announcementId)).catch(() => {
-      markedRef.current.delete(announcementId);
+    axiosClient.patch(API_ENDPOINTS.NOTIFICATIONS.MARK_READ(type, id)).catch(() => {
+      markedRef.current.delete(id);
     });
   }
 
@@ -101,17 +101,20 @@ export default function ProviderTopbar({ onMenuToggle }) {
           {isBellOpen && (
             <div className="provider-notification-panel">
               {announcements.length === 0 ? (
-                <div className="provider-notification-item">No announcements yet.</div>
+                <div className="provider-notification-item">No notifications yet.</div>
               ) : (
                 announcements.map((a) => (
                   <div
-                    key={a.announcementId}
+                    key={a.id}
                     className={`provider-notification-item${a.isRead ? '' : ' unread'}`}
-                    onMouseEnter={() => markAsRead(a.announcementId)}
-                    onClick={() => markAsRead(a.announcementId)}
+                    onMouseEnter={() => markAsRead(a.id, a.type)}
+                    onClick={() => markAsRead(a.id, a.type)}
                   >
+                    <span className={`provider-notification-type-badge${a.type === 'ANNOUNCEMENT' ? ' is-announcement' : ' is-personal'}`}>
+                      {a.type === 'ANNOUNCEMENT' ? 'Announcement' : 'Personal'}
+                    </span>
                     <strong>{a.title}</strong>
-                    <p>{a.messageBody}</p>
+                    <p>{a.message}</p>
                   </div>
                 ))
               )}

@@ -2,9 +2,11 @@ import { useState } from 'react';
 import { clientPaymentApi } from '../clientPaymentApi.js';
 import { extractErrorMessage } from '../../../../api/apiErrorHandler.js';
 import { formatLKR, calculateCardTotals } from '../paymentMath.js';
+import { formatCardNumber, formatExpiryDate, formatCVV } from '../../cardFieldFormatting.js';
 import FormInput from '../../../../components/common/FormInput.jsx';
 import ConfirmModal from '../../../../components/common/ConfirmModal.jsx';
 import AlertMessage from '../../../../components/common/AlertMessage.jsx';
+import { useAlert } from '../../../../hooks/useAlert.js';
 
 // Card flow: HomeHero processes the payment and keeps the 5% platform fee.
 // We collect the card details, show the client the fee breakdown, then
@@ -21,14 +23,23 @@ export default function CardPaymentForm({ context, onCancel, onPaid }) {
   const [showConfirm, setShowConfirm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [apiError, setApiError] = useState('');
+  const { showSuccess } = useAlert();
 
   // The client enters the price they agreed with the provider; the fee
   // breakdown updates live from it. The backend calculates the fee again.
   const totals = calculateCardTotals(form.serviceAmount);
 
-  // One handler updates whichever field changed by its `name`.
+  // One handler updates whichever field changed by its `name`. The card
+  // fields get live-masked as the user types (spaced digits, MM/YY, etc.)
+  // so the input always looks like a real card field regardless of how
+  // the value was entered or pasted.
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    let next = value;
+    if (name === 'cardNumber') next = formatCardNumber(value);
+    else if (name === 'expiryDate') next = formatExpiryDate(value);
+    else if (name === 'cvv') next = formatCVV(value);
+    setForm({ ...form, [name]: next });
   };
 
   // Simple, readable checks. Returns an object of { field: message }.
@@ -43,7 +54,7 @@ export default function CardPaymentForm({ context, onCancel, onPaid }) {
 
     if (!/^\d{2}\/\d{2}$/.test(form.expiryDate)) next.expiryDate = 'Use MM/YY format.';
 
-    if (!/^\d{3,4}$/.test(form.cvv)) next.cvv = 'CVV must be 3 or 4 digits.';
+    if (!/^\d{3}$/.test(form.cvv)) next.cvv = 'CVV must be 3 digits.';
 
     return next;
   };
@@ -68,6 +79,7 @@ export default function CardPaymentForm({ context, onCancel, onPaid }) {
         expiryDate: form.expiryDate,
         cvv: form.cvv,
       });
+      showSuccess('Payment successful. Please submit a review for the job.');
       onPaid(); // success -> parent sends us to the review page
     } catch (err) {
       setApiError(extractErrorMessage(err));
@@ -109,7 +121,7 @@ export default function CardPaymentForm({ context, onCancel, onPaid }) {
         <FormInput
           label="CVV" name="cvv"
           value={form.cvv} onChange={handleChange}
-          placeholder="123" inputMode="numeric" maxLength={4} error={errors.cvv}
+          placeholder="123" inputMode="numeric" maxLength={3} error={errors.cvv}
         />
       </div>
 

@@ -28,16 +28,18 @@ export default function AnnouncementsTable({ announcements, onEdit, onArchive })
               </td>
               <td>{new Date(item.createdAt).toLocaleDateString()}</td>
               <td>{item.scheduledFor ? new Date(item.scheduledFor).toLocaleString() : item.publishedAt ? new Date(item.publishedAt).toLocaleString() : '—'}</td>
-              <td style={{ display: 'flex', gap: 'var(--space-xs)' }}>
-                {item.status !== 'ARCHIVED' && (
-                  <>
+              <td>
+                {item.status !== 'ARCHIVED' ? (
+                  <div style={{ display: 'flex', gap: 'var(--space-xs)' }}>
                     <button type="button" className="btn btn-outline" onClick={() => onEdit(item)}>
                       Edit
                     </button>
                     <button type="button" className="btn btn-ghost" onClick={() => onArchive(item)}>
                       Archive
                     </button>
-                  </>
+                  </div>
+                ) : (
+                  '—'
                 )}
               </td>
             </tr>

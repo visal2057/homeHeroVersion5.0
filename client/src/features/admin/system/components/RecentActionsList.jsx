@@ -1,19 +1,34 @@
+import {
+  IconUser, IconCheckCircle, IconXCircle, IconCreditCard, IconCalendar,
+  IconCheck, IconDollarSign, IconClock, IconImage, IconChartBar,
+} from '../../../../components/common/icons.jsx';
+import {
+  IconBanSlash, IconUndo, IconMegaphone, IconArchiveBox, IconScale, IconReceipt, IconActivity,
+} from './ActivityIcons.jsx';
+
+// Every actionCode ever written by server/src/modules/*/*.service.js's
+// logAction() calls is mapped to a real icon component here (not an emoji),
+// so past, present, and future audit-log entries all render consistently.
+// Unrecognized future codes fall back to DEFAULT rather than breaking.
 const ACTION_STYLES = {
-  CLIENT_REGISTERED: { icon: '👤', color: '#2563eb' },
-  PROVIDER_APPROVED: { icon: '✅', color: '#059669' },
-  PROVIDER_REJECTED: { icon: '✕', color: '#dc2626' },
-  MEMBERSHIP_PURCHASED: { icon: '💳', color: '#7c3aed' },
-  BOOKING_CREATED: { icon: '📅', color: '#0ea5e9' },
-  BOOKING_ACCEPTED: { icon: '✅', color: '#059669' },
-  USER_BANNED: { icon: '🚫', color: '#dc2626' },
-  USER_UNBANNED: { icon: '↩️', color: '#059669' },
-  ANNOUNCEMENT_PUBLISHED: { icon: '📢', color: '#d97706' },
-  ANNOUNCEMENT_UPDATED: { icon: '📢', color: '#d97706' },
-  ANNOUNCEMENT_ARCHIVED: { icon: '🗄️', color: '#64748b' },
-  SITE_IMAGE_UPDATED: { icon: '🖼️', color: '#64748b' },
-  EARNINGS_REPORT_GENERATED: { icon: '📄', color: '#0f5132' },
-  COMPLAINT_VERDICT_RECORDED: { icon: '⚖️', color: '#d97706' },
-  DEFAULT: { icon: '•', color: '#64748b' },
+  CLIENT_REGISTERED: { icon: IconUser, color: '#2563eb' },
+  PROVIDER_APPROVED: { icon: IconCheckCircle, color: '#059669' },
+  PROVIDER_REJECTED: { icon: IconXCircle, color: '#dc2626' },
+  MEMBERSHIP_PURCHASED: { icon: IconCreditCard, color: '#7c3aed' },
+  BOOKING_CREATED: { icon: IconCalendar, color: '#0ea5e9' },
+  BOOKING_ACCEPTED: { icon: IconCheck, color: '#059669' },
+  PAYMENT_COMPLETED: { icon: IconDollarSign, color: '#0f766e' },
+  USER_BANNED: { icon: IconBanSlash, color: '#dc2626' },
+  USER_UNBANNED: { icon: IconUndo, color: '#059669' },
+  USER_BAN_EXPIRED: { icon: IconClock, color: '#059669' },
+  ANNOUNCEMENT_PUBLISHED: { icon: IconMegaphone, color: '#d97706' },
+  ANNOUNCEMENT_UPDATED: { icon: IconMegaphone, color: '#d97706' },
+  ANNOUNCEMENT_ARCHIVED: { icon: IconArchiveBox, color: '#64748b' },
+  SITE_IMAGE_UPDATED: { icon: IconImage, color: '#64748b' },
+  EARNINGS_REPORT_GENERATED: { icon: IconChartBar, color: '#0f5132' },
+  COMPLAINT_VERDICT_RECORDED: { icon: IconScale, color: '#d97706' },
+  INVOICE_GENERATED: { icon: IconReceipt, color: '#0f5132' },
+  DEFAULT: { icon: IconActivity, color: '#64748b' },
 };
 
 function timeAgo(dateString) {
@@ -37,12 +52,13 @@ export default function RecentActionsList({ actions }) {
     <div className="timeline">
       {actions.map((action, index) => {
         const style = ACTION_STYLES[action.actionCode] ?? ACTION_STYLES.DEFAULT;
+        const ActionIcon = style.icon;
         const isLast = index === actions.length - 1;
         return (
           <div key={action.id} className="timeline-item">
             <div className="timeline-icon-col">
-              <span className="timeline-icon" style={{ backgroundColor: `${style.color}1F`, color: style.color }} aria-hidden="true">
-                {style.icon}
+              <span className="timeline-icon" style={{ backgroundColor: `${style.color}1F`, color: style.color }}>
+                <ActionIcon size={15} />
               </span>
               {!isLast && <span className="timeline-line" />}
             </div>

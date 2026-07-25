@@ -120,3 +120,24 @@ export async function markRead(announcementId, userId) {
   }
   await markAnnouncementRead(announcementId, userId);
 }
+
+// Called on a schedule (see jobs/scheduledAnnouncements.job.js). The other
+// two call sites above already promote due announcements lazily on read,
+// so this isn't the only thing keeping Scheduled -> Active correct -- it
+// just makes that promotion happen close to the scheduled time even if
+// nobody happens to load an announcement list right then (spec §39.3).
+export async function runScheduledAnnouncementPromotion() {
+  const { rows } = await promoteDueScheduledAnnouncements();
+
+  for (const row of rows) {
+    await logAction({
+      actorUserId: null,
+      actionCode: 'ANNOUNCEMENT_PUBLISHED',
+      entityType: 'announcement',
+      entityId: row.announcement_id,
+      description: `Scheduled announcement "${row.title}" was automatically published`,
+    });
+  }
+
+  return { promotedCount: rows.length };
+}

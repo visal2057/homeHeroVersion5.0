@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { axiosClient } from '../../../api/axiosClient.js';
 import { API_ENDPOINTS } from '../../../api/apiEndpoints.js';
 import { useAuth } from '../../../hooks/useAuth.js';
-import { IconAlertCircle } from '../../../components/common/icons.jsx';
+import AlertMessage from '../../../components/common/AlertMessage.jsx';
 
 import OnlineStatusControl   from '../components/OnlineStatusControl.jsx';
 import OfflineDateRangePicker from '../components/OfflineDateRangePicker.jsx';
@@ -19,6 +19,7 @@ export default function ProviderDashboardPage() {
 
   const [profile,          setProfile]          = useState(null);
   const [stats,            setStats]            = useState(null);
+  const [totalEarnings,    setTotalEarnings]    = useState(null);
   const [recentRequests,   setRecentRequests]   = useState([]);
   const [isOnline,         setIsOnline]         = useState(false);
   const [loading,          setLoading]          = useState(true);
@@ -29,10 +30,11 @@ export default function ProviderDashboardPage() {
   useEffect(() => {
     async function load() {
       try {
-        const [profileRes, statsRes, bookingsRes] = await Promise.allSettled([
+        const [profileRes, statsRes, bookingsRes, earningsRes] = await Promise.allSettled([
           axiosClient.get(API_ENDPOINTS.PROVIDER.PROFILE),
           axiosClient.get(API_ENDPOINTS.PROVIDER.STATS),
           axiosClient.get(API_ENDPOINTS.PROVIDER.BOOKINGS + '?limit=5'),
+          axiosClient.get(API_ENDPOINTS.PROVIDER.EARNINGS_TOTAL),
         ]);
 
         if (profileRes.status === 'fulfilled') {
@@ -46,6 +48,10 @@ export default function ProviderDashboardPage() {
         if (bookingsRes.status === 'fulfilled') {
           const list = bookingsRes.value.data?.data ?? bookingsRes.value.data ?? [];
           setRecentRequests(Array.isArray(list) ? list : []);
+        }
+        if (earningsRes.status === 'fulfilled') {
+          const e = earningsRes.value.data?.data ?? earningsRes.value.data;
+          setTotalEarnings(e?.totalEarnings ?? 0);
         }
       } catch {
         // pages degrade gracefully — empty state is shown instead
@@ -85,9 +91,11 @@ export default function ProviderDashboardPage() {
       const { data } = await axiosClient.get(API_ENDPOINTS.PROVIDER.UNAVAILABLE_DATES);
       const existing = data?.data ?? data ?? [];
       const merged = [...new Set([...(Array.isArray(existing) ? existing : []), ...dateKeys])];
+      // Blocking specific dates must not flip the account-wide manualOnline
+      // flag: that flag drives search visibility and bookability on every
+      // date, not just the ones picked here. The provider stays online and
+      // bookable outside this range, same as the Jobs To Do calendar.
       await axiosClient.put(API_ENDPOINTS.PROVIDER.UNAVAILABLE_DATES, { dates: merged });
-      await axiosClient.patch(API_ENDPOINTS.PROVIDER.AVAILABILITY, { manualOnline: false });
-      setIsOnline(false);
       setShowOfflinePicker(false);
     } catch (err) {
       setStatusError(err?.response?.data?.message ?? 'Could not save unavailable dates. Please try again.');
@@ -135,11 +143,7 @@ export default function ProviderDashboardPage() {
                 <h2 className="provider-card-title">Availability</h2>
               </div>
               <div className="provider-card-body">
-                {statusError && (
-                  <div className="provider-alert error">
-                    <IconAlertCircle size={16} /> {statusError}
-                  </div>
-                )}
+                {statusError && <AlertMessage type="error" message={statusError} />}
                 <OnlineStatusControl
                   isOnline={isOnline}
                   eligible={eligibleToGoOnline}
@@ -161,7 +165,7 @@ export default function ProviderDashboardPage() {
           </div>
 
           {/* Stats */}
-          <ProviderStatistics stats={stats} />
+          <ProviderStatistics stats={stats} totalEarnings={totalEarnings} />
 
           <div className="provider-dashboard-grid">
             {/* Left column */}

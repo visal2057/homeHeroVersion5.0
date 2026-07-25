@@ -3,7 +3,8 @@ import { axiosClient } from '../../../api/axiosClient.js';
 import { API_ENDPOINTS } from '../../../api/apiEndpoints.js';
 import ProviderRequestTable from '../components/ProviderRequestTable.jsx';
 import ProviderPageHero from '../components/ProviderPageHero.jsx';
-import { IconXCircle } from '../../../components/common/icons.jsx';
+import ConfirmModal from '../../../components/common/ConfirmModal.jsx';
+import AlertMessage from '../../../components/common/AlertMessage.jsx';
 
 const HERO_IMAGE = 'https://images.unsplash.com/photo-1607472586893-edb57bdc0e39?auto=format&fit=crop&w=1600&q=80';
 
@@ -13,6 +14,7 @@ export default function ProviderRequestsPage() {
   const [acting,   setActing]     = useState(false);
   const [alert,    setAlert]      = useState(null);
   const [filter,   setFilter]     = useState('all');
+  const [pendingAction, setPendingAction] = useState(null); // { id, type: 'accept' | 'reject' }
 
   useEffect(() => {
     fetchRequests();
@@ -31,7 +33,7 @@ export default function ProviderRequestsPage() {
     }
   }
 
-  async function handleAccept(id) {
+  async function performAccept(id) {
     setActing(true);
     try {
       await axiosClient.patch(API_ENDPOINTS.PROVIDER.BOOKING_ACCEPT(id));
@@ -46,7 +48,7 @@ export default function ProviderRequestsPage() {
     }
   }
 
-  async function handleReject(id) {
+  async function performReject(id) {
     setActing(true);
     try {
       await axiosClient.patch(API_ENDPOINTS.PROVIDER.BOOKING_REJECT(id));
@@ -59,6 +61,24 @@ export default function ProviderRequestsPage() {
     } finally {
       setActing(false);
     }
+  }
+
+  // Accept/Reject now ask for confirmation first — the click only opens the
+  // modal, the actual PATCH fires from handleConfirmAction below.
+  function handleAccept(id) {
+    setPendingAction({ id, type: 'accept' });
+  }
+
+  function handleReject(id) {
+    setPendingAction({ id, type: 'reject' });
+  }
+
+  async function handleConfirmAction() {
+    if (!pendingAction) return;
+    const { id, type } = pendingAction;
+    setPendingAction(null);
+    if (type === 'accept') await performAccept(id);
+    else await performReject(id);
   }
 
   const filtered = filter === 'all'
@@ -74,16 +94,8 @@ export default function ProviderRequestsPage() {
       />
 
       {alert && (
-        <div className={`provider-alert ${alert.type}`} style={{ marginBottom: 'var(--space-lg)' }}>
-          {alert.msg}
-          <button
-            type="button"
-            onClick={() => setAlert(null)}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', marginLeft: 'auto', display: 'inline-flex' }}
-            aria-label="Dismiss"
-          >
-            <IconXCircle size={16} />
-          </button>
+        <div style={{ marginBottom: 'var(--space-lg)' }}>
+          <AlertMessage type={alert.type} message={alert.msg} onDismiss={() => setAlert(null)} />
         </div>
       )}
 
@@ -116,6 +128,20 @@ export default function ProviderRequestsPage() {
           />
         )}
       </div>
+
+      <ConfirmModal
+        isOpen={Boolean(pendingAction)}
+        title={pendingAction?.type === 'reject' ? 'Reject booking' : 'Accept booking'}
+        message={
+          pendingAction?.type === 'reject'
+            ? 'Are you sure you want to reject this booking request? This cannot be undone.'
+            : 'Are you sure you want to accept this booking request?'
+        }
+        confirmLabel={pendingAction?.type === 'reject' ? 'Reject' : 'Accept'}
+        cancelLabel="Cancel"
+        onConfirm={handleConfirmAction}
+        onCancel={() => setPendingAction(null)}
+      />
     </div>
   );
 }
