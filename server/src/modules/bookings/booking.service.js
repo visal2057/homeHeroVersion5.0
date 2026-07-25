@@ -2,6 +2,7 @@ import path from 'path';
 import { pool } from '../../db/pool.js';
 import { AppError } from '../../utils/AppError.js';
 import { logAction } from '../audit/audit.service.js';
+import { createNotification } from '../notifications/notification.service.js';
 import {
   findClientLocation,
   findProviderBookability,
@@ -14,11 +15,24 @@ import {
   findBookingForOwnershipCheck,
   updateBookingStatus,
   updateBookingCancelled,
+  updateBookingRejectedWithReason,
+  updateBookingRescheduleProposed,
+  updateBookingRescheduleAccepted,
+  updateBookingRescheduleRejected,
   listClientBookings,
   listProviderBookingsByStatuses,
   getBookingImages,
   getProviderBookingStats,
 } from './booking.queries.js';
+
+// Mirrors invoicePdf.js's formatDateRange -- a start-end window rendered as
+// literal text at notification-creation time (notifications store a fixed
+// message string, not live-computed fields).
+function formatDateTimeRange(start, end) {
+  const startLabel = new Date(start).toLocaleString('en-LK', { dateStyle: 'medium', timeStyle: 'short' });
+  const endLabel = new Date(end).toLocaleTimeString('en-LK', { timeStyle: 'short' });
+  return `${startLabel} - ${endLabel}`;
+}
 
 function toClientBookingShape(row) {
   return {
@@ -198,7 +212,7 @@ async function attachImages(rows) {
 export async function getProviderRequests(providerUserId, limit = 100) {
   const { rows } = await listProviderBookingsByStatuses(
     providerUserId,
-    ['PENDING', 'ACCEPTED', 'REJECTED', 'CANCELLED'],
+    ['PENDING', 'ACCEPTED', 'REJECTED', 'CANCELLED', 'RESCHEDULE_PENDING'],
     limit,
   );
   return attachImages(rows.map(toProviderRowShape));
@@ -244,10 +258,150 @@ export async function acceptBooking(bookingId, providerUserId) {
   return { bookingId: rows[0].booking_id, status: rows[0].booking_status.toLowerCase() };
 }
 
-export async function rejectBooking(bookingId, providerUserId) {
+export async function rejectBooking(bookingId, providerUserId, reason) {
   await assertOwnedPendingBooking(bookingId, providerUserId);
-  const { rows } = await updateBookingStatus(bookingId, 'REJECTED', 'rejected_at');
-  return { bookingId: rows[0].booking_id, status: rows[0].booking_status.toLowerCase() };
+  const { rows } = await updateBookingRejectedWithReason(bookingId, reason);
+  const updated = rows[0];
+
+  await logAction({
+    actorUserId: providerUserId,
+    actionCode: 'BOOKING_REJECTED',
+    entityType: 'booking',
+    entityId: updated.booking_id,
+    description: `Booking #${updated.booking_id} was rejected by the Service Provider`,
+  });
+
+  try {
+    await createNotification({
+      recipientUserId: updated.client_user_id,
+      title: 'Booking Rejected',
+      message: `The service provider ${updated.provider_full_name} has rejected the request on booking number #${updated.booking_id} due to the reason: ${reason}`,
+      relatedType: 'BOOKING',
+      relatedId: updated.booking_id,
+    });
+  } catch (notifyErr) {
+    console.error('Failed to send booking-rejected notification:', notifyErr);
+  }
+
+  return { bookingId: updated.booking_id, status: updated.booking_status.toLowerCase() };
+}
+
+async function assertOwnedReschedulePendingBooking(bookingId, clientUserId) {
+  const { rows } = await findBookingForOwnershipCheck(bookingId);
+  if (rows.length === 0) {
+    throw new AppError('Booking not found', 404);
+  }
+  const booking = rows[0];
+  if (Number(booking.client_user_id) !== Number(clientUserId)) {
+    throw new AppError('You do not have permission to act on this booking', 403);
+  }
+  if (booking.booking_status !== 'RESCHEDULE_PENDING') {
+    throw new AppError(`This booking has no pending reschedule proposal (current status: ${booking.booking_status})`, 409);
+  }
+  return booking;
+}
+
+export async function proposeReschedule(bookingId, providerUserId, input) {
+  const booking = await assertOwnedPendingBooking(bookingId, providerUserId);
+
+  if (new Date(input.scheduledAt).getTime() <= Date.now()) {
+    throw new AppError('The selected date and time must be in the future', 422);
+  }
+  if (new Date(input.scheduledEndAt).getTime() <= new Date(input.scheduledAt).getTime()) {
+    throw new AppError('The end time must be after the start time', 422);
+  }
+
+  const bookingDateKey = new Date(input.scheduledAt).toISOString().slice(0, 10);
+  const { rows: unavailableRows } = await isDateUnavailableForProvider(providerUserId, bookingDateKey);
+  if (unavailableRows.length > 0) {
+    throw new AppError('You have marked this date as unavailable', 422);
+  }
+
+  const { rows: conflictRows } = await findConflictingBooking(providerUserId, input.scheduledAt);
+  if (conflictRows.length > 0) {
+    throw new AppError('You already have a booking at that time, please choose another', 409);
+  }
+
+  const { rows } = await updateBookingRescheduleProposed(bookingId, input.scheduledAt, input.scheduledEndAt);
+  const updated = rows[0];
+
+  await logAction({
+    actorUserId: providerUserId,
+    actionCode: 'BOOKING_RESCHEDULE_PROPOSED',
+    entityType: 'booking',
+    entityId: updated.booking_id,
+    description: `A reschedule was proposed for booking #${updated.booking_id}`,
+  });
+
+  try {
+    await createNotification({
+      recipientUserId: booking.client_user_id,
+      title: 'Reschedule Requested',
+      message: `The provider you selected for the booking #${updated.booking_id} has requested a rescheduling to the below date and time: ${formatDateTimeRange(input.scheduledAt, input.scheduledEndAt)}`,
+      relatedType: 'BOOKING_RESCHEDULE_PROPOSED',
+      relatedId: updated.booking_id,
+    });
+  } catch (notifyErr) {
+    console.error('Failed to send reschedule-proposed notification:', notifyErr);
+  }
+
+  return { bookingId: updated.booking_id, status: updated.booking_status.toLowerCase() };
+}
+
+export async function acceptReschedule(bookingId, clientUserId) {
+  const booking = await assertOwnedReschedulePendingBooking(bookingId, clientUserId);
+
+  const { rows: conflictRows } = await findConflictingBooking(booking.provider_user_id, booking.proposed_scheduled_at);
+  if (conflictRows.length > 0) {
+    throw new AppError('This time slot was just booked, please choose another time', 409);
+  }
+
+  const { rows } = await updateBookingRescheduleAccepted(bookingId);
+  if (rows.length === 0) {
+    throw new AppError('This reschedule proposal is no longer pending', 409);
+  }
+  const updated = rows[0];
+
+  await logAction({
+    actorUserId: clientUserId,
+    actionCode: 'BOOKING_RESCHEDULE_ACCEPTED',
+    entityType: 'booking',
+    entityId: updated.booking_id,
+    description: `The Client accepted the proposed reschedule for booking #${updated.booking_id}`,
+  });
+
+  try {
+    await createNotification({
+      recipientUserId: updated.provider_user_id,
+      title: 'Reschedule Accepted',
+      message: `The client for booking #${updated.booking_id} has accepted the rescheduling.`,
+      relatedType: 'BOOKING',
+      relatedId: updated.booking_id,
+    });
+  } catch (notifyErr) {
+    console.error('Failed to send reschedule-accepted notification:', notifyErr);
+  }
+
+  return { bookingId: updated.booking_id, status: updated.booking_status.toLowerCase() };
+}
+
+export async function rejectReschedule(bookingId, clientUserId) {
+  await assertOwnedReschedulePendingBooking(bookingId, clientUserId);
+  const { rows } = await updateBookingRescheduleRejected(bookingId);
+  if (rows.length === 0) {
+    throw new AppError('This reschedule proposal is no longer pending', 409);
+  }
+  const updated = rows[0];
+
+  await logAction({
+    actorUserId: clientUserId,
+    actionCode: 'BOOKING_RESCHEDULE_REJECTED',
+    entityType: 'booking',
+    entityId: updated.booking_id,
+    description: `The Client rejected the proposed reschedule for booking #${updated.booking_id}`,
+  });
+
+  return { bookingId: updated.booking_id, status: updated.booking_status.toLowerCase() };
 }
 
 export async function getProviderStats(providerUserId) {

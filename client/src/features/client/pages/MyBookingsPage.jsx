@@ -32,7 +32,7 @@ export default function MyBookingsPage() {
     fetchBookings();
   }, [fetchBookings]);
 
-  const requests = bookings.filter((b) => ['PENDING', 'REJECTED', 'CANCELLED'].includes(b.status));
+  const requests = bookings.filter((b) => ['PENDING', 'REJECTED', 'CANCELLED', 'RESCHEDULE_PENDING'].includes(b.status));
   const jobs = bookings.filter((b) => b.status === 'ACCEPTED');
   const completed = bookings.filter((b) => b.status === 'COMPLETED');
 

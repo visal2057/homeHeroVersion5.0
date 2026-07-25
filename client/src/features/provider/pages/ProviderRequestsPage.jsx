@@ -4,7 +4,10 @@ import { API_ENDPOINTS } from '../../../api/apiEndpoints.js';
 import ProviderRequestTable from '../components/ProviderRequestTable.jsx';
 import ProviderPageHero from '../components/ProviderPageHero.jsx';
 import ConfirmModal from '../../../components/common/ConfirmModal.jsx';
+import RejectReasonModal from '../components/RejectReasonModal.jsx';
+import RescheduleModal from '../components/RescheduleModal.jsx';
 import AlertMessage from '../../../components/common/AlertMessage.jsx';
+import { formatTimeRange } from '../../../utils/timeUtils.js';
 
 const HERO_IMAGE = 'https://images.unsplash.com/photo-1607472586893-edb57bdc0e39?auto=format&fit=crop&w=1600&q=80';
 
@@ -14,7 +17,12 @@ export default function ProviderRequestsPage() {
   const [acting,   setActing]     = useState(false);
   const [alert,    setAlert]      = useState(null);
   const [filter,   setFilter]     = useState('all');
-  const [pendingAction, setPendingAction] = useState(null); // { id, type: 'accept' | 'reject' }
+
+  // Step 1: collect the extra input a reject/reschedule needs before the
+  // final "are you sure" confirmation (step 2, below).
+  const [formModal, setFormModal] = useState(null); // { id, type: 'reject' | 'reschedule' }
+  // Step 2: { id, type: 'accept' | 'reject' | 'reschedule', payload? }
+  const [pendingAction, setPendingAction] = useState(null);
 
   useEffect(() => {
     fetchRequests();
@@ -48,10 +56,10 @@ export default function ProviderRequestsPage() {
     }
   }
 
-  async function performReject(id) {
+  async function performReject(id, reason) {
     setActing(true);
     try {
-      await axiosClient.patch(API_ENDPOINTS.PROVIDER.BOOKING_REJECT(id));
+      await axiosClient.patch(API_ENDPOINTS.PROVIDER.BOOKING_REJECT(id), { reason });
       setRequests((prev) =>
         prev.map((r) => (r.id === id ? { ...r, status: 'rejected' } : r))
       );
@@ -63,27 +71,70 @@ export default function ProviderRequestsPage() {
     }
   }
 
-  // Accept/Reject now ask for confirmation first — the click only opens the
-  // modal, the actual PATCH fires from handleConfirmAction below.
+  async function performReschedule(id, payload) {
+    setActing(true);
+    try {
+      await axiosClient.patch(API_ENDPOINTS.PROVIDER.BOOKING_RESCHEDULE(id), payload);
+      setRequests((prev) =>
+        prev.map((r) => (r.id === id ? { ...r, status: 'reschedule_pending' } : r))
+      );
+      setAlert({ type: 'success', msg: 'Reschedule proposed. The client has been notified.' });
+    } catch {
+      setAlert({ type: 'error', msg: 'Could not propose a reschedule. Please try again.' });
+    } finally {
+      setActing(false);
+    }
+  }
+
   function handleAccept(id) {
     setPendingAction({ id, type: 'accept' });
   }
 
   function handleReject(id) {
-    setPendingAction({ id, type: 'reject' });
+    setFormModal({ id, type: 'reject' });
+  }
+
+  function handleReschedule(id) {
+    setFormModal({ id, type: 'reschedule' });
   }
 
   async function handleConfirmAction() {
     if (!pendingAction) return;
-    const { id, type } = pendingAction;
+    const { id, type, payload } = pendingAction;
     setPendingAction(null);
     if (type === 'accept') await performAccept(id);
-    else await performReject(id);
+    else if (type === 'reject') await performReject(id, payload);
+    else if (type === 'reschedule') await performReschedule(id, payload);
   }
 
   const filtered = filter === 'all'
     ? requests
     : requests.filter((r) => r.status === filter);
+
+  const confirmCopy = (() => {
+    if (pendingAction?.type === 'reject') {
+      return {
+        title: 'Reject booking',
+        message: `Are you sure you want to reject this booking with reason: "${pendingAction.payload}"? This cannot be undone.`,
+        confirmLabel: 'Reject',
+      };
+    }
+    if (pendingAction?.type === 'reschedule') {
+      const { scheduledAt, scheduledEndAt } = pendingAction.payload ?? {};
+      const dateLabel = scheduledAt ? new Date(scheduledAt).toLocaleDateString('en-LK', { dateStyle: 'medium' }) : '';
+      const timeLabel = formatTimeRange(scheduledAt, scheduledEndAt);
+      return {
+        title: 'Propose reschedule',
+        message: `Are you sure you want to propose rescheduling this booking to ${dateLabel}, ${timeLabel}? The client will be notified and must accept before this takes effect.`,
+        confirmLabel: 'Confirm',
+      };
+    }
+    return {
+      title: 'Accept booking',
+      message: 'Are you sure you want to accept this booking request?',
+      confirmLabel: 'Accept',
+    };
+  })();
 
   return (
     <div className="provider-page">
@@ -124,20 +175,37 @@ export default function ProviderRequestsPage() {
             requests={filtered}
             onAccept={handleAccept}
             onReject={handleReject}
+            onReschedule={handleReschedule}
             loading={acting}
           />
         )}
       </div>
 
+      {formModal?.type === 'reject' && (
+        <RejectReasonModal
+          onClose={() => setFormModal(null)}
+          onConfirm={(reason) => {
+            setFormModal(null);
+            setPendingAction({ id: formModal.id, type: 'reject', payload: reason });
+          }}
+        />
+      )}
+
+      {formModal?.type === 'reschedule' && (
+        <RescheduleModal
+          onClose={() => setFormModal(null)}
+          onConfirm={(payload) => {
+            setFormModal(null);
+            setPendingAction({ id: formModal.id, type: 'reschedule', payload });
+          }}
+        />
+      )}
+
       <ConfirmModal
         isOpen={Boolean(pendingAction)}
-        title={pendingAction?.type === 'reject' ? 'Reject booking' : 'Accept booking'}
-        message={
-          pendingAction?.type === 'reject'
-            ? 'Are you sure you want to reject this booking request? This cannot be undone.'
-            : 'Are you sure you want to accept this booking request?'
-        }
-        confirmLabel={pendingAction?.type === 'reject' ? 'Reject' : 'Accept'}
+        title={confirmCopy.title}
+        message={confirmCopy.message}
+        confirmLabel={confirmCopy.confirmLabel}
         cancelLabel="Cancel"
         onConfirm={handleConfirmAction}
         onCancel={() => setPendingAction(null)}

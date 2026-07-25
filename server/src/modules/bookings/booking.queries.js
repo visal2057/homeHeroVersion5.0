@@ -78,7 +78,9 @@ export function findReviewableBookingForClientAndProvider(clientUserId, provider
 
 export function findBookingForOwnershipCheck(bookingId) {
   return query(
-    `SELECT booking_id, client_user_id, provider_user_id, booking_status FROM bookings WHERE booking_id = $1`,
+    `SELECT booking_id, client_user_id, provider_user_id, booking_status,
+            proposed_scheduled_at, proposed_scheduled_end_at
+     FROM bookings WHERE booking_id = $1`,
     [bookingId],
   );
 }
@@ -97,6 +99,50 @@ export function updateBookingCancelled(bookingId, cancelledByUserId, reason) {
      WHERE booking_id = $3
      RETURNING *`,
     [cancelledByUserId, reason, bookingId],
+  );
+}
+
+// RETURNING carries the SP's own name back so the service layer can build
+// the client's rejection notification without a second round trip.
+export function updateBookingRejectedWithReason(bookingId, reason) {
+  return query(
+    `UPDATE bookings
+     SET booking_status = 'REJECTED', rejected_at = now(), rejection_reason = $1
+     WHERE booking_id = $2
+     RETURNING *, (SELECT full_name FROM users WHERE user_id = bookings.provider_user_id) AS provider_full_name`,
+    [reason, bookingId],
+  );
+}
+
+export function updateBookingRescheduleProposed(bookingId, proposedScheduledAt, proposedScheduledEndAt) {
+  return query(
+    `UPDATE bookings
+     SET booking_status = 'RESCHEDULE_PENDING', proposed_scheduled_at = $1, proposed_scheduled_end_at = $2
+     WHERE booking_id = $3
+     RETURNING *`,
+    [proposedScheduledAt, proposedScheduledEndAt, bookingId],
+  );
+}
+
+export function updateBookingRescheduleAccepted(bookingId) {
+  return query(
+    `UPDATE bookings
+     SET booking_status = 'ACCEPTED', accepted_at = now(),
+         scheduled_at = proposed_scheduled_at, scheduled_end_at = proposed_scheduled_end_at,
+         proposed_scheduled_at = NULL, proposed_scheduled_end_at = NULL
+     WHERE booking_id = $1 AND booking_status = 'RESCHEDULE_PENDING'
+     RETURNING *`,
+    [bookingId],
+  );
+}
+
+export function updateBookingRescheduleRejected(bookingId) {
+  return query(
+    `UPDATE bookings
+     SET booking_status = 'RESCHEDULE_REJECTED'
+     WHERE booking_id = $1 AND booking_status = 'RESCHEDULE_PENDING'
+     RETURNING *`,
+    [bookingId],
   );
 }
 

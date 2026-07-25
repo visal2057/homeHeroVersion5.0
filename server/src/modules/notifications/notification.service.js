@@ -56,6 +56,8 @@ export async function getCombinedFeed(role, userId) {
       type: 'PERSONAL',
       title: notification.title,
       message: notification.message,
+      relatedType: notification.relatedType,
+      relatedId: notification.relatedId,
       isRead: notification.isRead,
       createdAt: notification.createdAt,
     })),

@@ -8,11 +8,16 @@ import { formatTimeRange } from '../../../utils/timeUtils.js';
 const MIN_ROWS = 6;
 const COLUMN_COUNT = 9;
 
+const STATUS_LABELS = {
+  reschedule_pending: 'Reschedule Pending',
+};
+
 function statusBadge(status) {
-  return <span className={`provider-badge ${status}`}>{status.charAt(0).toUpperCase() + status.slice(1)}</span>;
+  const label = STATUS_LABELS[status] ?? (status.charAt(0).toUpperCase() + status.slice(1));
+  return <span className={`provider-badge ${status}`}>{label}</span>;
 }
 
-export default function ProviderRequestTable({ requests, onAccept, onReject, loading }) {
+export default function ProviderRequestTable({ requests, onAccept, onReject, onReschedule, loading }) {
   const [hoveredId, setHoveredId] = useState(null);
   const [previewPos, setPreviewPos] = useState({ top: 0, left: 0 });
 
@@ -93,7 +98,7 @@ export default function ProviderRequestTable({ requests, onAccept, onReject, loa
               <td>{statusBadge(r.status ?? 'pending')}</td>
               <td>
                 {r.status === 'pending' && (
-                  <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                  <div className="provider-row-actions">
                     <button
                       type="button"
                       className="provider-action-btn accept"
@@ -109,6 +114,14 @@ export default function ProviderRequestTable({ requests, onAccept, onReject, loa
                       onClick={() => onReject(r.id)}
                     >
                       Reject
+                    </button>
+                    <button
+                      type="button"
+                      className="provider-action-btn reschedule"
+                      disabled={loading}
+                      onClick={() => onReschedule(r.id)}
+                    >
+                      Reschedule
                     </button>
                   </div>
                 )}

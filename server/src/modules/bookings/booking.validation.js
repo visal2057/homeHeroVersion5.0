@@ -14,3 +14,12 @@ export const createBookingSchema = z.object({
 export const cancelBookingSchema = z.object({
   reason: z.string().max(500).optional(),
 });
+
+export const rejectBookingSchema = z.object({
+  reason: z.string().min(1, 'A reason is required').max(500),
+});
+
+export const proposeRescheduleSchema = z.object({
+  scheduledAt: z.coerce.date(),
+  scheduledEndAt: z.coerce.date(),
+});

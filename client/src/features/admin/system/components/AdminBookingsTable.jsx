@@ -6,6 +6,8 @@ const STATUS_VARIANT = {
   COMPLETED: 'is-success',
   REJECTED: 'is-error',
   CANCELLED: 'is-neutral',
+  RESCHEDULE_PENDING: 'is-info',
+  RESCHEDULE_REJECTED: 'is-error',
 };
 
 export default function AdminBookingsTable({ bookings }) {

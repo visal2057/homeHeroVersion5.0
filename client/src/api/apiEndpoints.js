@@ -68,6 +68,7 @@ export const API_ENDPOINTS = {
     BOOKINGS:           '/provider/bookings',
     BOOKING_ACCEPT:     (id) => `/provider/bookings/${id}/accept`,
     BOOKING_REJECT:     (id) => `/provider/bookings/${id}/reject`,
+    BOOKING_RESCHEDULE: (id) => `/provider/bookings/${id}/reschedule`,
     JOBS:               '/provider/jobs',
     COMPLETED_JOBS:     '/provider/completed-jobs',
     REVIEWS:            '/provider/reviews',

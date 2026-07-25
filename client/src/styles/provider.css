@@ -1074,6 +1074,7 @@
 .provider-badge.completed { background: var(--color-info-bg);     color: var(--color-info); }
 .provider-badge.active    { background: var(--color-primary-50);  color: var(--color-primary-700); }
 .provider-badge.cancelled { background: var(--color-neutral-100); color: var(--color-neutral-600); }
+.provider-badge.reschedule_pending { background: var(--color-info-bg); color: var(--color-info); }
 
 /* --------------------------------------------------------------------------
    Booking detail hover preview
@@ -1177,6 +1178,30 @@
 
 .provider-action-btn.view:hover {
   background: var(--color-neutral-200);
+}
+
+.provider-action-btn.reschedule {
+  background: var(--color-info-bg);
+  color: var(--color-info);
+}
+
+.provider-action-btn.reschedule:hover {
+  background: #dbeafe;
+}
+
+/* Actions column for Booking Requests: Accept/Reject/Reschedule wrap into a
+   tidy two-row group instead of overflowing the cell in one long row. */
+.provider-row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  max-width: 190px;
+}
+
+.provider-row-actions .provider-action-btn {
+  flex: 1 1 calc(50% - 6px);
+  text-align: center;
+  white-space: nowrap;
 }
 
 /* --------------------------------------------------------------------------

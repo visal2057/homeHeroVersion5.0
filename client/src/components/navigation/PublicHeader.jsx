@@ -6,6 +6,7 @@ import { useAlert } from '../../hooks/useAlert.js';
 import { ROLES } from '../../constants/roles.js';
 import { axiosClient } from '../../api/axiosClient.js';
 import { API_ENDPOINTS } from '../../api/apiEndpoints.js';
+import { bookingApi } from '../../features/client/bookingApi.js';
 import {
   IconHome, IconUser, IconClipboardList, IconFlag,
   IconLogOut, IconChevronDown, IconBell,
@@ -35,6 +36,12 @@ export default function PublicHeader() {
   const [isAccountOpen, setIsAccountOpen] = useState(false);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [announcements, setAnnouncements] = useState([]);
+  const [rescheduleActingId, setRescheduleActingId] = useState(null);
+  // A reschedule-proposal notification's relatedType never changes once the
+  // booking is resolved (accepted/rejected), so this session-local set is
+  // what actually hides its Accept/Reject buttons after the client responds
+  // -- refetching alone would keep showing them on the same stale row.
+  const [resolvedRescheduleIds, setResolvedRescheduleIds] = useState(() => new Set());
 
   const accountRef = useRef(null);
   const notifRef = useRef(null);
@@ -101,6 +108,30 @@ export default function PublicHeader() {
 
   function markAllRead() {
     announcements.filter((a) => !a.isRead).forEach((a) => markRead(getId(a), a.type));
+  }
+
+  // The bell is the only place a Client acts on a Service Provider's
+  // reschedule proposal -- Accept/Reject fire immediately (no second
+  // confirmation on this side, matching the request's exact wording), then
+  // the feed is refetched so the resolved notification drops its buttons.
+  async function handleRescheduleDecision(bookingId, decision) {
+    setRescheduleActingId(bookingId);
+    try {
+      if (decision === 'accept') await bookingApi.acceptReschedule(bookingId);
+      else await bookingApi.rejectReschedule(bookingId);
+      setResolvedRescheduleIds((prev) => new Set(prev).add(bookingId));
+      await fetchAnnouncements();
+    } catch (err) {
+      // A failure here almost always means the proposal was already
+      // resolved (e.g. reopened from a stale page) rather than a transient
+      // error worth retrying, so hide the buttons instead of leaving a
+      // dead-end action in place.
+      if (err?.response?.status === 409) {
+        setResolvedRescheduleIds((prev) => new Set(prev).add(bookingId));
+      }
+    } finally {
+      setRescheduleActingId(null);
+    }
   }
 
   const unreadCount = announcements.filter((a) => !a.isRead).length;
@@ -184,6 +215,26 @@ export default function PublicHeader() {
                                 </div>
                                 <div className="ph-notif-item-title">{a.title}</div>
                                 <div className="ph-notif-item-msg">{a.message}</div>
+                                {a.type === 'PERSONAL' && a.relatedType === 'BOOKING_RESCHEDULE_PROPOSED' && !resolvedRescheduleIds.has(a.relatedId) && (
+                                  <div className="ph-notif-item-actions" onClick={(e) => e.stopPropagation()}>
+                                    <button
+                                      type="button"
+                                      className="ph-notif-action-btn accept"
+                                      disabled={rescheduleActingId === a.relatedId}
+                                      onClick={() => handleRescheduleDecision(a.relatedId, 'accept')}
+                                    >
+                                      Accept
+                                    </button>
+                                    <button
+                                      type="button"
+                                      className="ph-notif-action-btn reject"
+                                      disabled={rescheduleActingId === a.relatedId}
+                                      onClick={() => handleRescheduleDecision(a.relatedId, 'reject')}
+                                    >
+                                      Reject
+                                    </button>
+                                  </div>
+                                )}
                                 <div className="ph-notif-item-date">
                                   {a.createdAt
                                     ? new Date(a.createdAt).toLocaleDateString('en-LK', { day: 'numeric', month: 'short' })
@@ -368,6 +419,17 @@ export default function PublicHeader() {
         .ph-notif-type-badge.is-personal { background: var(--color-primary-50); color: var(--color-primary-700); }
         .ph-notif-item-title { font-weight: 700; font-size: var(--font-size-sm); color: var(--color-secondary-700); margin-bottom: 2px; }
         .ph-notif-item-msg { font-size: var(--font-size-xs); color: var(--color-neutral-600); line-height: 1.5; margin-bottom: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .ph-notif-item-actions { display: flex; gap: 6px; margin: 6px 0 4px; }
+        .ph-notif-action-btn {
+          padding: 4px 12px; border-radius: var(--radius-md); border: none;
+          font-size: var(--font-size-xs); font-weight: 600; cursor: pointer; font-family: inherit;
+          transition: background var(--transition-base);
+        }
+        .ph-notif-action-btn.accept { background: var(--color-primary-600); color: white; }
+        .ph-notif-action-btn.accept:hover { background: var(--color-primary-700); }
+        .ph-notif-action-btn.reject { background: var(--color-error-bg); color: var(--color-error); }
+        .ph-notif-action-btn.reject:hover { background: #fee2e2; }
+        .ph-notif-action-btn:disabled { opacity: 0.6; cursor: default; }
         .ph-notif-item-date { font-size: var(--font-size-xs); color: var(--color-neutral-400); }
         .ph-avatar-btn {
           background: none; border: 2px solid var(--color-primary-200); cursor: pointer;
