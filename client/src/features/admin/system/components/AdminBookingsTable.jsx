@@ -1,3 +1,5 @@
+import { formatTimeRange } from '../../../../utils/timeUtils.js';
+
 const STATUS_VARIANT = {
   PENDING: 'is-warning',
   ACCEPTED: 'is-info',
@@ -40,7 +42,9 @@ export default function AdminBookingsTable({ bookings }) {
                 <span style={{ color: 'var(--color-text-muted)', fontSize: 'var(--font-size-xs)' }}>{booking.providerToken}</span>
               </td>
               <td>{booking.serviceCategory}</td>
-              <td>{new Date(booking.scheduledAt).toLocaleString()}</td>
+              <td>
+                {new Date(booking.scheduledAt).toLocaleDateString()}, {formatTimeRange(booking.scheduledAt, booking.scheduledEndAt)}
+              </td>
               <td>
                 <span className={`status-badge ${STATUS_VARIANT[booking.bookingStatus] ?? 'is-neutral'}`}>
                   {booking.bookingStatus}

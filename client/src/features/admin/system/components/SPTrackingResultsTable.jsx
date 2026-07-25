@@ -1,4 +1,5 @@
 import { Fragment, useState } from 'react';
+import { formatTimeRange } from '../../../../utils/timeUtils.js';
 
 function formatAmount(amount) {
   return amount === null ? '—' : `LKR ${Number(amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
@@ -48,7 +49,12 @@ export default function SPTrackingResultsTable({ jobs }) {
                       <div className="sp-tracking-detail">
                         <p><strong>Job description:</strong> {job.jobDescription}</p>
                         <p><strong>Location:</strong> {job.jobLocation ?? '—'}</p>
-                        <p><strong>Booking date:</strong> {job.bookingDate ? new Date(job.bookingDate).toLocaleString() : '—'}</p>
+                        <p>
+                          <strong>Booking date:</strong>{' '}
+                          {job.bookingDate
+                            ? `${new Date(job.bookingDate).toLocaleDateString()}, ${formatTimeRange(job.bookingDate, job.bookingEndDate)}`
+                            : '—'}
+                        </p>
                         <p><strong>Completion date:</strong> {job.completionDate ? new Date(job.completionDate).toLocaleString() : '—'}</p>
                         <p><strong>Payment method:</strong> {job.paymentMethod ?? '—'}</p>
                         <p><strong>Amount:</strong> {formatAmount(job.amount)}</p>
