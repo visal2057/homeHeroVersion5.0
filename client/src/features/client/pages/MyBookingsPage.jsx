@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { bookingApi } from '../bookingApi.js';
 import { extractErrorMessage } from '../../../api/apiErrorHandler.js';
+import { onBookingsChanged } from '../../../utils/bookingEvents.js';
 import BookingTabs from '../components/BookingTabs.jsx';
 import RequestsTable from '../components/RequestsTable.jsx';
 import JobsToDoTable from '../components/JobsToDoTable.jsx';
@@ -8,28 +9,45 @@ import CompletedJobsTable from '../components/CompletedJobsTable.jsx';
 import EmptyState from '../../../components/common/EmptyState.jsx';
 import { IconClipboardList, IconAlertCircle } from '../../../components/common/icons.jsx';
 
+const POLL_INTERVAL_MS = 30_000; // pick up changes made elsewhere (e.g. a reschedule decided from another tab/device)
+
 export default function MyBookingsPage() {
   const [activeTab, setActiveTab] = useState('requests');
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const fetchBookings = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+  // silent=true is used by the poll/event refresh below so a background
+  // refetch never flashes the spinner or clobbers good data with an error.
+  const fetchBookings = useCallback(async (silent = false) => {
+    if (!silent) {
+      setLoading(true);
+      setError(null);
+    }
     try {
       const res = await bookingApi.getMyBookings();
       setBookings(res.data?.data ?? res.data ?? []);
     } catch (err) {
-      setBookings([]);
-      setError(extractErrorMessage(err));
+      if (!silent) {
+        setBookings([]);
+        setError(extractErrorMessage(err));
+      }
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, []);
 
   useEffect(() => {
     fetchBookings();
+  }, [fetchBookings]);
+
+  useEffect(() => {
+    const unsubscribe = onBookingsChanged(() => fetchBookings(true));
+    const interval = setInterval(() => fetchBookings(true), POLL_INTERVAL_MS);
+    return () => {
+      unsubscribe();
+      clearInterval(interval);
+    };
   }, [fetchBookings]);
 
   const requests = bookings.filter((b) => ['PENDING', 'REJECTED', 'CANCELLED', 'RESCHEDULE_PENDING'].includes(b.status));

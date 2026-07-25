@@ -6,6 +6,8 @@ import { axiosClient } from '../../api/axiosClient.js';
 import { API_ENDPOINTS } from '../../api/apiEndpoints.js';
 import { IconBell } from '../common/icons.jsx';
 
+const POLL_INTERVAL_MS = 30_000; // same interval the client bell (PublicHeader.jsx) already polls at
+
 const PAGE_TITLES = {
   [ROUTES.PROVIDER_DASHBOARD]:     'Dashboard',
   [ROUTES.PROVIDER_REQUESTS]:      'Booking Requests',
@@ -34,14 +36,23 @@ export default function ProviderTopbar({ onMenuToggle }) {
 
   useEffect(() => {
     let isMounted = true;
-    axiosClient
-      .get(API_ENDPOINTS.NOTIFICATIONS.FEED)
-      .then(({ data }) => {
-        if (isMounted) setAnnouncements(data.data ?? []);
-      })
-      .catch(() => {});
+    function fetchFeed() {
+      axiosClient
+        .get(API_ENDPOINTS.NOTIFICATIONS.FEED)
+        .then(({ data }) => {
+          if (isMounted) setAnnouncements(data.data ?? []);
+        })
+        .catch(() => {});
+    }
+    // This topbar lives in the persistent provider layout, so without
+    // polling it would only ever fetch once for the whole session -- a
+    // client resolving a reschedule from their own session would never
+    // otherwise surface here.
+    fetchFeed();
+    const interval = setInterval(fetchFeed, POLL_INTERVAL_MS);
     return () => {
       isMounted = false;
+      clearInterval(interval);
     };
   }, []);
 

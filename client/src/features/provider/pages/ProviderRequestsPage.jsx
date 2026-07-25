@@ -10,6 +10,7 @@ import AlertMessage from '../../../components/common/AlertMessage.jsx';
 import { formatTimeRange } from '../../../utils/timeUtils.js';
 
 const HERO_IMAGE = 'https://images.unsplash.com/photo-1607472586893-edb57bdc0e39?auto=format&fit=crop&w=1600&q=80';
+const POLL_INTERVAL_MS = 30_000; // pick up a client's own accept/reject/reschedule decision without a manual refresh
 
 export default function ProviderRequestsPage() {
   const [requests, setRequests]   = useState([]);
@@ -28,16 +29,23 @@ export default function ProviderRequestsPage() {
     fetchRequests();
   }, []);
 
-  async function fetchRequests() {
-    setLoading(true);
+  useEffect(() => {
+    const interval = setInterval(() => fetchRequests(true), POLL_INTERVAL_MS);
+    return () => clearInterval(interval);
+  }, []);
+
+  // silent=true is used by the poll above so a background refresh never
+  // flashes the spinner over an already-loaded table.
+  async function fetchRequests(silent = false) {
+    if (!silent) setLoading(true);
     try {
       const res = await axiosClient.get(API_ENDPOINTS.PROVIDER.BOOKINGS);
       const list = res.data?.data ?? res.data ?? [];
       setRequests(Array.isArray(list) ? list : []);
     } catch {
-      setAlert({ type: 'error', msg: 'Failed to load requests. Please refresh.' });
+      if (!silent) setAlert({ type: 'error', msg: 'Failed to load requests. Please refresh.' });
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }
 

@@ -7,6 +7,7 @@ import { ROLES } from '../../constants/roles.js';
 import { axiosClient } from '../../api/axiosClient.js';
 import { API_ENDPOINTS } from '../../api/apiEndpoints.js';
 import { bookingApi } from '../../features/client/bookingApi.js';
+import { emitBookingsChanged } from '../../utils/bookingEvents.js';
 import {
   IconHome, IconUser, IconClipboardList, IconFlag,
   IconLogOut, IconChevronDown, IconBell,
@@ -120,6 +121,9 @@ export default function PublicHeader() {
       if (decision === 'accept') await bookingApi.acceptReschedule(bookingId);
       else await bookingApi.rejectReschedule(bookingId);
       setResolvedRescheduleIds((prev) => new Set(prev).add(bookingId));
+      // Lets an already-open My Bookings tab (same browser tab) reflect this
+      // the instant it happens, instead of waiting on its own poll interval.
+      emitBookingsChanged();
       await fetchAnnouncements();
     } catch (err) {
       // A failure here almost always means the proposal was already
