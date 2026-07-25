@@ -3,6 +3,7 @@ import BookingDetailPreview from './BookingDetailPreview.jsx';
 import { IconInbox, IconMapPin } from '../../../components/common/icons.jsx';
 import { rowPreviewPosition } from '../rowPreviewPosition.js';
 import { buildGoogleMapsUrl } from '../../../utils/mapsUtils.js';
+import { formatTimeRange } from '../../../utils/timeUtils.js';
 
 const MIN_ROWS = 6;
 const COLUMN_COUNT = 9;
@@ -75,7 +76,7 @@ export default function ProviderRequestTable({ requests, onAccept, onReject, loa
               <td>{r.client_token ?? '—'}</td>
               <td>{r.service_title ?? '—'}</td>
               <td>{r.service_date ? new Date(r.service_date).toLocaleDateString() : '—'}</td>
-              <td>{r.service_date ? new Date(r.service_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—'}</td>
+              <td>{r.service_date ? formatTimeRange(r.service_date, r.service_end_time) : '—'}</td>
               <td>
                 {r.location?.latitude != null ? (
                   <a
