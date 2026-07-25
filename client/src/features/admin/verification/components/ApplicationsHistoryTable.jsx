@@ -38,9 +38,7 @@ export default function ApplicationsHistoryTable({ applications, emptyMessage, o
                   {application.verificationStatus}
                 </span>
               </td>
-              {showAttempt && (
-                <td>{application.attemptNumber > 1 ? `Attempt ${application.attemptNumber}` : '—'}</td>
-              )}
+              {showAttempt && <td>Attempt {application.attemptNumber}</td>}
             </tr>
           ))}
         </tbody>
