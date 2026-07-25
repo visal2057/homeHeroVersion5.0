@@ -1,6 +1,7 @@
 import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { ROUTES } from '../../constants/routes.js';
 import { useAuth } from '../../hooks/useAuth.js';
+import { useAlert } from '../../hooks/useAlert.js';
 import {
   IconChartBar,
   IconInbox,
@@ -24,6 +25,7 @@ const NAV_ITEMS = [
 
 export default function ProviderSidebar({ isOpen, onClose }) {
   const { logout } = useAuth();
+  const { showSuccess } = useAlert();
   const navigate = useNavigate();
 
   async function handleLogout() {
@@ -32,6 +34,7 @@ export default function ProviderSidebar({ isOpen, onClose }) {
     // logged-in user and bounces straight back, causing a duplicate
     // "session has ended" alert (see AdminHeader.jsx's handleLogout).
     await logout();
+    showSuccess('You have logged out successfully.');
     navigate(ROUTES.LOGIN);
   }
 

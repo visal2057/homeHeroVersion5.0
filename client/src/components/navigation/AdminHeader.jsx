@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth.js';
+import { useAlert } from '../../hooks/useAlert.js';
 import { axiosClient } from '../../api/axiosClient.js';
 import { API_ENDPOINTS } from '../../api/apiEndpoints.js';
 import { ROUTES } from '../../constants/routes.js';
@@ -22,6 +23,7 @@ function initialsOf(name) {
 
 export default function AdminHeader({ roleLabel, homeRoute, navItems, variant = 'classic' }) {
   const { user, logout } = useAuth();
+  const { showSuccess } = useAlert();
   const navigate = useNavigate();
   const [announcements, setAnnouncements] = useState([]);
   const [isBellOpen, setIsBellOpen] = useState(false);
@@ -49,6 +51,7 @@ export default function AdminHeader({ roleLabel, homeRoute, navItems, variant = 
     // extra mount's data fetches race the now-revoked session, each
     // showing their own "session has ended" alert (the double-message bug).
     await logout();
+    showSuccess('You have logged out successfully.');
     navigate(ROUTES.LOGIN);
   }
 
