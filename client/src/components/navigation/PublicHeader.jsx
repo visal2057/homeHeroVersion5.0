@@ -232,7 +232,7 @@ export default function PublicHeader() {
                                   </span>
                                 </div>
                                 <div className="ph-notif-item-title">{a.title}</div>
-                                <div className={`ph-notif-item-msg${a.type === 'PERSONAL' && a.relatedType === 'BOOKING_RESCHEDULE_PROPOSED' ? ' ph-notif-item-msg-full' : ''}`}>
+                                <div className={`ph-notif-item-msg${a.type === 'PERSONAL' ? ' ph-notif-item-msg-full' : ''}`}>
                                   {a.message}
                                 </div>
                                 {a.type === 'PERSONAL' && a.relatedType === 'BOOKING_RESCHEDULE_PROPOSED' && (
@@ -439,9 +439,10 @@ export default function PublicHeader() {
         .ph-notif-type-badge.is-personal { background: var(--color-primary-50); color: var(--color-primary-700); }
         .ph-notif-item-title { font-weight: 700; font-size: var(--font-size-sm); color: var(--color-secondary-700); margin-bottom: 2px; }
         .ph-notif-item-msg { font-size: var(--font-size-xs); color: var(--color-neutral-600); line-height: 1.5; margin-bottom: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-        /* A reschedule proposal's message ends with the actual date/time being
-           proposed, so it must never be clamped -- the client needs to read it
-           in full before the Accept/Reject buttons below it make any sense. */
+        /* Personal notifications carry specifics (a proposed date/time, a
+           rejection reason, etc.) that must never be clamped -- unlike the
+           generic Announcement messages, cutting them off mid-sentence loses
+           real information the client needs. */
         .ph-notif-item-msg-full { -webkit-line-clamp: unset; overflow: visible; }
         .ph-notif-item-actions { display: flex; gap: 6px; margin: 6px 0 4px; }
         .ph-notif-action-btn {
