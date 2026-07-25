@@ -28,6 +28,7 @@ function toClientBookingShape(row) {
     providerToken: row.provider_token,
     category: row.service_category,
     scheduledAt: row.scheduled_at,
+    scheduledEndAt: row.scheduled_end_at,
     status: row.booking_status,
     paymentMethod: row.payment_method,
     paymentStatus: row.payment_status,
@@ -40,6 +41,9 @@ function toClientBookingShape(row) {
 export async function createBooking(clientUserId, input, files = []) {
   if (new Date(input.scheduledAt).getTime() <= Date.now()) {
     throw new AppError('The selected date and time must be in the future', 422);
+  }
+  if (new Date(input.scheduledEndAt).getTime() <= new Date(input.scheduledAt).getTime()) {
+    throw new AppError('The end time must be after the start time', 422);
   }
 
   const { rows: locationRows } = await findClientLocation(clientUserId);
@@ -90,6 +94,7 @@ export async function createBooking(clientUserId, input, files = []) {
       serviceCategoryId: input.serviceCategoryId,
       jobDescription: input.jobDescription,
       scheduledAt: input.scheduledAt,
+      scheduledEndAt: input.scheduledEndAt,
     });
     const booking = bookingRows[0];
 
@@ -163,6 +168,7 @@ function toProviderRowShape(row) {
     description: row.job_description,
     created_at: row.requested_at,
     service_date: row.scheduled_at,
+    service_end_time: row.scheduled_end_at,
     completed_at: row.completed_at,
     location:
       row.address_snapshot != null || row.latitude_snapshot != null

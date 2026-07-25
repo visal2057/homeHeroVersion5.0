@@ -35,12 +35,12 @@ export function findConflictingBooking(providerUserId, scheduledAt) {
   );
 }
 
-export function insertBooking(client, { clientUserId, providerUserId, serviceCategoryId, jobDescription, scheduledAt }) {
+export function insertBooking(client, { clientUserId, providerUserId, serviceCategoryId, jobDescription, scheduledAt, scheduledEndAt }) {
   return client.query(
-    `INSERT INTO bookings (client_user_id, provider_user_id, service_category_id, job_description, scheduled_at)
-     VALUES ($1, $2, $3, $4, $5)
+    `INSERT INTO bookings (client_user_id, provider_user_id, service_category_id, job_description, scheduled_at, scheduled_end_at)
+     VALUES ($1, $2, $3, $4, $5, $6)
      RETURNING *`,
-    [clientUserId, providerUserId, serviceCategoryId, jobDescription, scheduledAt],
+    [clientUserId, providerUserId, serviceCategoryId, jobDescription, scheduledAt, scheduledEndAt],
   );
 }
 
@@ -113,7 +113,7 @@ export function listClientBookings(clientUserId) {
 
 export function listProviderBookingsByStatuses(providerUserId, statuses, limit) {
   return query(
-    `SELECT b.booking_id, b.job_description, b.scheduled_at, b.requested_at, b.completed_at, b.booking_status,
+    `SELECT b.booking_id, b.job_description, b.scheduled_at, b.scheduled_end_at, b.requested_at, b.completed_at, b.booking_status,
             cu.full_name AS client_name, cu.phone AS client_phone, cu.email AS client_email, cu.user_token AS client_token,
             sc.category_name AS service_category,
             bl.address_snapshot, bl.latitude_snapshot, bl.longitude_snapshot,

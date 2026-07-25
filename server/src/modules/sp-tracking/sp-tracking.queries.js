@@ -22,7 +22,7 @@ export function findProviderBySearch(search) {
 // the LEFT JOIN invoices shape used by invoice.queries.js.
 export function findCompletedJobsForProvider(providerUserId) {
   return query(
-    `SELECT b.booking_id, b.job_description, b.scheduled_at, b.completed_at,
+    `SELECT b.booking_id, b.job_description, b.scheduled_at, b.scheduled_end_at, b.completed_at,
             cu.full_name AS client_name, cu.user_token AS client_token,
             sc.category_name AS service_category,
             bl.address_snapshot AS job_location,

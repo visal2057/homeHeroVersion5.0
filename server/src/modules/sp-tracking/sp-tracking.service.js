@@ -24,6 +24,7 @@ function toJobDto(row) {
     jobDescription: row.job_description,
     jobLocation: row.job_location,
     bookingDate: row.scheduled_at,
+    bookingEndDate: row.scheduled_end_at,
     completionDate: row.completed_at,
     paymentMethod: row.payment_method,
     amount: resolveAmount(row),

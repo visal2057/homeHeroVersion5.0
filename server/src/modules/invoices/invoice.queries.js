@@ -6,7 +6,7 @@ import { query } from '../../db/query.js';
 export function findBookingDetailForInvoice(bookingId) {
   return query(
     `SELECT b.booking_id, b.provider_user_id, b.client_user_id, b.job_description,
-            b.scheduled_at, b.completed_at, b.booking_status,
+            b.scheduled_at, b.scheduled_end_at, b.completed_at, b.booking_status,
             cu.full_name AS client_name,
             pu.full_name AS provider_name,
             sc.category_name AS service_category,
