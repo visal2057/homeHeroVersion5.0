@@ -24,7 +24,7 @@ function RankBadge({ rank }) {
   return <div className={`mvp-rank-badge${tierClass}`}>#{rank}</div>;
 }
 
-export default function MvpProvidersSection({ providers = [], isLoading }) {
+export default function MvpProvidersSection({ providers = [], isLoading, onSelectProvider }) {
   return (
     <section className="mvp-section animate-fade-in-up">
       <div className="mvp-header">
@@ -50,7 +50,20 @@ export default function MvpProvidersSection({ providers = [], isLoading }) {
           {providers.map((provider, index) => {
             const rank = index + 1;
             return (
-              <div key={provider.providerUserId} className={`mvp-card${rank === 1 ? ' mvp-card-first' : ''}`}>
+              <div
+                key={provider.providerUserId}
+                className={`mvp-card${rank === 1 ? ' mvp-card-first' : ''}`}
+                role="button"
+                tabIndex={0}
+                style={{ cursor: 'pointer' }}
+                onClick={() => onSelectProvider?.(provider.fullName)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    onSelectProvider?.(provider.fullName);
+                  }
+                }}
+              >
                 <RankBadge rank={rank} />
                 <div className="mvp-avatar">
                   {provider.profileImageUrl

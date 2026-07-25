@@ -128,7 +128,7 @@ export default function SPTrackingPage() {
           </>
         ) : null
       ) : (
-        <MvpProvidersSection providers={mvpProviders} isLoading={isMvpLoading} />
+        <MvpProvidersSection providers={mvpProviders} isLoading={isMvpLoading} onSelectProvider={setSearch} />
       )}
     </div>
   );
