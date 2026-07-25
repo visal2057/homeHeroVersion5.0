@@ -4,7 +4,7 @@ import SPTrackingStats from '../components/SPTrackingStats.jsx';
 import MvpProvidersSection from '../components/MvpProvidersSection.jsx';
 import LoadingSpinner from '../../../../components/common/LoadingSpinner.jsx';
 import { IconSearch } from '../../../../components/common/icons.jsx';
-import { searchSPTracking, fetchMvpProviders } from '../systemAdminApi.js';
+import { searchSPTracking, fetchMvpProviders, downloadSpReport } from '../systemAdminApi.js';
 import { useAlert } from '../../../../hooks/useAlert.js';
 import { extractErrorMessage } from '../../../../api/apiErrorHandler.js';
 
@@ -17,12 +17,13 @@ export default function SPTrackingPage() {
   const [stats, setStats] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   const [mvpProviders, setMvpProviders] = useState([]);
   const [isMvpLoading, setIsMvpLoading] = useState(true);
   const mvpPollRef = useRef(null);
 
-  const { showError } = useAlert();
+  const { showError, showSuccess } = useAlert();
 
   const isSearching = Boolean(search.trim());
 
@@ -70,6 +71,18 @@ export default function SPTrackingPage() {
     return () => clearTimeout(timeout);
   }, [search, showError]);
 
+  async function handleGenerateReport() {
+    setIsDownloading(true);
+    try {
+      await downloadSpReport(search.trim(), provider.userToken);
+      showSuccess('Service Provider report downloaded.');
+    } catch (error) {
+      showError(extractErrorMessage(error));
+    } finally {
+      setIsDownloading(false);
+    }
+  }
+
   return (
     <div className="container admin-page animate-fade-in-up">
       <div className="admin-page-header">
@@ -102,6 +115,10 @@ export default function SPTrackingPage() {
               <h2 className="section-title" style={{ fontSize: 'var(--font-size-lg)' }}>
                 {provider.fullName} <span style={{ color: 'var(--color-text-muted)' }}>({provider.userToken})</span>
               </h2>
+              <button type="button" className="btn btn-primary" onClick={handleGenerateReport} disabled={isDownloading}>
+                {isDownloading && <span className="btn-spinner" aria-hidden="true" />}
+                {isDownloading ? 'Generating...' : 'Generate Report'}
+              </button>
             </div>
             <SPTrackingStats stats={stats} />
             <div className="card chart-card">
