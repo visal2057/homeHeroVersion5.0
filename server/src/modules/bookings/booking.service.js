@@ -356,7 +356,23 @@ export async function acceptReschedule(bookingId, clientUserId) {
     throw new AppError('This time slot was just booked, please choose another time', 409);
   }
 
-  const { rows } = await updateBookingRescheduleAccepted(bookingId);
+  // The findConflictingBooking check above only narrows the race window --
+  // it doesn't close it, since it isn't run in the same transaction as this
+  // UPDATE. If two clients accept overlapping-proposal reschedules onto the
+  // same slot at nearly the same instant, both pre-checks can pass before
+  // either UPDATE commits; the DB's uix_provider_accepted_time unique index
+  // is the real backstop, so the loser's UPDATE fails with 23505 here
+  // instead of silently double-booking the provider (same pattern already
+  // used in invoice.service.js for concurrent invoice generation).
+  let rows;
+  try {
+    ({ rows } = await updateBookingRescheduleAccepted(bookingId));
+  } catch (err) {
+    if (err.code === '23505') {
+      throw new AppError('This time slot was just booked, please choose another time', 409);
+    }
+    throw err;
+  }
   if (rows.length === 0) {
     throw new AppError('This reschedule proposal is no longer pending', 409);
   }
