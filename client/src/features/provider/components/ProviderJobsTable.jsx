@@ -3,6 +3,7 @@ import BookingDetailPreview from './BookingDetailPreview.jsx';
 import { IconWrench, IconMapPin } from '../../../components/common/icons.jsx';
 import { rowPreviewPosition } from '../rowPreviewPosition.js';
 import { buildGoogleMapsUrl } from '../../../utils/mapsUtils.js';
+import { formatTimeRange } from '../../../utils/timeUtils.js';
 
 const MIN_ROWS = 6;
 const COLUMN_COUNT = 8;
@@ -70,7 +71,7 @@ export default function ProviderJobsTable({ jobs }) {
               <td>{j.client_token ?? '—'}</td>
               <td>{j.service_title ?? '—'}</td>
               <td>{j.service_date ? new Date(j.service_date).toLocaleDateString() : '—'}</td>
-              <td>{j.service_date ? new Date(j.service_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—'}</td>
+              <td>{j.service_date ? formatTimeRange(j.service_date, j.service_end_time) : '—'}</td>
               <td>
                 {j.location?.latitude != null ? (
                   <a

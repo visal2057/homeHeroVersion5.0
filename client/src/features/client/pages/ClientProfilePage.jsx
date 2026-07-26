@@ -52,12 +52,13 @@ export default function ClientProfilePage() {
                 <span>{initials}</span>
               )}
               <div className="cp-avatar-overlay">
-                <IconDocumentEdit size={22} style={{ color: 'white' }} />
+                <IconDocumentEdit size={26} style={{ color: 'white' }} />
               </div>
               <input id="profile-img-input" type="file" accept="image/jpeg,image/png" onChange={handleImageChange} style={{ display: 'none' }} />
             </div>
             <div>
               <h1 className="cp-hero-name">{profile?.fullName ?? profile?.username ?? 'My Profile'}</h1>
+              {profile?.username && <div className="cp-hero-username">@{profile.username}</div>}
               <div className="cp-hero-email">{profile?.email}</div>
               {profile?.userToken && (
                 <div className="cp-hero-token">
@@ -153,10 +154,10 @@ export default function ClientProfilePage() {
         }
         .cp-hero-inner { display: flex; align-items: center; gap: var(--space-xl); }
         .cp-hero-avatar {
-          width: 108px; height: 108px; border-radius: 50%; flex-shrink: 0;
+          width: 148px; height: 148px; border-radius: 50%; flex-shrink: 0;
           background: linear-gradient(135deg, var(--color-primary-400), var(--color-secondary-700));
           display: flex; align-items: center; justify-content: center;
-          font-size: 2.4rem; font-weight: 700; color: white;
+          font-size: 3.1rem; font-weight: 700; color: white;
           border: 4px solid rgba(255,255,255,0.4); cursor: pointer;
           position: relative; overflow: hidden;
         }
@@ -167,6 +168,7 @@ export default function ClientProfilePage() {
         }
         .cp-hero-avatar:hover .cp-avatar-overlay { opacity: 1; }
         .cp-hero-name { font-size: var(--font-size-2xl); font-weight: 800; color: white; margin-bottom: 4px; }
+        .cp-hero-username { color: rgba(255,255,255,0.65); font-size: var(--font-size-sm); margin-bottom: 4px; }
         .cp-hero-email { color: rgba(255,255,255,0.75); margin-bottom: 8px; font-size: var(--font-size-sm); }
         .cp-hero-token {
           display: inline-flex; align-items: center; padding: 4px 12px;

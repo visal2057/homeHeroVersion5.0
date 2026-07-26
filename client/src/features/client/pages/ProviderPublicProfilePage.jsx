@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, useLocation, useNavigate, Link } from 'react-router-dom';
 import { ROUTES } from '../../../constants/routes.js';
 import { useAuth } from '../../../hooks/useAuth.js';
 import { ROLES } from '../../../constants/roles.js';
@@ -11,7 +11,7 @@ import ReviewsSection from '../components/ReviewsSection.jsx';
 import EmptyState from '../../../components/common/EmptyState.jsx';
 import {
   IconToolbox, IconMapPin, IconDollarSign, IconCalendar,
-  IconShield, IconUser, IconStar, IconAlertCircle,
+  IconShield, IconUser, IconStar, IconAlertCircle, IconArrowLeft,
 } from '../../../components/common/icons.jsx';
 
 const CATEGORY_CTA_IMAGES = {
@@ -31,6 +31,8 @@ function getCategoryImage(category) {
 export default function ProviderPublicProfilePage() {
   const { providerId } = useParams();
   const { user } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
   // A pending Service Provider may view profiles (see ProtectedRoute's
   // `allowPendingProvider`) but not book - only a Client viewer sees the
   // booking CTAs.
@@ -109,10 +111,26 @@ export default function ProviderPublicProfilePage() {
   // A logged-out visitor can browse this far (see ProtectedRoute's
   // `allowGuest`), but only gets sent into the actual booking flow once
   // logged in as a Client - the CTA below sends them to client signup instead.
+  // This page's own location rides along as router state so that, once they
+  // register and log in, they're dropped straight back on this exact
+  // provider's profile (LoginForm already honors `location.state.from`).
   const bookingHref = user
     ? ROUTES.CLIENT_BOOKING_CONFIRM.replace(':providerId', provider.providerId ?? provider.id)
     : ROUTES.REGISTER_CLIENT;
+  const bookingState = user ? undefined : { from: location };
   const ctaImage = getCategoryImage(provider.category);
+  // Same category-slug format BookingConfirmationPage already uses to link
+  // back into Explore: prefer the first entry of `categories` over the
+  // combined `category` string ("AC Repair & Plumbing" for a provider with
+  // two categories isn't a real Explore route on its own).
+  const exploreHref = ROUTES.CLIENT_EXPLORE.replace(
+    ':category',
+    (provider.categories?.[0] ?? provider.category ?? '').toLowerCase().replace(/\s+/g, '-'),
+  );
+
+  function handleBackToExplore() {
+    navigate(exploreHref);
+  }
 
   const tabs = [
     { key: 'about',   label: 'About' },
@@ -258,13 +276,24 @@ export default function ProviderPublicProfilePage() {
                   {provider.name} is currently accepting bookings.
                   Send your request and get a response within 24 hours.
                 </p>
-                <Link to={bookingHref} className="pp-cta-btn btn btn-shine">
-                  Book This Provider
+                <Link to={bookingHref} state={bookingState} className="pp-cta-btn btn btn-shine">
+                  Proceed to Booking
                 </Link>
               </div>
             </div>
           </div>
         )}
+
+        {/* Styled exactly like the Explore page's own "Back to Categories"
+            button (see .ep-back-btn in ExploreServicePage.jsx), so this
+            profile page hands the client back to the same category listing
+            they arrived from. */}
+        <div className="pp-back-row">
+          <button type="button" className="pp-back-btn" onClick={handleBackToExplore}>
+            <IconArrowLeft size={16} />
+            Back to Explore Page
+          </button>
+        </div>
       </div>
 
       <style>{`
@@ -300,7 +329,17 @@ export default function ProviderPublicProfilePage() {
           background: white; border: 1px solid var(--color-neutral-200);
           border-radius: var(--radius-lg); padding: var(--space-xl);
         }
-        .pp-sticky { position: sticky; top: 88px; }
+        /* Halo + matching shadow layers, same light-green-glow recipe used
+           for the Explore page's provider-card hover preview, so this card
+           reads as an elevated, elegant focal point of the layout. */
+        .pp-sticky {
+          position: sticky; top: 88px;
+          border-color: rgba(16, 185, 129, 0.25);
+          box-shadow:
+            0 0 0 6px rgba(16, 185, 129, 0.08),
+            0 20px 50px -10px rgba(16, 185, 129, 0.30),
+            0 8px 24px rgba(0, 0, 0, 0.06);
+        }
         .pp-card-title { font-size: var(--font-size-lg); color: var(--color-secondary-700); margin-bottom: var(--space-lg); font-weight: 700; }
 
         /* Service details */
@@ -365,6 +404,36 @@ export default function ProviderPublicProfilePage() {
           transition: transform 0.15s, box-shadow 0.15s;
         }
         .pp-cta-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.2); }
+
+        /* Back to Explore Page - same color/hover/shine-sweep treatment as
+           .ep-back-btn on the Explore page, but centered at the bottom of
+           the profile page and a rectangle (slightly rounded corners)
+           rather than a pill. */
+        .pp-back-row { display: flex; justify-content: center; margin-top: var(--space-lg); }
+        .pp-back-btn {
+          display: inline-flex; align-items: center; gap: 8px;
+          padding: 9px 18px; border: none;
+          border-radius: var(--radius-md); background: var(--color-primary-600);
+          color: var(--color-neutral-0); font-family: inherit;
+          font-size: var(--font-size-sm); font-weight: 600; cursor: pointer;
+          position: relative; overflow: hidden;
+          transition: background-color var(--transition-base), transform var(--transition-base), box-shadow var(--transition-base);
+        }
+        .pp-back-btn:hover {
+          background-color: var(--color-secondary-700);
+          transform: translateY(-2px);
+          box-shadow: 0 8px 24px rgba(5, 150, 105, 0.3);
+        }
+        .pp-back-btn:active { transform: translateY(0); }
+        .pp-back-btn::after {
+          content: '';
+          position: absolute; top: 0; left: -60%; width: 25%; height: 100%;
+          background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.55), transparent);
+          transform: skewX(-20deg);
+          transition: left 0.4s ease;
+          pointer-events: none;
+        }
+        .pp-back-btn:hover::after { left: 130%; }
       `}</style>
     </div>
   );

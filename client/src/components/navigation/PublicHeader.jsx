@@ -1,10 +1,14 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { NavLink, Link, useNavigate } from 'react-router-dom';
+import { NavLink, Link, useNavigate, useLocation } from 'react-router-dom';
 import { ROUTES } from '../../constants/routes.js';
 import { useAuth } from '../../hooks/useAuth.js';
+import { useAlert } from '../../hooks/useAlert.js';
 import { ROLES } from '../../constants/roles.js';
 import { axiosClient } from '../../api/axiosClient.js';
 import { API_ENDPOINTS } from '../../api/apiEndpoints.js';
+import { bookingApi } from '../../features/client/bookingApi.js';
+import { emitBookingsChanged } from '../../utils/bookingEvents.js';
+import { getAssetUrl } from '../../utils/storageUtils.js';
 import {
   IconHome, IconUser, IconClipboardList, IconFlag,
   IconLogOut, IconChevronDown, IconBell,
@@ -19,7 +23,14 @@ const POLL_INTERVAL_MS = 30_000; // refresh announcements every 30 s
 
 export default function PublicHeader() {
   const { user, logout } = useAuth();
+  const { showSuccess, showError } = useAlert();
   const navigate = useNavigate();
+  const location = useLocation();
+  // If the current page (e.g. client signup, reached via a guest's "Book Now"
+  // click on a provider profile) is already carrying a return-to location,
+  // forward it along so a visitor who opts to log in instead of finishing
+  // signup still lands back where they started, not the homepage.
+  const loginState = location.state?.from ? { from: location.state.from } : undefined;
 
   const isClient = user?.role === ROLES.CLIENT;
   // A Service Provider only ever renders this header while PENDING or
@@ -33,6 +44,14 @@ export default function PublicHeader() {
   const [isAccountOpen, setIsAccountOpen] = useState(false);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [announcements, setAnnouncements] = useState([]);
+  const [rescheduleActingId, setRescheduleActingId] = useState(null);
+  // Purely an optimistic, instant-hide layer for the brief window between
+  // clicking Accept/Reject and the follow-up fetchAnnouncements() landing.
+  // The actual source of truth for whether a reschedule notification is
+  // still actionable is the server-computed `actionable` field on each feed
+  // item (see notification.service.js), which reflects the booking's real
+  // current status -- that's what makes this survive a page refresh.
+  const [resolvedRescheduleIds, setResolvedRescheduleIds] = useState(() => new Set());
 
   const accountRef = useRef(null);
   const notifRef = useRef(null);
@@ -97,14 +116,56 @@ export default function PublicHeader() {
     });
   }
 
+  // Once a reschedule proposal is no longer actionable (the server says the
+  // underlying booking has already moved past RESCHEDULE_PENDING) it drops
+  // out of the bell entirely, per spec: an already-decided notification
+  // would just be clutter. `actionable === false` is the server's ground
+  // truth (survives refresh); resolvedRescheduleIds is only for the
+  // instant, same-session hide right after a click, before the refetch lands.
+  function isHiddenResolvedReschedule(a) {
+    return a.type === 'PERSONAL' && a.relatedType === 'BOOKING_RESCHEDULE_PROPOSED'
+      && (a.actionable === false || resolvedRescheduleIds.has(a.relatedId));
+  }
+  const visibleAnnouncements = announcements.filter((a) => !isHiddenResolvedReschedule(a));
+
   function markAllRead() {
-    announcements.filter((a) => !a.isRead).forEach((a) => markRead(getId(a), a.type));
+    visibleAnnouncements.filter((a) => !a.isRead).forEach((a) => markRead(getId(a), a.type));
   }
 
-  const unreadCount = announcements.filter((a) => !a.isRead).length;
+  // The bell is the only place a Client acts on a Service Provider's
+  // reschedule proposal -- Accept/Reject fire immediately (no second
+  // confirmation on this side, matching the request's exact wording).
+  // Either outcome refetches the feed so the actionable state (and thus
+  // whether the notification stays visible at all) reflects the server's
+  // current truth, and either outcome tells the client what happened --
+  // silently doing nothing on failure previously made a genuine conflict
+  // (e.g. the slot was taken) look identical to a successful accept.
+  async function handleRescheduleDecision(bookingId, decision) {
+    setRescheduleActingId(bookingId);
+    try {
+      if (decision === 'accept') await bookingApi.acceptReschedule(bookingId);
+      else await bookingApi.rejectReschedule(bookingId);
+      setResolvedRescheduleIds((prev) => new Set(prev).add(bookingId));
+      // Lets an already-open My Bookings tab (same browser tab) reflect this
+      // the instant it happens, instead of waiting on its own poll interval.
+      emitBookingsChanged();
+      await fetchAnnouncements();
+      showSuccess(decision === 'accept' ? 'Rescheduling accepted successfully.' : 'Rescheduling rejected.');
+    } catch (err) {
+      await fetchAnnouncements();
+      showError(err?.response?.data?.message ?? 'Could not process this reschedule decision. Please try again.');
+    } finally {
+      setRescheduleActingId(null);
+    }
+  }
 
-  function handleLogout() {
-    logout();
+  const unreadCount = visibleAnnouncements.filter((a) => !a.isRead).length;
+
+  async function handleLogout() {
+    // Awaited so `user` is already cleared by the time we navigate --
+    // see AdminHeader.jsx's handleLogout for why this ordering matters.
+    await logout();
+    showSuccess('You have logged out successfully.');
     setIsAccountOpen(false);
     setIsMobileMenuOpen(false);
     navigate(ROUTES.HOME, { replace: true });
@@ -153,16 +214,16 @@ export default function PublicHeader() {
                         </button>
                       )}
                     </div>
-                    {announcements.length === 0 ? (
+                    {visibleAnnouncements.length === 0 ? (
                       <div className="ph-notif-empty">No notifications at the moment.</div>
                     ) : (
                       <div className="ph-notif-list">
-                        {announcements.slice(0, 6).map((a) => {
+                        {visibleAnnouncements.slice(0, 6).map((a) => {
                           const id = getId(a);
                           const isRead = a.isRead;
                           return (
                             <div
-                              key={id}
+                              key={a.feedKey ?? id}
                               className={`ph-notif-item${isRead ? '' : ' ph-notif-item-unread'}`}
                               onMouseEnter={() => markRead(id, a.type)}
                               onClick={() => markRead(id, a.type)}
@@ -178,7 +239,29 @@ export default function PublicHeader() {
                                   </span>
                                 </div>
                                 <div className="ph-notif-item-title">{a.title}</div>
-                                <div className="ph-notif-item-msg">{a.message}</div>
+                                <div className={`ph-notif-item-msg${a.type === 'PERSONAL' ? ' ph-notif-item-msg-full' : ''}`}>
+                                  {a.message}
+                                </div>
+                                {a.type === 'PERSONAL' && a.relatedType === 'BOOKING_RESCHEDULE_PROPOSED' && (
+                                  <div className="ph-notif-item-actions" onClick={(e) => e.stopPropagation()}>
+                                    <button
+                                      type="button"
+                                      className="ph-notif-action-btn accept"
+                                      disabled={rescheduleActingId === a.relatedId}
+                                      onClick={() => handleRescheduleDecision(a.relatedId, 'accept')}
+                                    >
+                                      Accept
+                                    </button>
+                                    <button
+                                      type="button"
+                                      className="ph-notif-action-btn reject"
+                                      disabled={rescheduleActingId === a.relatedId}
+                                      onClick={() => handleRescheduleDecision(a.relatedId, 'reject')}
+                                    >
+                                      Reject
+                                    </button>
+                                  </div>
+                                )}
                                 <div className="ph-notif-item-date">
                                   {a.createdAt
                                     ? new Date(a.createdAt).toLocaleDateString('en-LK', { day: 'numeric', month: 'short' })
@@ -203,7 +286,11 @@ export default function PublicHeader() {
                   aria-label="Account menu"
                   onClick={() => { setIsAccountOpen((v) => !v); setIsNotifOpen(false); }}
                 >
-                  <span className="ph-avatar-initials">{initials}</span>
+                  {user?.profileImageUrl ? (
+                    <img src={getAssetUrl(user.profileImageUrl)} alt="" className="ph-avatar-photo" />
+                  ) : (
+                    <span className="ph-avatar-initials">{initials}</span>
+                  )}
                   <span className="ph-avatar-name">{displayName}</span>
                   <IconChevronDown size={14} style={{ color: 'var(--color-neutral-500)', flexShrink: 0 }} />
                 </button>
@@ -266,7 +353,7 @@ export default function PublicHeader() {
             ) : (
               <>
                 <Link to={ROUTES.REGISTER_ROLE} className="btn btn-outline">Sign Up</Link>
-                <Link to={ROUTES.LOGIN} className="btn btn-primary">Login</Link>
+                <Link to={ROUTES.LOGIN} state={loginState} className="btn btn-primary">Login</Link>
               </>
             )}
           </div>
@@ -301,7 +388,7 @@ export default function PublicHeader() {
             ) : (
               <>
                 <Link to={ROUTES.REGISTER_ROLE} className="btn btn-outline btn-block" onClick={closeMobileMenu}>Sign Up</Link>
-                <Link to={ROUTES.LOGIN} className="btn btn-primary btn-block" onClick={closeMobileMenu}>Login</Link>
+                <Link to={ROUTES.LOGIN} state={loginState} className="btn btn-primary btn-block" onClick={closeMobileMenu}>Login</Link>
               </>
             )}
           </div>
@@ -363,6 +450,22 @@ export default function PublicHeader() {
         .ph-notif-type-badge.is-personal { background: var(--color-primary-50); color: var(--color-primary-700); }
         .ph-notif-item-title { font-weight: 700; font-size: var(--font-size-sm); color: var(--color-secondary-700); margin-bottom: 2px; }
         .ph-notif-item-msg { font-size: var(--font-size-xs); color: var(--color-neutral-600); line-height: 1.5; margin-bottom: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        /* Personal notifications carry specifics (a proposed date/time, a
+           rejection reason, etc.) that must never be clamped -- unlike the
+           generic Announcement messages, cutting them off mid-sentence loses
+           real information the client needs. */
+        .ph-notif-item-msg-full { -webkit-line-clamp: unset; overflow: visible; }
+        .ph-notif-item-actions { display: flex; gap: 6px; margin: 6px 0 4px; }
+        .ph-notif-action-btn {
+          padding: 4px 12px; border-radius: var(--radius-md); border: none;
+          font-size: var(--font-size-xs); font-weight: 600; cursor: pointer; font-family: inherit;
+          transition: background var(--transition-base);
+        }
+        .ph-notif-action-btn.accept { background: var(--color-primary-600); color: white; }
+        .ph-notif-action-btn.accept:hover { background: var(--color-primary-700); }
+        .ph-notif-action-btn.reject { background: var(--color-error-bg); color: var(--color-error); }
+        .ph-notif-action-btn.reject:hover { background: #fee2e2; }
+        .ph-notif-action-btn:disabled { opacity: 0.6; cursor: default; }
         .ph-notif-item-date { font-size: var(--font-size-xs); color: var(--color-neutral-400); }
         .ph-avatar-btn {
           background: none; border: 2px solid var(--color-primary-200); cursor: pointer;
@@ -376,6 +479,10 @@ export default function PublicHeader() {
           background: var(--color-primary-600); color: white;
           display: flex; align-items: center; justify-content: center;
           font-weight: 700; font-size: var(--font-size-sm); flex-shrink: 0;
+        }
+        .ph-avatar-photo {
+          width: 34px; height: 34px; border-radius: 50%;
+          object-fit: cover; flex-shrink: 0;
         }
         .ph-avatar-name {
           font-weight: 600; font-size: var(--font-size-sm); color: var(--color-secondary-700);

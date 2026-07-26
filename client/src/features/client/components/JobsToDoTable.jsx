@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '../../../constants/routes.js';
 import { bookingApi } from '../bookingApi.js';
 import { IconToolbox, IconClock } from '../../../components/common/icons.jsx';
+import { formatTimeRange } from '../../../utils/timeUtils.js';
 
 export default function JobsToDoTable({ bookings = [], onRefresh }) {
   const navigate = useNavigate();
@@ -70,7 +71,7 @@ export default function JobsToDoTable({ bookings = [], onRefresh }) {
                   <td>{b.category ?? '—'}</td>
                   <td>
                     {b.scheduledAt
-                      ? new Date(b.scheduledAt).toLocaleString('en-LK', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })
+                      ? `${new Date(b.scheduledAt).toLocaleDateString('en-LK', { weekday: 'short', month: 'short', day: 'numeric' })}, ${formatTimeRange(b.scheduledAt, b.scheduledEndAt)}`
                       : '—'}
                   </td>
                   <td>

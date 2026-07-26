@@ -1,6 +1,7 @@
 import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { ROUTES } from '../../constants/routes.js';
 import { useAuth } from '../../hooks/useAuth.js';
+import { useAlert } from '../../hooks/useAlert.js';
 import {
   IconChartBar,
   IconInbox,
@@ -24,10 +25,16 @@ const NAV_ITEMS = [
 
 export default function ProviderSidebar({ isOpen, onClose }) {
   const { logout } = useAuth();
+  const { showSuccess } = useAlert();
   const navigate = useNavigate();
 
-  function handleLogout() {
-    logout();
+  async function handleLogout() {
+    // Awaited so `user` is already cleared by the time we navigate --
+    // otherwise GuestRoute (guarding /login) still sees the stale
+    // logged-in user and bounces straight back, causing a duplicate
+    // "session has ended" alert (see AdminHeader.jsx's handleLogout).
+    await logout();
+    showSuccess('You have logged out successfully.');
     navigate(ROUTES.LOGIN);
   }
 
@@ -49,10 +56,12 @@ export default function ProviderSidebar({ isOpen, onClose }) {
             className={({ isActive }) => `provider-nav-link${isActive ? ' active' : ''}`}
             onClick={onClose}
           >
-            <span className="provider-nav-icon" aria-hidden="true">
-              <Icon size={19} />
+            <span className="provider-nav-content">
+              <span className="provider-nav-icon" aria-hidden="true">
+                <Icon size={19} />
+              </span>
+              {label}
             </span>
-            {label}
           </NavLink>
         ))}
       </nav>

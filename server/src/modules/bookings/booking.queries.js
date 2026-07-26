@@ -1,5 +1,17 @@
 import { query } from '../../db/query.js';
 
+// Used by the notifications feed to check whether a reschedule-proposal
+// notification is still actionable (i.e. the booking is still
+// RESCHEDULE_PENDING) rather than trusting client-side state that's lost on
+// every page refresh.
+export function findBookingStatusesByIds(bookingIds) {
+  if (bookingIds.length === 0) return Promise.resolve({ rows: [] });
+  return query(
+    `SELECT booking_id, booking_status FROM bookings WHERE booking_id = ANY($1::bigint[])`,
+    [bookingIds],
+  );
+}
+
 export function findClientLocation(clientUserId) {
   return query(
     `SELECT latitude, longitude, address_text FROM client_locations
@@ -35,12 +47,12 @@ export function findConflictingBooking(providerUserId, scheduledAt) {
   );
 }
 
-export function insertBooking(client, { clientUserId, providerUserId, serviceCategoryId, jobDescription, scheduledAt }) {
+export function insertBooking(client, { clientUserId, providerUserId, serviceCategoryId, jobDescription, scheduledAt, scheduledEndAt }) {
   return client.query(
-    `INSERT INTO bookings (client_user_id, provider_user_id, service_category_id, job_description, scheduled_at)
-     VALUES ($1, $2, $3, $4, $5)
+    `INSERT INTO bookings (client_user_id, provider_user_id, service_category_id, job_description, scheduled_at, scheduled_end_at)
+     VALUES ($1, $2, $3, $4, $5, $6)
      RETURNING *`,
-    [clientUserId, providerUserId, serviceCategoryId, jobDescription, scheduledAt],
+    [clientUserId, providerUserId, serviceCategoryId, jobDescription, scheduledAt, scheduledEndAt],
   );
 }
 
@@ -78,7 +90,9 @@ export function findReviewableBookingForClientAndProvider(clientUserId, provider
 
 export function findBookingForOwnershipCheck(bookingId) {
   return query(
-    `SELECT booking_id, client_user_id, provider_user_id, booking_status FROM bookings WHERE booking_id = $1`,
+    `SELECT booking_id, client_user_id, provider_user_id, booking_status,
+            proposed_scheduled_at, proposed_scheduled_end_at
+     FROM bookings WHERE booking_id = $1`,
     [bookingId],
   );
 }
@@ -100,6 +114,50 @@ export function updateBookingCancelled(bookingId, cancelledByUserId, reason) {
   );
 }
 
+// RETURNING carries the SP's own name back so the service layer can build
+// the client's rejection notification without a second round trip.
+export function updateBookingRejectedWithReason(bookingId, reason) {
+  return query(
+    `UPDATE bookings
+     SET booking_status = 'REJECTED', rejected_at = now(), rejection_reason = $1
+     WHERE booking_id = $2
+     RETURNING *, (SELECT full_name FROM users WHERE user_id = bookings.provider_user_id) AS provider_full_name`,
+    [reason, bookingId],
+  );
+}
+
+export function updateBookingRescheduleProposed(bookingId, proposedScheduledAt, proposedScheduledEndAt) {
+  return query(
+    `UPDATE bookings
+     SET booking_status = 'RESCHEDULE_PENDING', proposed_scheduled_at = $1, proposed_scheduled_end_at = $2
+     WHERE booking_id = $3
+     RETURNING *`,
+    [proposedScheduledAt, proposedScheduledEndAt, bookingId],
+  );
+}
+
+export function updateBookingRescheduleAccepted(bookingId) {
+  return query(
+    `UPDATE bookings
+     SET booking_status = 'ACCEPTED', accepted_at = now(),
+         scheduled_at = proposed_scheduled_at, scheduled_end_at = proposed_scheduled_end_at,
+         proposed_scheduled_at = NULL, proposed_scheduled_end_at = NULL
+     WHERE booking_id = $1 AND booking_status = 'RESCHEDULE_PENDING'
+     RETURNING *`,
+    [bookingId],
+  );
+}
+
+export function updateBookingRescheduleRejected(bookingId) {
+  return query(
+    `UPDATE bookings
+     SET booking_status = 'RESCHEDULE_REJECTED'
+     WHERE booking_id = $1 AND booking_status = 'RESCHEDULE_PENDING'
+     RETURNING *`,
+    [bookingId],
+  );
+}
+
 export function listClientBookings(clientUserId) {
   return query(
     `SELECT vo.*, (inv.invoice_id IS NOT NULL) AS has_invoice
@@ -113,7 +171,7 @@ export function listClientBookings(clientUserId) {
 
 export function listProviderBookingsByStatuses(providerUserId, statuses, limit) {
   return query(
-    `SELECT b.booking_id, b.job_description, b.scheduled_at, b.requested_at, b.completed_at, b.booking_status,
+    `SELECT b.booking_id, b.job_description, b.scheduled_at, b.scheduled_end_at, b.requested_at, b.completed_at, b.booking_status,
             cu.full_name AS client_name, cu.phone AS client_phone, cu.email AS client_email, cu.user_token AS client_token,
             sc.category_name AS service_category,
             bl.address_snapshot, bl.latitude_snapshot, bl.longitude_snapshot,
@@ -171,7 +229,7 @@ export function adminSearchBookings({ search, status, period, limit = 100 }) {
     params.push(Number.isFinite(Number(search)) ? Number(search) : -1);
     const idIdx = params.length;
     conditions.push(
-      `(client_name ILIKE $${idx} OR provider_name ILIKE $${idx} OR client_token ILIKE $${idx} OR provider_token ILIKE $${idx} OR service_category ILIKE $${idx} OR booking_id = $${idIdx})`,
+      `(client_name ILIKE $${idx} OR provider_name ILIKE $${idx} OR client_token ILIKE $${idx} OR provider_token ILIKE $${idx} OR service_category ILIKE $${idx} OR vbo.booking_id = $${idIdx})`,
     );
   }
 
@@ -189,8 +247,17 @@ export function adminSearchBookings({ search, status, period, limit = 100 }) {
   const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
   params.push(limit);
 
+  // Left-joined so the Invoice column can offer a download only when the
+  // Service Provider actually generated one for a completed job (mirrors
+  // sp-tracking.queries.js's same LEFT JOIN invoices pattern). booking_id is
+  // qualified as vbo.booking_id since invoices also has its own booking_id
+  // column, which would otherwise be ambiguous in the search condition above.
   return query(
-    `SELECT * FROM vw_booking_overview ${whereClause} ORDER BY requested_at DESC LIMIT $${params.length}`,
+    `SELECT vbo.*, i.invoice_id
+     FROM vw_booking_overview vbo
+     LEFT JOIN invoices i ON i.booking_id = vbo.booking_id
+     ${whereClause}
+     ORDER BY vbo.requested_at DESC LIMIT $${params.length}`,
     params,
   );
 }

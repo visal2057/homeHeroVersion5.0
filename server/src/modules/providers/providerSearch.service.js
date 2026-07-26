@@ -25,8 +25,31 @@ async function resolveCategory(categorySlug) {
   return rows[0];
 }
 
+// Explore page cards come from two different queries: findAvailableProviders
+// (returns up to 5 recent posts per provider, for the "All Providers" hover
+// preview popup) and findTopProviders (still only returns the single most
+// recent post, since Top Five never shows that popup at all). `work_posts`
+// is only ever selected as a column by the former, so its presence in the
+// row object (even when null, i.e. no active posts) is what tells the two
+// shapes apart.
+function normalizeWorkPreviewPosts(row) {
+  if (row.work_posts !== undefined) {
+    return (row.work_posts ?? [])
+      .map((post) => ({
+        title: post.title,
+        description: post.description,
+        images: (post.images ?? []).filter(Boolean),
+      }))
+      .filter((post) => post.images.length > 0);
+  }
+  const images = (row.work_images ?? []).filter(Boolean);
+  return images.length > 0
+    ? [{ title: row.work_title, description: row.work_description, images }]
+    : [];
+}
+
 function toCardShape(row) {
-  const workImages = (row.work_images ?? []).filter(Boolean);
+  const posts = normalizeWorkPreviewPosts(row);
   return {
     providerId: row.provider_user_id,
     id: row.provider_user_id,
@@ -38,11 +61,10 @@ function toCardShape(row) {
     hourlyRate: row.hourly_charge_estimate != null ? Number(row.hourly_charge_estimate) : null,
     isVerified: row.is_verified,
     isAvailable: row.is_bookable ?? null,
+    registeredAt: row.registered_at ?? null,
     unavailableFrom: row.unavailable_from ?? null,
     unavailableTo: row.unavailable_to ?? null,
-    workPreview: workImages.length > 0
-      ? { title: row.work_title, description: row.work_description, images: workImages }
-      : null,
+    workPreview: posts.length > 0 ? { posts } : null,
   };
 }
 

@@ -13,7 +13,7 @@ const COMPLAINT_TYPES = [
 ];
 
 export default function ClientComplaintForm({ onSuccess }) {
-  const [form, setForm] = useState({ token: '', complaintType: '', description: '', bookingId: '' });
+  const [form, setForm] = useState({ bookingId: '', token: '', complaintType: '', description: '' });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
@@ -25,8 +25,8 @@ export default function ClientComplaintForm({ onSuccess }) {
   async function handleSubmit(e) {
     e.preventDefault();
     setError('');
-    if (!form.token.trim()) {
-      setError('Please enter the service provider token.');
+    if (!form.bookingId.trim()) {
+      setError('Please enter the booking ID this complaint relates to.');
       return;
     }
     if (!form.complaintType) {
@@ -44,13 +44,13 @@ export default function ClientComplaintForm({ onSuccess }) {
     setSubmitting(true);
     try {
       await clientApi.submitComplaint({
-        token: form.token.trim().toUpperCase(),
+        bookingId: form.bookingId.trim(),
+        token: form.token.trim() ? form.token.trim().toUpperCase() : undefined,
         complaintType: form.complaintType,
         description: form.description.trim(),
-        bookingId: form.bookingId.trim() || undefined,
       });
       onSuccess?.();
-      setForm({ token: '', complaintType: '', description: '', bookingId: '' });
+      setForm({ bookingId: '', token: '', complaintType: '', description: '' });
     } catch (err) {
       setError(err?.response?.data?.message ?? 'Failed to submit complaint. Please try again.');
     } finally {
@@ -62,8 +62,24 @@ export default function ClientComplaintForm({ onSuccess }) {
     <form className="complaint-form" onSubmit={handleSubmit}>
       <div className="cf-group">
         <label className="cf-label">
-          Provider Token <span style={{ color: 'var(--color-error)' }}>*</span>
+          Booking ID <span style={{ color: 'var(--color-error)' }}>*</span>
         </label>
+        <input
+          type="text"
+          name="bookingId"
+          placeholder="e.g. 42"
+          value={form.bookingId}
+          onChange={handleChange}
+          className="cf-input"
+          required
+        />
+        <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-neutral-400)', marginTop: 4 }}>
+          Enter the ID of the booking this complaint relates to (found on My Bookings) - it identifies the provider for you.
+        </div>
+      </div>
+
+      <div className="cf-group">
+        <label className="cf-label">Provider Token (optional)</label>
         <input
           type="text"
           name="token"
@@ -72,25 +88,9 @@ export default function ClientComplaintForm({ onSuccess }) {
           onChange={handleChange}
           className="cf-input cf-token"
           maxLength={10}
-          required
         />
         <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-neutral-400)', marginTop: 4 }}>
-          Enter the unique token of the service provider (found on their profile page)
-        </div>
-      </div>
-
-      <div className="cf-group">
-        <label className="cf-label">Booking ID (optional)</label>
-        <input
-          type="text"
-          name="bookingId"
-          placeholder="e.g. 42"
-          value={form.bookingId}
-          onChange={handleChange}
-          className="cf-input"
-        />
-        <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-neutral-400)', marginTop: 4 }}>
-          If this complaint relates to a specific booking, enter its ID (found on My Bookings)
+          Optional - if provided, it must match the provider on the booking above.
         </div>
       </div>
 

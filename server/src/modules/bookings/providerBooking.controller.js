@@ -23,7 +23,12 @@ export const acceptBookingHandler = asyncHandler(async (req, res) => {
 });
 
 export const rejectBookingHandler = asyncHandler(async (req, res) => {
-  const result = await bookingService.rejectBooking(req.params.bookingId, req.user.userId);
+  const result = await bookingService.rejectBooking(req.params.bookingId, req.user.userId, req.body.reason);
+  sendSuccess(res, result);
+});
+
+export const proposeRescheduleHandler = asyncHandler(async (req, res) => {
+  const result = await bookingService.proposeReschedule(req.params.bookingId, req.user.userId, req.body);
   sendSuccess(res, result);
 });
 

@@ -9,13 +9,26 @@ const STATUS_VARIANT = {
   CLOSED: 'is-neutral',
 };
 
+// User-facing labels for the Unread -> Processing -> Resolved lifecycle
+// (the dashboard only ever shows SUBMITTED/UNDER_REVIEW complaints; the
+// other three statuses only appear on the Complaints history page).
+const STATUS_LABEL = {
+  SUBMITTED: 'Unread',
+  UNDER_REVIEW: 'Processing',
+  RESOLVED: 'Resolved',
+  BAN_RECOMMENDED: 'Ban Recommended',
+  CLOSED: 'Closed',
+};
+
 export default function ComplaintCard({ complaint }) {
   return (
     <div className="card review-card">
       <div className="review-card-row">
         <div>
           <strong>Complaint #{complaint.complaintId}</strong>{' '}
-          <span className={`status-badge ${STATUS_VARIANT[complaint.status] ?? 'is-neutral'}`}>{complaint.status.replace('_', ' ')}</span>
+          <span className={`status-badge ${STATUS_VARIANT[complaint.status] ?? 'is-neutral'}`}>
+            {STATUS_LABEL[complaint.status] ?? complaint.status.replace('_', ' ')}
+          </span>
           <p className="review-card-meta">
             {complaint.complainantName} ({complaint.complainantToken}) vs {complaint.targetName} ({complaint.targetToken})
           </p>

@@ -116,9 +116,9 @@ export function updateProviderProfileImage(userId, profileImageUrl) {
   );
 }
 
-// Shared by both search queries below: the single most recent active portfolio
-// post for a provider, with its images, so a Client hovering a card in
-// Explore can see real previous-work data instead of nothing.
+// Used by findTopProviders below: the single most recent active portfolio
+// post for a provider, with its images. Top Five never shows the Explore
+// hover-preview popup, so it only ever needs this one post's worth of data.
 const WORK_PREVIEW_LATERAL_JOIN = `
      LEFT JOIN LATERAL (
        SELECT pp.title, pp.description,
@@ -132,6 +132,31 @@ const WORK_PREVIEW_LATERAL_JOIN = `
        GROUP BY pp.portfolio_post_id
        ORDER BY pp.created_at DESC
        LIMIT 1
+     ) wp ON true`;
+
+// Used only by findAvailableProviders below: the Explore page's "All
+// Providers" hover-preview popup (system flow section 13.4) lets a Client
+// scroll through a provider's five most recent active portfolio posts, not
+// just the latest one, so this returns a JSON array instead of one row.
+const WORK_PREVIEW_POSTS_LATERAL_JOIN = `
+     LEFT JOIN LATERAL (
+       SELECT json_agg(
+                json_build_object('title', post.title, 'description', post.description, 'images', post.images)
+                ORDER BY post.created_at DESC
+              ) AS posts
+       FROM (
+         SELECT pp.title, pp.description, pp.created_at,
+                COALESCE(
+                  array_agg(ppi.storage_path ORDER BY ppi.display_order) FILTER (WHERE ppi.storage_path IS NOT NULL),
+                  '{}'
+                ) AS images
+         FROM portfolio_posts pp
+         LEFT JOIN portfolio_post_images ppi ON ppi.portfolio_post_id = pp.portfolio_post_id
+         WHERE pp.provider_user_id = vs.provider_user_id AND pp.is_active = true
+         GROUP BY pp.portfolio_post_id
+         ORDER BY pp.created_at DESC
+         LIMIT 5
+       ) post
      ) wp ON true`;
 
 export function findTopProviders(categoryId, { district, search }, limit = 5) {
@@ -150,6 +175,7 @@ export function findTopProviders(categoryId, { district, search }, limit = 5) {
      WHERE vs.service_category_id = $1
        AND bk.is_verified = true
        AND bk.has_active_ban = false
+       AND bk.is_bookable = true
        AND ($2::text IS NULL OR vs.district_name ILIKE $2)
        AND ($3::text IS NULL OR vs.provider_name ILIKE '%' || $3 || '%')
      ORDER BY vs.current_month_completed_jobs DESC, vs.average_rating DESC NULLS LAST
@@ -158,10 +184,20 @@ export function findTopProviders(categoryId, { district, search }, limit = 5) {
   );
 }
 
+// Every verified, active, bookable provider in the category - not just
+// providers who happen to have registered in the last month (`is_newcomer`
+// used to gate this list, which meant an established provider like one with
+// months of completed jobs would silently disappear from "All Providers"
+// the moment their account turned 30 days old, even while still ranking in
+// Top Five). The only availability check that actually excludes someone is
+// today falling inside one of their own unavailable_periods - the `up`
+// LATERAL below already finds that provider's earliest not-yet-fully-past
+// period, so "available today" just means that period (if any) hasn't
+// started yet.
 export function findAvailableProviders(categoryId, { district, search }, limit = 20) {
   return query(
     `SELECT vs.*, bk.is_verified, bk.has_active_ban, bk.has_valid_membership_or_grace, up.unavailable_from, up.unavailable_to,
-            wp.title AS work_title, wp.description AS work_description, wp.images AS work_images
+            wp.posts AS work_posts
      FROM vw_provider_search vs
      JOIN vw_provider_bookability bk ON bk.provider_user_id = vs.provider_user_id
      LEFT JOIN LATERAL (
@@ -170,12 +206,13 @@ export function findAvailableProviders(categoryId, { district, search }, limit =
        WHERE provider_user_id = vs.provider_user_id AND unavailable_to >= CURRENT_DATE
        ORDER BY unavailable_from
        LIMIT 1
-     ) up ON true${WORK_PREVIEW_LATERAL_JOIN}
+     ) up ON true${WORK_PREVIEW_POSTS_LATERAL_JOIN}
      WHERE vs.service_category_id = $1
        AND bk.is_verified = true
        AND bk.has_active_ban = false
        AND bk.has_valid_membership_or_grace = true
-       AND vs.is_newcomer = true
+       AND bk.is_bookable = true
+       AND (up.unavailable_from IS NULL OR CURRENT_DATE < up.unavailable_from)
        AND ($2::text IS NULL OR vs.district_name ILIKE $2)
        AND ($3::text IS NULL OR vs.provider_name ILIKE '%' || $3 || '%')
      ORDER BY vs.completed_job_count DESC

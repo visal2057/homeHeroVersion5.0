@@ -13,7 +13,7 @@ import { findSessionValidity } from '../modules/auth/auth.queries.js';
 // token already does.
 export async function checkAccountStatus(req, res, next) {
   try {
-    const { rows } = await findSessionValidity(req.user.userId);
+    const { rows } = await findSessionValidity(req.user.userId, req.user.sid);
     const row = rows[0];
 
     if (!row) {
@@ -28,6 +28,13 @@ export async function checkAccountStatus(req, res, next) {
           ? `Your account is temporarily banned until ${new Date(row.ends_at).toLocaleString()}. Reason: ${row.reason}`
           : `Your account has been permanently banned. Reason: ${row.reason}`;
       return next(new AppError(message, 401));
+    }
+    // Only meaningful when the token carries a `sid` (every token issued
+    // since logout was added). A logged-out session's row is revoked here,
+    // so a JWT that is still cryptographically valid stops authenticating
+    // the moment the user logs out, instead of lingering until it expires.
+    if (req.user.sid && row.session_revoked_at) {
+      return next(new AppError('Your session has ended. Please log in again.', 401));
     }
 
     return next();

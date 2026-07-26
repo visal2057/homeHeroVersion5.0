@@ -25,7 +25,7 @@ export default function ServicesSection() {
   }
 
   return (
-    <section className="section hh-services-section">
+    <section id="hh-services-section" className="section hh-services-section">
       <div className="container">
         <div className="text-center" style={{ maxWidth: 640, margin: '0 auto var(--space-xl)' }}>
           <span className="hh-section-kicker">What we offer</span>

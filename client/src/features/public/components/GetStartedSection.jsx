@@ -1,9 +1,24 @@
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '../../../constants/routes.js';
 import { CTA_COLLAGE_PHOTOS } from '../../../constants/serviceCategories.js';
+import { useAuth } from '../../../hooks/useAuth.js';
 import { IconHome, IconCheckCircle, IconLock, IconStar } from '../../../components/common/icons.jsx';
 
 export default function GetStartedSection() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  // Logged out: send the visitor to log in. Logged in: there's nothing left
+  // to "get started" with signup-wise, so bring the service category cards
+  // already on this page into view instead.
+  function handleGetStarted() {
+    if (user) {
+      document.getElementById('hh-services-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+      navigate(ROUTES.LOGIN);
+    }
+  }
+
   return (
     <section className="collage-cta">
       <div className="collage-cta-grid" aria-hidden="true">
@@ -23,13 +38,14 @@ export default function GetStartedSection() {
             Join thousands of homeowners who trust HomeHero for fast, reliable, verified home services —
             because every home deserves to feel cared for.
           </p>
-          <Link
-            to={ROUTES.REGISTER_ROLE}
+          <button
+            type="button"
+            onClick={handleGetStarted}
             className="btn btn-primary btn-shine"
             style={{ backgroundColor: 'var(--color-neutral-0)', color: 'var(--color-secondary-700)' }}
           >
             Get Started
-          </Link>
+          </button>
           <div className="hh-cta-trust-row">
             <span><IconCheckCircle size={16} /> Verified providers</span>
             <span><IconLock size={16} /> Secure payments</span>

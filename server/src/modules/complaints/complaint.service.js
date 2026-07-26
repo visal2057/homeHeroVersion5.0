@@ -3,6 +3,7 @@ import { logAction } from '../audit/audit.service.js';
 import { sendComplaintReceivedEmail } from '../emails/email.service.js';
 import {
   listComplaints,
+  listResolvedComplaints,
   findComplaintDetail,
   markComplaintOpened,
   markAcknowledgementSent,
@@ -14,6 +15,7 @@ function toListDto(row) {
     complaintId: row.complaint_id,
     status: row.complaint_status,
     submittedAt: row.submitted_at,
+    resolvedAt: row.resolved_at,
     relatedBookingId: row.related_booking_id,
     complainantName: row.complainant_name,
     complainantToken: row.complainant_token,
@@ -52,6 +54,11 @@ function toDetailDto(row) {
 
 export async function getAllComplaints() {
   const { rows } = await listComplaints();
+  return rows.map(toListDto);
+}
+
+export async function getComplaintHistory() {
+  const { rows } = await listResolvedComplaints();
   return rows.map(toListDto);
 }
 

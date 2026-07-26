@@ -1,6 +1,7 @@
 import { createPortal } from 'react-dom';
 import { getAssetUrl } from '../../../utils/storageUtils.js';
 import { buildGoogleMapsUrl } from '../../../utils/mapsUtils.js';
+import { formatTimeRange } from '../../../utils/timeUtils.js';
 import { IconCalendar, IconMapPin } from '../../../components/common/icons.jsx';
 
 export default function BookingDetailPreview({ booking, style }) {
@@ -17,7 +18,7 @@ export default function BookingDetailPreview({ booking, style }) {
       <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)', marginBottom: 'var(--space-xs)', display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
         {booking.service_date && (
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-            <IconCalendar size={13} /> {new Date(booking.service_date).toLocaleDateString()}
+            <IconCalendar size={13} /> {new Date(booking.service_date).toLocaleDateString()}, {formatTimeRange(booking.service_date, booking.service_end_time)}
           </span>
         )}
         {booking.location?.latitude != null && (

@@ -6,6 +6,8 @@ export const bookingApi = {
     axiosClient.post('/bookings', formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
   getMyBookings: () => axiosClient.get('/bookings/mine'),
   cancelBooking: (bookingId) => axiosClient.patch(`/bookings/${bookingId}/cancel`),
+  acceptReschedule: (bookingId) => axiosClient.patch(`/bookings/${bookingId}/reschedule/accept`),
+  rejectReschedule: (bookingId) => axiosClient.patch(`/bookings/${bookingId}/reschedule/reject`),
   // Reuses the same invoice-download endpoint the Service Provider and System
   // Admin (SP Tracking) already use; the backend checks the client actually
   // owns the underlying booking.

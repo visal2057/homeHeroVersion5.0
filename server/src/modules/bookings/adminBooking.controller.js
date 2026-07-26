@@ -14,11 +14,13 @@ export const listBookingsHandler = asyncHandler(async (req, res) => {
     providerToken: row.provider_token,
     serviceCategory: row.service_category,
     scheduledAt: row.scheduled_at,
+    scheduledEndAt: row.scheduled_end_at,
     bookingStatus: row.booking_status,
     paymentMethod: row.payment_method,
     paymentStatus: row.payment_status,
     requestedAt: row.requested_at,
     completedAt: row.completed_at,
+    hasInvoice: row.invoice_id !== null,
   }));
 
   sendSuccess(res, { bookings });

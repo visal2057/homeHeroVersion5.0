@@ -5,6 +5,10 @@ export function fetchPendingApplications() {
   return axiosClient.get(API_ENDPOINTS.VERIFICATION_ADMIN.APPLICATIONS);
 }
 
+export function fetchApplicationHistory() {
+  return axiosClient.get(API_ENDPOINTS.VERIFICATION_ADMIN.APPLICATIONS_HISTORY);
+}
+
 export function fetchApplicationDetail(applicationId) {
   return axiosClient.get(API_ENDPOINTS.VERIFICATION_ADMIN.APPLICATION_DETAIL(applicationId));
 }
@@ -24,6 +28,10 @@ export function rejectApplication(applicationId, reason) {
 
 export function fetchComplaints() {
   return axiosClient.get(API_ENDPOINTS.VERIFICATION_ADMIN.COMPLAINTS);
+}
+
+export function fetchComplaintsHistory() {
+  return axiosClient.get(API_ENDPOINTS.VERIFICATION_ADMIN.COMPLAINTS_HISTORY);
 }
 
 export function fetchComplaintDetail(complaintId) {

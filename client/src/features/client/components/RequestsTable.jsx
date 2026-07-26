@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { bookingApi } from '../bookingApi.js';
 import { IconClipboardList } from '../../../components/common/icons.jsx';
+import { formatTimeRange } from '../../../utils/timeUtils.js';
 
 const STATUS_STYLES = {
-  PENDING:   { bg: '#fffbeb', color: '#d97706', label: 'Pending' },
-  ACCEPTED:  { bg: '#ecfdf5', color: '#059669', label: 'Accepted' },
-  REJECTED:  { bg: '#fef2f2', color: '#dc2626', label: 'Rejected' },
-  CANCELLED: { bg: '#f8fafc', color: '#64748b', label: 'Cancelled' },
+  PENDING:             { bg: '#fffbeb', color: '#d97706', label: 'Pending' },
+  ACCEPTED:            { bg: '#ecfdf5', color: '#059669', label: 'Accepted' },
+  REJECTED:            { bg: '#fef2f2', color: '#dc2626', label: 'Rejected' },
+  CANCELLED:           { bg: '#f8fafc', color: '#64748b', label: 'Cancelled' },
+  RESCHEDULE_PENDING:  { bg: '#eff6ff', color: '#2563eb', label: 'Reschedule Requested' },
 };
 
 export default function RequestsTable({ bookings = [], onRefresh }) {
@@ -70,7 +72,7 @@ export default function RequestsTable({ bookings = [], onRefresh }) {
                   <td>{b.category ?? '—'}</td>
                   <td>
                     {b.scheduledAt
-                      ? new Date(b.scheduledAt).toLocaleString('en-LK', { dateStyle: 'medium', timeStyle: 'short' })
+                      ? `${new Date(b.scheduledAt).toLocaleDateString('en-LK', { dateStyle: 'medium' })}, ${formatTimeRange(b.scheduledAt, b.scheduledEndAt)}`
                       : '—'}
                   </td>
                   <td>

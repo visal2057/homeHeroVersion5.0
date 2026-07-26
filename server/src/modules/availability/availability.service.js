@@ -52,6 +52,9 @@ export async function toggleManualOnline(providerUserId, manualOnline) {
     if (!bookability.has_valid_membership_or_grace) {
       throw new AppError('You need an active membership before you can go online', 422);
     }
+    if (bookability.forced_offline) {
+      throw new AppError('Your account was forced offline after your membership grace period ended. Renew your membership to go online again', 422);
+    }
   }
 
   const { rows } = await setManualOnline(providerUserId, manualOnline);

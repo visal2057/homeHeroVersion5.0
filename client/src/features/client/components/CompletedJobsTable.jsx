@@ -50,6 +50,7 @@ export default function CompletedJobsTable({ bookings = [] }) {
               <th>SP Token</th>
               <th>Service</th>
               <th>Completed On</th>
+              <th>Status</th>
               <th>Payment</th>
               <th>Invoice</th>
             </tr>
@@ -71,6 +72,7 @@ export default function CompletedJobsTable({ bookings = [] }) {
                 </td>
                 <td>{b.category ?? '—'}</td>
                 <td>{b.completedAt ? new Date(b.completedAt).toLocaleDateString('en-LK') : '—'}</td>
+                <td><span className="bt-status" style={{ background: '#ecfdf5', color: '#059669' }}>Completed</span></td>
                 <td>
                   {b.paymentMethod ? (
                     <span className="bt-payment-chip">{b.paymentMethod}</span>
@@ -95,6 +97,7 @@ export default function CompletedJobsTable({ bookings = [] }) {
         .bt-id { font-family: monospace; font-size: var(--font-size-xs); color: var(--color-neutral-500); }
         .bt-token { font-family: monospace; font-size: var(--font-size-xs); background: var(--color-primary-50); color: var(--color-primary-700); padding: 2px 7px; border-radius: var(--radius-sm); letter-spacing: 0.05em; }
         .bt-payment-chip { padding: 4px 12px; border-radius: var(--radius-full); font-size: var(--font-size-xs); font-weight: 600; background: var(--color-secondary-50, #f0fdf4); color: var(--color-secondary-700); }
+        .bt-status { padding: 4px 12px; border-radius: var(--radius-full); font-size: var(--font-size-xs); font-weight: 600; white-space: nowrap; }
         .bt-invoice-btn { padding: 7px 17px; background: var(--color-primary-600); color: white; border: none; border-radius: var(--radius-md); font-size: var(--font-size-xs); font-weight: 600; cursor: pointer; white-space: nowrap; font-family: inherit; }
         .bt-invoice-btn:hover:not(:disabled) { background: var(--color-primary-700); }
         .bt-invoice-btn:disabled { background: var(--color-neutral-300); cursor: not-allowed; }

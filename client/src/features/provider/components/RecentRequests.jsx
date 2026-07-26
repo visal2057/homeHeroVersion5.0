@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { ROUTES } from '../../../constants/routes.js';
 import { IconInbox } from '../../../components/common/icons.jsx';
+import { formatTimeRange } from '../../../utils/timeUtils.js';
 
 function statusBadge(status) {
   return <span className={`provider-badge ${status}`}>{status.charAt(0).toUpperCase() + status.slice(1)}</span>;
@@ -36,7 +37,11 @@ export default function RecentRequests({ requests }) {
                 <td>#{r.id}</td>
                 <td>{r.client_name ?? '—'}</td>
                 <td>{r.service_title ?? '—'}</td>
-                <td>{r.service_date ? new Date(r.service_date).toLocaleString('en-LK', { dateStyle: 'medium', timeStyle: 'short' }) : '—'}</td>
+                <td>
+                  {r.service_date
+                    ? `${new Date(r.service_date).toLocaleDateString('en-LK', { dateStyle: 'medium' })}, ${formatTimeRange(r.service_date, r.service_end_time)}`
+                    : '—'}
+                </td>
                 <td>{statusBadge(r.status ?? 'pending')}</td>
               </tr>
             ))}

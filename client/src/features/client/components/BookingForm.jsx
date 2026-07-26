@@ -9,7 +9,7 @@ import { IconCalendar, IconClock, IconMapPin, IconCheckCircle, IconImage } from 
 const HOURS = Array.from({ length: 12 }, (_, i) => String(i + 1));
 const MINUTES = ['00', '15', '30', '45'];
 
-function buildScheduledAt(date, hour, minute, ampm) {
+function buildDateTime(date, hour, minute, ampm) {
   let h = parseInt(hour, 10);
   if (ampm === 'PM' && h !== 12) h += 12;
   if (ampm === 'AM' && h === 12) h = 0;
@@ -21,7 +21,12 @@ export default function BookingForm({ provider, client }) {
   const fileInputRef = useRef(null);
   const today = new Date().toISOString().split('T')[0];
 
-  const [form, setForm] = useState({ serviceDate: '', hour: '9', minute: '00', ampm: 'AM', jobDescription: '' });
+  const [form, setForm] = useState({
+    serviceDate: '',
+    startHour: '9', startMinute: '00', startAmpm: 'AM',
+    endHour: '10', endMinute: '00', endAmpm: 'AM',
+    jobDescription: '',
+  });
   const [photos, setPhotos] = useState([]);
   const [photoUrls, setPhotoUrls] = useState([]);
   const [error, setError] = useState('');
@@ -79,6 +84,12 @@ export default function BookingForm({ provider, client }) {
       setError('Job description must be at least 10 characters.');
       return;
     }
+    const startAt = buildDateTime(form.serviceDate, form.startHour, form.startMinute, form.startAmpm);
+    const endAt = buildDateTime(form.serviceDate, form.endHour, form.endMinute, form.endAmpm);
+    if (new Date(endAt).getTime() <= new Date(startAt).getTime()) {
+      setError('End time must be after the start time.');
+      return;
+    }
     if (locationMode === 'custom' && !customAddress.trim()) {
       setError('Please enter an address for the location you dropped a pin on.');
       return;
@@ -98,12 +109,14 @@ export default function BookingForm({ provider, client }) {
     setShowConfirm(false);
     setSubmitting(true);
     try {
-      const scheduledAt = buildScheduledAt(form.serviceDate, form.hour, form.minute, form.ampm);
+      const scheduledAt = buildDateTime(form.serviceDate, form.startHour, form.startMinute, form.startAmpm);
+      const scheduledEndAt = buildDateTime(form.serviceDate, form.endHour, form.endMinute, form.endAmpm);
       const formData = new FormData();
       formData.append('providerUserId', provider.providerId ?? provider.id);
       formData.append('serviceCategoryId', provider.serviceCategoryId ?? provider.categoryId);
       formData.append('jobDescription', form.jobDescription);
       formData.append('scheduledAt', scheduledAt);
+      formData.append('scheduledEndAt', scheduledEndAt);
       if (effectiveLocation?.latitude) {
         formData.append('locationLatitude', effectiveLocation.latitude);
         formData.append('locationLongitude', effectiveLocation.longitude);
@@ -121,7 +134,7 @@ export default function BookingForm({ provider, client }) {
     }
   }
 
-  const formattedTime = `${form.hour}:${form.minute} ${form.ampm}`;
+  const formattedTimeRange = `${form.startHour}:${form.startMinute} ${form.startAmpm} – ${form.endHour}:${form.endMinute} ${form.endAmpm}`;
 
   return (
     <>
@@ -169,17 +182,35 @@ export default function BookingForm({ provider, client }) {
               <IconClock size={17} style={{ marginRight: 6 }} />
               Service Time <span className="bf-required">*</span>
             </label>
-            <div className="bf-time-row">
-              <select name="hour" value={form.hour} onChange={handleChange} className="bf-input bf-select">
-                {HOURS.map((h) => <option key={h} value={h}>{h}</option>)}
-              </select>
-              <select name="minute" value={form.minute} onChange={handleChange} className="bf-input bf-select">
-                {MINUTES.map((m) => <option key={m} value={m}>{m}</option>)}
-              </select>
-              <select name="ampm" value={form.ampm} onChange={handleChange} className="bf-input bf-select bf-select-ampm">
-                <option value="AM">AM</option>
-                <option value="PM">PM</option>
-              </select>
+            <div className="bf-time-subrow">
+              <span className="bf-time-subrow-label">Start</span>
+              <div className="bf-time-row">
+                <select name="startHour" value={form.startHour} onChange={handleChange} className="bf-input bf-select">
+                  {HOURS.map((h) => <option key={h} value={h}>{h}</option>)}
+                </select>
+                <select name="startMinute" value={form.startMinute} onChange={handleChange} className="bf-input bf-select">
+                  {MINUTES.map((m) => <option key={m} value={m}>{m}</option>)}
+                </select>
+                <select name="startAmpm" value={form.startAmpm} onChange={handleChange} className="bf-input bf-select bf-select-ampm">
+                  <option value="AM">AM</option>
+                  <option value="PM">PM</option>
+                </select>
+              </div>
+            </div>
+            <div className="bf-time-subrow">
+              <span className="bf-time-subrow-label">End</span>
+              <div className="bf-time-row">
+                <select name="endHour" value={form.endHour} onChange={handleChange} className="bf-input bf-select">
+                  {HOURS.map((h) => <option key={h} value={h}>{h}</option>)}
+                </select>
+                <select name="endMinute" value={form.endMinute} onChange={handleChange} className="bf-input bf-select">
+                  {MINUTES.map((m) => <option key={m} value={m}>{m}</option>)}
+                </select>
+                <select name="endAmpm" value={form.endAmpm} onChange={handleChange} className="bf-input bf-select bf-select-ampm">
+                  <option value="AM">AM</option>
+                  <option value="PM">PM</option>
+                </select>
+              </div>
             </div>
           </div>
 
@@ -356,7 +387,10 @@ export default function BookingForm({ provider, client }) {
           }
           .bf-input:focus { border-color: var(--color-primary-500); }
           .bf-textarea { resize: vertical; }
-          .bf-time-row { display: flex; gap: 10px; }
+          .bf-time-subrow { display: flex; align-items: center; gap: 10px; }
+          .bf-time-subrow + .bf-time-subrow { margin-top: 8px; }
+          .bf-time-subrow-label { flex: 0 0 34px; font-size: var(--font-size-xs); font-weight: 600; color: var(--color-neutral-500); }
+          .bf-time-row { display: flex; gap: 10px; flex: 1; }
           .bf-select { flex: 1; padding-left: 12px; padding-right: 12px; cursor: pointer; }
           .bf-select-ampm { flex: 0 0 84px; font-weight: 600; }
           .bf-hint { margin-top: 4px; font-size: var(--font-size-xs); color: var(--color-neutral-500); text-align: right; }
@@ -438,7 +472,7 @@ export default function BookingForm({ provider, client }) {
                 <span>Date</span>
                 <strong>{new Date(form.serviceDate).toLocaleDateString('en-LK', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}</strong>
               </div>
-              <div className="bf-modal-row"><span>Time</span><strong>{formattedTime}</strong></div>
+              <div className="bf-modal-row"><span>Time</span><strong>{formattedTimeRange}</strong></div>
               <div className="bf-modal-row">
                 <span>Location</span>
                 <strong style={{ maxWidth: 200, textAlign: 'right', wordBreak: 'break-word' }}>

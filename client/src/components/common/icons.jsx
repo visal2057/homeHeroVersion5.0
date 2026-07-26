@@ -143,6 +143,16 @@ export function IconUserCheck(props) {
   );
 }
 
+export function IconUserPlus(props) {
+  return (
+    <Stroke {...props}>
+      <circle cx="9" cy="7.5" r="3" />
+      <path d="M3 20c0-3.5 2.7-6 6-6s6 2.5 6 6" />
+      <path d="M18 9v6M15 12h6" />
+    </Stroke>
+  );
+}
+
 export function IconStar(props) {
   return (
     <Stroke {...props}>
@@ -299,6 +309,15 @@ export function IconChevronDown(props) {
   return (
     <Stroke {...props}>
       <path d="M6 9l6 6 6-6" />
+    </Stroke>
+  );
+}
+
+export function IconArrowLeft(props) {
+  return (
+    <Stroke {...props}>
+      <path d="M19 12H5" />
+      <path d="M11 18l-6-6 6-6" />
     </Stroke>
   );
 }

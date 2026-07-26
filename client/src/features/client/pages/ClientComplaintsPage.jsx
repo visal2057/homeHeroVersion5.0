@@ -97,6 +97,7 @@ export default function ClientComplaintsPage() {
                         <div className="ccmp-item-target">
                           Against: <strong>{c.targetName}</strong>
                           {c.targetToken && <span className="ccmp-item-token">{c.targetToken}</span>}
+                          {c.relatedBookingId && <span className="ccmp-item-token">Booking #{c.relatedBookingId}</span>}
                         </div>
                       )}
                       <p className="ccmp-item-desc">{c.description}</p>

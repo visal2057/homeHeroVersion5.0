@@ -321,6 +321,15 @@
   font-weight: 600;
 }
 
+/* Sharper, brighter shine sweep for the login button only - same
+   narrower/faster/whiter treatment as the SP dashboard logout button,
+   scoped here so every other .btn-shine button on the site is unaffected. */
+.login-glass-box .btn-shine::after {
+  width: 25%;
+  background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.55), transparent);
+  transition: left 0.4s ease;
+}
+
 @media (max-width: 900px) {
   .login-grid {
     grid-template-columns: 1fr;
@@ -367,6 +376,14 @@
   -webkit-backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.28);
   color: var(--color-neutral-0);
+}
+
+/* <option> items render in the browser's native dropdown popup, which
+   ignores the glass field's translucent styling and falls back to a
+   plain white list - so the white text above becomes unreadable until
+   hovered. Force option text to the standard dark body color instead. */
+.register-glass-box .form-control option {
+  color: var(--color-text);
 }
 
 .register-glass-box .form-control::placeholder {

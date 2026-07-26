@@ -81,7 +81,6 @@
 .provider-nav-link {
   display: flex;
   align-items: center;
-  gap: var(--space-md);
   padding: 0.65rem var(--space-lg);
   color: rgba(255, 255, 255, 0.75);
   font-weight: 500;
@@ -92,9 +91,20 @@
   position: relative;
 }
 
-.provider-nav-link:hover {
+.provider-nav-content {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  transition: transform var(--transition-base);
+}
+
+/* Qualified with both ancestor classes so this beats global.css's
+   `a:not(.btn):not(.card):hover` rule, which otherwise wins the cascade
+   (it also matches the `a` type selector) and silently overrides the
+   color below. */
+.provider-sidebar .provider-sidebar-nav .provider-nav-link:hover {
   background: var(--color-secondary-900);
-  color: var(--color-primary-200);
+  color: var(--color-primary-300);
   text-decoration: none;
 }
 
@@ -102,10 +112,23 @@
   display: none;
 }
 
+.provider-nav-link:hover .provider-nav-content {
+  transform: translateX(4px);
+}
+
 .provider-nav-link.active {
   background: rgba(16, 185, 129, 0.18);
   color: var(--color-primary-300);
   font-weight: 600;
+}
+
+/* Same specificity issue as the plain hover rule above: without both
+   ancestor classes, global.css's a:not(.btn):not(.card):hover rule would
+   still win and force dark text onto the already-dark active background,
+   making the current page's link unreadable on hover. */
+.provider-sidebar .provider-sidebar-nav .provider-nav-link.active:hover {
+  background: rgba(16, 185, 129, 0.18);
+  color: var(--color-primary-300);
 }
 
 .provider-nav-link.active::before {
@@ -137,21 +160,49 @@
   width: 100%;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: var(--space-md);
-  padding: 0.65rem var(--space-sm);
-  background: none;
-  border: none;
-  color: var(--color-error);
+  padding: 0.65rem var(--space-lg);
+  background-color: var(--color-error);
+  border: 1px solid transparent;
+  color: var(--color-neutral-0);
   font-size: var(--font-size-sm);
   font-weight: 600;
   border-radius: var(--radius-md);
   cursor: pointer;
-  transition: background-color var(--transition-base), color var(--transition-base);
+  position: relative;
+  overflow: hidden;
+  transition: background-color var(--transition-base), color var(--transition-base),
+    transform var(--transition-base), box-shadow var(--transition-base);
 }
 
 .provider-sidebar-footer button:hover {
-  background: var(--color-neutral-0);
-  color: var(--color-error);
+  background-color: #b91c1c;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(220, 38, 38, 0.25);
+}
+
+.provider-sidebar-footer button:active {
+  transform: translateY(0);
+}
+
+/* Diagonal shine sweep on hover, same mechanic as .btn-shine on the
+   login button, tinted red instead of green. */
+.provider-sidebar-footer button::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -60%;
+  width: 25%;
+  height: 100%;
+  background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.55), transparent);
+  transform: skewX(-20deg);
+  transition: left 0.4s ease;
+  pointer-events: none;
+}
+
+.provider-sidebar-footer button:hover::after {
+  left: 130%;
 }
 
 /* --------------------------------------------------------------------------
@@ -1023,6 +1074,7 @@
 .provider-badge.completed { background: var(--color-info-bg);     color: var(--color-info); }
 .provider-badge.active    { background: var(--color-primary-50);  color: var(--color-primary-700); }
 .provider-badge.cancelled { background: var(--color-neutral-100); color: var(--color-neutral-600); }
+.provider-badge.reschedule_pending { background: var(--color-info-bg); color: var(--color-info); }
 
 /* --------------------------------------------------------------------------
    Booking detail hover preview
@@ -1128,13 +1180,52 @@
   background: var(--color-neutral-200);
 }
 
+.provider-action-btn.reschedule {
+  background: var(--color-info-bg);
+  color: var(--color-info);
+}
+
+.provider-action-btn.reschedule:hover {
+  background: #dbeafe;
+}
+
+/* Actions column for Booking Requests: Accept/Reject/Reschedule wrap into a
+   tidy two-row group instead of overflowing the cell in one long row. */
+.provider-row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  max-width: 190px;
+}
+
+.provider-row-actions .provider-action-btn {
+  flex: 1 1 calc(50% - 6px);
+  text-align: center;
+  white-space: nowrap;
+}
+
+.provider-go-to-calendar-btn {
+  padding: 6px 14px;
+  font-size: var(--font-size-sm);
+  flex-shrink: 0;
+}
+
 /* --------------------------------------------------------------------------
-   Calendar (unavailable dates)
+   Calendar (unavailable dates + jobs due per day)
    -------------------------------------------------------------------------- */
 .provider-calendar-wrap {
   display: flex;
   flex-direction: column;
   gap: var(--space-lg);
+  /* A distinct panel rather than flush against the surrounding white
+     .provider-card -- otherwise the whole calendar reads as unstyled text
+     floating on the page. A thin light-green halo (border + soft outer
+     glow) sets it apart further still. */
+  background: var(--color-neutral-50);
+  border: 1px solid var(--color-primary-200);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  box-shadow: 0 0 0 4px var(--color-primary-50);
 }
 
 .provider-calendar-header {
@@ -1175,7 +1266,7 @@
 .provider-calendar-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 4px;
+  gap: 6px;
 }
 
 .provider-calendar-day-name {
@@ -1187,6 +1278,7 @@
 }
 
 .provider-calendar-day {
+  position: relative;
   aspect-ratio: 1;
   display: flex;
   align-items: center;
@@ -1194,11 +1286,13 @@
   border-radius: var(--radius-sm);
   font-size: var(--font-size-sm);
   cursor: pointer;
-  border: 1px solid transparent;
+  background: var(--color-neutral-0);
+  border: 1px solid var(--color-neutral-100);
   transition: background-color var(--transition-base), border-color var(--transition-base);
 }
 
-.provider-calendar-day:hover:not(.empty):not(.past) {
+.provider-calendar-day:hover:not(.empty),
+.provider-calendar-day.active {
   background: var(--color-primary-50);
   border-color: var(--color-primary-300);
 }
@@ -1215,13 +1309,159 @@
   font-weight: 600;
 }
 
+.provider-calendar-day.unavailable:hover,
+.provider-calendar-day.unavailable.active {
+  background: #fee2e2;
+  border-color: var(--color-error);
+}
+
 .provider-calendar-day.past {
   color: var(--color-neutral-300);
-  cursor: default;
+  background: var(--color-neutral-50);
 }
 
 .provider-calendar-day.empty {
   cursor: default;
+  background: transparent;
+  border-color: transparent;
+}
+
+.provider-calendar-day-badge {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  min-width: 14px;
+  height: 14px;
+  padding: 0 2px;
+  border-radius: var(--radius-full);
+  background: var(--color-primary-600);
+  color: var(--color-neutral-0);
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.provider-calendar-day.unavailable .provider-calendar-day-badge {
+  background: var(--color-error);
+}
+
+/* A past day's job count is history, not something to act on - grey it out
+   regardless of whether that date also happens to be marked unavailable, so
+   green (jobs still to do) and red (blocked for new bookings) stay reserved
+   for today/upcoming days. Comes after .unavailable above so it wins the
+   cascade for a day that is both past and unavailable. */
+.provider-calendar-day.past .provider-calendar-day-badge {
+  background: var(--color-neutral-400);
+}
+
+.provider-calendar-hint {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+/* --------------------------------------------------------------------------
+   Calendar day popup (hover = read-only glance, click = pinned + interactive)
+   -------------------------------------------------------------------------- */
+.provider-day-preview {
+  position: fixed;
+  z-index: 1000;
+  width: 280px;
+  max-width: calc(100vw - 24px);
+  max-height: min(360px, calc(100vh - 24px));
+  overflow-y: auto;
+  background: var(--color-neutral-0);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  padding: var(--space-md) var(--space-lg);
+  pointer-events: none;
+  animation: hh-fade-in 0.15s ease both;
+}
+
+.provider-day-preview.pinned {
+  pointer-events: auto;
+}
+
+.provider-day-preview-title {
+  font-weight: 700;
+  color: var(--color-secondary-700);
+  font-size: var(--font-size-sm);
+  margin-bottom: var(--space-sm);
+}
+
+.provider-day-preview-unavailable {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  background: var(--color-error-bg);
+  color: var(--color-error);
+  border-radius: var(--radius-md);
+  padding: 6px 10px;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  margin-bottom: var(--space-sm);
+}
+
+.provider-day-preview-remove-btn {
+  border: none;
+  background: var(--color-error);
+  color: var(--color-neutral-0);
+  border-radius: var(--radius-sm);
+  padding: 3px 10px;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  flex-shrink: 0;
+}
+
+.provider-day-preview-remove-btn:hover {
+  background: #b91c1c;
+}
+
+.provider-day-preview-empty {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.provider-day-preview-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.provider-day-preview-job {
+  border-top: 1px solid var(--color-neutral-100);
+  padding-top: var(--space-sm);
+}
+
+.provider-day-preview-job:first-child {
+  border-top: none;
+  padding-top: 0;
+}
+
+.provider-day-preview-job-title {
+  font-weight: 600;
+  font-size: var(--font-size-sm);
+  color: var(--color-secondary-700);
+  margin-bottom: 2px;
+}
+
+.provider-day-preview-job-meta {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
 }
 
 /* --------------------------------------------------------------------------

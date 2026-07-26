@@ -13,6 +13,7 @@ import RecentRequests        from '../components/RecentRequests.jsx';
 
 const DASHBOARD_HERO_IMAGE =
   'https://images.unsplash.com/photo-1668189777890-495c36095340?auto=format&fit=crop&w=1600&q=80';
+const POLL_INTERVAL_MS = 30_000; // keep Recent Booking Requests + stats current without a manual refresh
 
 export default function ProviderDashboardPage() {
   const { user } = useAuth();
@@ -28,7 +29,30 @@ export default function ProviderDashboardPage() {
   const [statusError,      setStatusError]      = useState('');
 
   useEffect(() => {
-    async function load() {
+    // silent=true (the poll below) only ever refreshes stats + recent
+    // requests -- it deliberately leaves profile/isOnline alone so a poll
+    // firing mid-toggle can't fight with patchAvailability's own state, and
+    // never touches loading so it can't flash a spinner over the page.
+    async function load(silent = false) {
+      if (silent) {
+        try {
+          const [statsRes, bookingsRes] = await Promise.allSettled([
+            axiosClient.get(API_ENDPOINTS.PROVIDER.STATS),
+            axiosClient.get(API_ENDPOINTS.PROVIDER.BOOKINGS + '?limit=5'),
+          ]);
+          if (statsRes.status === 'fulfilled') {
+            setStats(statsRes.value.data?.data ?? statsRes.value.data);
+          }
+          if (bookingsRes.status === 'fulfilled') {
+            const list = bookingsRes.value.data?.data ?? bookingsRes.value.data ?? [];
+            setRecentRequests(Array.isArray(list) ? list : []);
+          }
+        } catch {
+          /* non-critical background refresh */
+        }
+        return;
+      }
+
       try {
         const [profileRes, statsRes, bookingsRes, earningsRes] = await Promise.allSettled([
           axiosClient.get(API_ENDPOINTS.PROVIDER.PROFILE),
@@ -60,6 +84,8 @@ export default function ProviderDashboardPage() {
       }
     }
     load();
+    const interval = setInterval(() => load(true), POLL_INTERVAL_MS);
+    return () => clearInterval(interval);
   }, []);
 
   async function patchAvailability(manualOnline) {
@@ -91,9 +117,11 @@ export default function ProviderDashboardPage() {
       const { data } = await axiosClient.get(API_ENDPOINTS.PROVIDER.UNAVAILABLE_DATES);
       const existing = data?.data ?? data ?? [];
       const merged = [...new Set([...(Array.isArray(existing) ? existing : []), ...dateKeys])];
+      // Blocking specific dates must not flip the account-wide manualOnline
+      // flag: that flag drives search visibility and bookability on every
+      // date, not just the ones picked here. The provider stays online and
+      // bookable outside this range, same as the Jobs To Do calendar.
       await axiosClient.put(API_ENDPOINTS.PROVIDER.UNAVAILABLE_DATES, { dates: merged });
-      await axiosClient.patch(API_ENDPOINTS.PROVIDER.AVAILABILITY, { manualOnline: false });
-      setIsOnline(false);
       setShowOfflinePicker(false);
     } catch (err) {
       setStatusError(err?.response?.data?.message ?? 'Could not save unavailable dates. Please try again.');
