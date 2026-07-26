@@ -405,13 +405,15 @@ export default function ProviderPublicProfilePage() {
         }
         .pp-cta-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.2); }
 
-        /* Back to Explore Page - identical markup/styling to .ep-back-btn
-           on the Explore page (same pill shape, shine sweep on hover). */
-        .pp-back-row { display: flex; justify-content: flex-end; margin-top: var(--space-lg); }
+        /* Back to Explore Page - same color/hover/shine-sweep treatment as
+           .ep-back-btn on the Explore page, but centered at the bottom of
+           the profile page and a rectangle (slightly rounded corners)
+           rather than a pill. */
+        .pp-back-row { display: flex; justify-content: center; margin-top: var(--space-lg); }
         .pp-back-btn {
           display: inline-flex; align-items: center; gap: 8px;
           padding: 9px 18px; border: none;
-          border-radius: var(--radius-full); background: var(--color-primary-600);
+          border-radius: var(--radius-md); background: var(--color-primary-600);
           color: var(--color-neutral-0); font-family: inherit;
           font-size: var(--font-size-sm); font-weight: 600; cursor: pointer;
           position: relative; overflow: hidden;
