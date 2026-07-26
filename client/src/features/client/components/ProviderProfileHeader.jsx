@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { ROUTES } from '../../../constants/routes.js';
 import { useAuth } from '../../../hooks/useAuth.js';
 import { getAssetUrl } from '../../../utils/storageUtils.js';
@@ -45,13 +45,18 @@ function StarRating({ rating, count }) {
 
 export default function ProviderProfileHeader({ provider, canBook = true }) {
   const { user } = useAuth();
+  const location = useLocation();
   // A logged-out visitor can browse all the way to a provider's profile
   // (see ProtectedRoute's `allowGuest`), but only gets sent into the actual
   // booking flow once logged in as a Client - "Book Now" sends them to
-  // client signup instead.
+  // client signup instead. This profile page's own location is carried
+  // along as router state so that, once they register and log in, they
+  // land straight back on this exact provider's profile instead of the
+  // generic homepage (LoginForm already honors `location.state.from`).
   const bookingHref = user
     ? ROUTES.CLIENT_BOOKING_CONFIRM.replace(':providerId', provider.providerId ?? provider.id)
     : ROUTES.REGISTER_CLIENT;
+  const bookingState = user ? undefined : { from: location };
   const bannerImage = getBannerImage(provider.category);
   const districtLabel = DISTRICTS[provider.district?.toLowerCase()] ?? provider.district;
 
@@ -117,7 +122,7 @@ export default function ProviderProfileHeader({ provider, canBook = true }) {
           <div className="pph-actions">
             {provider.isAvailable !== false ? (
               canBook && (
-                <Link to={bookingHref} className="btn btn-primary btn-shine pph-book-btn">
+                <Link to={bookingHref} state={bookingState} className="btn btn-primary btn-shine pph-book-btn">
                   <IconCalendar size={19} style={{ marginRight: 6 }} />
                   Book Now
                 </Link>

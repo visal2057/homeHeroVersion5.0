@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, useLocation, Link } from 'react-router-dom';
 import { ROUTES } from '../../../constants/routes.js';
 import { useAuth } from '../../../hooks/useAuth.js';
 import { ROLES } from '../../../constants/roles.js';
@@ -31,6 +31,7 @@ function getCategoryImage(category) {
 export default function ProviderPublicProfilePage() {
   const { providerId } = useParams();
   const { user } = useAuth();
+  const location = useLocation();
   // A pending Service Provider may view profiles (see ProtectedRoute's
   // `allowPendingProvider`) but not book - only a Client viewer sees the
   // booking CTAs.
@@ -109,9 +110,13 @@ export default function ProviderPublicProfilePage() {
   // A logged-out visitor can browse this far (see ProtectedRoute's
   // `allowGuest`), but only gets sent into the actual booking flow once
   // logged in as a Client - the CTA below sends them to client signup instead.
+  // This page's own location rides along as router state so that, once they
+  // register and log in, they're dropped straight back on this exact
+  // provider's profile (LoginForm already honors `location.state.from`).
   const bookingHref = user
     ? ROUTES.CLIENT_BOOKING_CONFIRM.replace(':providerId', provider.providerId ?? provider.id)
     : ROUTES.REGISTER_CLIENT;
+  const bookingState = user ? undefined : { from: location };
   const ctaImage = getCategoryImage(provider.category);
 
   const tabs = [
@@ -258,7 +263,7 @@ export default function ProviderPublicProfilePage() {
                   {provider.name} is currently accepting bookings.
                   Send your request and get a response within 24 hours.
                 </p>
-                <Link to={bookingHref} className="pp-cta-btn btn btn-shine">
+                <Link to={bookingHref} state={bookingState} className="pp-cta-btn btn btn-shine">
                   Book This Provider
                 </Link>
               </div>
