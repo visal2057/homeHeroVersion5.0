@@ -2,11 +2,22 @@ import { Link } from 'react-router-dom';
 import { ROUTES } from '../../../constants/routes.js';
 import { HERO_IMAGE_URL, HERO_VISUAL_PHOTOS } from '../../../constants/serviceCategories.js';
 import { useSiteImage } from '../../../hooks/useSiteImage.js';
+import { useAuth } from '../../../hooks/useAuth.js';
 import { IconHome, IconLeaf, IconCheckCircle, IconLock } from '../../../components/common/icons.jsx';
 
 export default function HeroSection() {
   const [gardener, labrador, technician] = HERO_VISUAL_PHOTOS;
   const heroImageUrl = useSiteImage('HOME_HERO_IMAGE', HERO_IMAGE_URL);
+  const { user } = useAuth();
+
+  // Once logged in, "Book a Service" no longer needs to route through client
+  // signup - it brings the service category cards already on this page into
+  // view instead. "Become a Provider" is dropped entirely at that point since
+  // an already-authenticated visitor here is a Client (or a still-PENDING
+  // provider), never a fresh signup prospect.
+  function scrollToServices() {
+    document.getElementById('hh-services-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
 
   return (
     <section className="glass-hero hh-home-hero">
@@ -29,20 +40,33 @@ export default function HeroSection() {
               home always feels warm, safe and cared for.
             </p>
             <div style={{ display: 'flex', gap: 'var(--space-sm)', flexWrap: 'wrap' }}>
-              <Link
-                to={ROUTES.REGISTER_CLIENT}
-                className="btn btn-primary btn-shine"
-                style={{ backgroundColor: 'var(--color-neutral-0)', color: 'var(--color-secondary-700)' }}
-              >
-                Book a Service
-              </Link>
-              <Link
-                to={ROUTES.REGISTER_PROVIDER}
-                className="btn btn-outline"
-                style={{ borderColor: 'var(--color-neutral-0)', color: 'var(--color-neutral-0)' }}
-              >
-                Become a Provider
-              </Link>
+              {user ? (
+                <button
+                  type="button"
+                  onClick={scrollToServices}
+                  className="btn btn-primary btn-shine"
+                  style={{ backgroundColor: 'var(--color-neutral-0)', color: 'var(--color-secondary-700)' }}
+                >
+                  Book a Service
+                </button>
+              ) : (
+                <Link
+                  to={ROUTES.REGISTER_CLIENT}
+                  className="btn btn-primary btn-shine"
+                  style={{ backgroundColor: 'var(--color-neutral-0)', color: 'var(--color-secondary-700)' }}
+                >
+                  Book a Service
+                </Link>
+              )}
+              {!user && (
+                <Link
+                  to={ROUTES.REGISTER_PROVIDER}
+                  className="btn btn-outline"
+                  style={{ borderColor: 'var(--color-neutral-0)', color: 'var(--color-neutral-0)' }}
+                >
+                  Become a Provider
+                </Link>
+              )}
             </div>
 
             <div className="hh-trust-row">
