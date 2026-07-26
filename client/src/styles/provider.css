@@ -1348,6 +1348,15 @@
   background: var(--color-error);
 }
 
+/* A past day's job count is history, not something to act on - grey it out
+   regardless of whether that date also happens to be marked unavailable, so
+   green (jobs still to do) and red (blocked for new bookings) stay reserved
+   for today/upcoming days. Comes after .unavailable above so it wins the
+   cascade for a day that is both past and unavailable. */
+.provider-calendar-day.past .provider-calendar-day-badge {
+  background: var(--color-neutral-400);
+}
+
 .provider-calendar-hint {
   font-size: var(--font-size-xs);
   color: var(--color-text-muted);

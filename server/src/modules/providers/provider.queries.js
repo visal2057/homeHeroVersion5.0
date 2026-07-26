@@ -184,6 +184,16 @@ export function findTopProviders(categoryId, { district, search }, limit = 5) {
   );
 }
 
+// Every verified, active, bookable provider in the category - not just
+// providers who happen to have registered in the last month (`is_newcomer`
+// used to gate this list, which meant an established provider like one with
+// months of completed jobs would silently disappear from "All Providers"
+// the moment their account turned 30 days old, even while still ranking in
+// Top Five). The only availability check that actually excludes someone is
+// today falling inside one of their own unavailable_periods - the `up`
+// LATERAL below already finds that provider's earliest not-yet-fully-past
+// period, so "available today" just means that period (if any) hasn't
+// started yet.
 export function findAvailableProviders(categoryId, { district, search }, limit = 20) {
   return query(
     `SELECT vs.*, bk.is_verified, bk.has_active_ban, bk.has_valid_membership_or_grace, up.unavailable_from, up.unavailable_to,
@@ -202,7 +212,7 @@ export function findAvailableProviders(categoryId, { district, search }, limit =
        AND bk.has_active_ban = false
        AND bk.has_valid_membership_or_grace = true
        AND bk.is_bookable = true
-       AND vs.is_newcomer = true
+       AND (up.unavailable_from IS NULL OR CURRENT_DATE < up.unavailable_from)
        AND ($2::text IS NULL OR vs.district_name ILIKE $2)
        AND ($3::text IS NULL OR vs.provider_name ILIKE '%' || $3 || '%')
      ORDER BY vs.completed_job_count DESC

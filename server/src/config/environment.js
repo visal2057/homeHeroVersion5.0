@@ -26,6 +26,12 @@ export const env = {
     from: process.env.EMAIL_FROM || 'HomeHero <noreply@homehero.lk>',
   },
 
+  // Inbox that receives Contact Us form submissions. Defaults to the SMTP
+  // account itself (a real, already-verified mailbox) rather than the
+  // support@homehero.lk address shown on the Contact page, since that
+  // domain isn't a real mailbox this app can send to.
+  contactNotificationEmail: process.env.CONTACT_NOTIFICATION_EMAIL || process.env.SMTP_USER,
+
   membershipBasePrice: Number(process.env.MEMBERSHIP_BASE_PRICE) || 4999,
   clientPlatformFeePercentage: Number(process.env.CLIENT_PLATFORM_FEE_PERCENTAGE) || 5,
   membershipGraceDays: Number(process.env.MEMBERSHIP_GRACE_DAYS) || 3,
