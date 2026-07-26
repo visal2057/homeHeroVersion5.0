@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { ROUTES } from '../../../constants/routes.js';
 import { clientApi } from '../clientApi.js';
 import { extractErrorMessage } from '../../../api/apiErrorHandler.js';
@@ -8,7 +8,7 @@ import TopProvidersSection from '../components/TopProvidersSection.jsx';
 import EmptyState from '../../../components/common/EmptyState.jsx';
 import {
   IconLeaf, IconSparkle, IconPaw, IconWrench, IconSnowflake,
-  IconToolbox, IconSearch, IconAlertCircle,
+  IconToolbox, IconSearch, IconAlertCircle, IconArrowLeft,
 } from '../../../components/common/icons.jsx';
 
 const CATEGORY_META = {
@@ -60,8 +60,16 @@ const SORT_OPTIONS = [
 
 export default function ExploreServicePage() {
   const { category } = useParams();
+  const navigate = useNavigate();
   const meta = CATEGORY_META[category] ?? { label: category, desc: '', icon: IconToolbox, image: 'https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?auto=format&fit=crop&w=2000&q=80' };
   const HeroIcon = meta.icon;
+
+  // Sends the visitor back to the homepage's service category cards, already
+  // smoothly scrolled into view there (see LandingPage's `scrollTo` state
+  // handling) rather than just dropping them at the top of the homepage.
+  function handleBackToCategories() {
+    navigate(ROUTES.HOME, { state: { scrollTo: 'hh-services-section' } });
+  }
 
   const [providers, setProviders] = useState([]);
   const [topProviders, setTopProviders] = useState([]);
@@ -120,6 +128,13 @@ export default function ExploreServicePage() {
       </div>
 
       <div className="container">
+        <div className="ep-back-row">
+          <button type="button" className="ep-back-btn" onClick={handleBackToCategories}>
+            <IconArrowLeft size={16} />
+            Back to Categories
+          </button>
+        </div>
+
         {topProviders.length > 0 && (
           <div style={{ marginTop: 'var(--space-2xl)' }}>
             <TopProvidersSection providers={topProviders} category={meta.label} />
@@ -201,6 +216,16 @@ export default function ExploreServicePage() {
         }
         .ep-hero-title { font-size: var(--font-size-3xl); font-weight: 800; color: white; margin-bottom: 8px; }
         .ep-hero-desc { color: rgba(255,255,255,0.8); font-size: var(--font-size-lg); margin: 0; }
+        .ep-back-row { display: flex; justify-content: flex-end; margin-top: var(--space-lg); }
+        .ep-back-btn {
+          display: inline-flex; align-items: center; gap: 8px;
+          padding: 9px 16px; border: 1.5px solid var(--color-neutral-200);
+          border-radius: var(--radius-full); background: white;
+          color: var(--color-secondary-700); font-family: inherit;
+          font-size: var(--font-size-sm); font-weight: 600; cursor: pointer;
+          transition: border-color var(--transition-base), color var(--transition-base), transform var(--transition-base);
+        }
+        .ep-back-btn:hover { border-color: var(--color-primary-500); color: var(--color-primary-600); transform: translateX(-2px); }
         .ep-filters {
           display: flex; gap: var(--space-md); flex-wrap: wrap;
           margin: var(--space-xl) 0; align-items: center;

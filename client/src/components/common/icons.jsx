@@ -313,6 +313,15 @@ export function IconChevronDown(props) {
   );
 }
 
+export function IconArrowLeft(props) {
+  return (
+    <Stroke {...props}>
+      <path d="M19 12H5" />
+      <path d="M11 18l-6-6 6-6" />
+    </Stroke>
+  );
+}
+
 export function IconCalendar(props) {
   return (
     <Stroke {...props}>
