@@ -33,10 +33,10 @@ function StarRating({ rating, count }) {
   const filled = Math.round(rating ?? 0);
   return (
     <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-      <span style={{ color: '#f59e0b', letterSpacing: '-1px' }}>
+      <span style={{ color: 'var(--color-neutral-0)', letterSpacing: '-1px' }}>
         {'★'.repeat(filled)}{'☆'.repeat(5 - filled)}
       </span>
-      <span style={{ color: 'var(--color-neutral-500)', fontSize: 'var(--font-size-sm)' }}>
+      <span style={{ color: 'rgba(255,255,255,0.85)', fontSize: 'var(--font-size-sm)' }}>
         {rating > 0 ? `${Number(rating).toFixed(1)} (${count ?? 0})` : 'No reviews yet'}
       </span>
     </span>
@@ -92,13 +92,13 @@ export default function ProviderProfileHeader({ provider, canBook = true }) {
             <div className="pph-meta">
               {districtLabel && (
                 <span className="pph-meta-item">
-                  <IconMapPin size={16} style={{ color: 'var(--color-neutral-400)' }} />
+                  <IconMapPin size={16} style={{ color: 'var(--color-neutral-0)' }} />
                   {districtLabel}
                 </span>
               )}
               {provider.category && (
                 <span className="pph-meta-item">
-                  <IconToolbox size={16} style={{ color: 'var(--color-neutral-400)' }} />
+                  <IconToolbox size={16} style={{ color: 'var(--color-neutral-0)' }} />
                   {provider.category}
                 </span>
               )}
@@ -121,7 +121,12 @@ export default function ProviderProfileHeader({ provider, canBook = true }) {
           <div className="pph-actions">
             {provider.isAvailable !== false ? (
               canBook && (
-                <Link to={bookingHref} state={bookingState} className="btn btn-primary btn-shine pph-book-btn">
+                <Link
+                  to={bookingHref}
+                  state={bookingState}
+                  className="btn btn-primary btn-shine pph-book-btn"
+                  style={{ backgroundColor: 'var(--color-neutral-0)', color: 'var(--color-secondary-700)' }}
+                >
                   <IconCalendar size={19} style={{ marginRight: 6 }} />
                   Book Now
                 </Link>
@@ -145,7 +150,10 @@ export default function ProviderProfileHeader({ provider, canBook = true }) {
         }
         .pph-card {
           display: flex; gap: var(--space-xl); align-items: center;
-          padding: 0 0 var(--space-xl);
+          padding: 0 var(--space-xl) var(--space-xl);
+          background: var(--color-primary-600);
+          border-radius: 0 0 var(--radius-xl) var(--radius-xl);
+          box-shadow: 0 16px 36px rgba(5, 150, 105, 0.22);
         }
         .pph-avatar-wrap { position: relative; margin-top: -74px; flex-shrink: 0; }
         .pph-avatar {
@@ -164,9 +172,9 @@ export default function ProviderProfileHeader({ provider, canBook = true }) {
           display: flex; align-items: center; gap: 3px;
         }
         .pph-info { flex: 1; padding-top: 8px; min-width: 0; }
-        .pph-name { font-size: var(--font-size-2xl); font-weight: 800; color: var(--color-secondary-700); margin-bottom: 8px; }
+        .pph-name { font-size: var(--font-size-2xl); font-weight: 800; color: var(--color-neutral-0); margin-bottom: 8px; }
         .pph-meta { display: flex; gap: var(--space-md); flex-wrap: wrap; margin-bottom: 10px; }
-        .pph-meta-item { display: flex; align-items: center; gap: 5px; font-size: var(--font-size-sm); color: var(--color-neutral-500); }
+        .pph-meta-item { display: flex; align-items: center; gap: 5px; font-size: var(--font-size-sm); color: var(--color-neutral-0); }
         .pph-unavailable-notice {
           display: inline-block; margin-top: 8px; font-size: var(--font-size-sm); font-weight: 600;
           color: #b45309; background: #fef3c7; border-radius: var(--radius-sm); padding: 4px 10px;
