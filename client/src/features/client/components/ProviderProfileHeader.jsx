@@ -2,7 +2,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { ROUTES } from '../../../constants/routes.js';
 import { useAuth } from '../../../hooks/useAuth.js';
 import { getAssetUrl } from '../../../utils/storageUtils.js';
-import { IconMapPin, IconToolbox, IconDollarSign, IconCalendar } from '../../../components/common/icons.jsx';
+import { IconMapPin, IconToolbox, IconCalendar } from '../../../components/common/icons.jsx';
 
 const CATEGORY_IMAGES = {
   gardening:  'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?auto=format&fit=crop&w=2000&q=80',
@@ -104,7 +104,6 @@ export default function ProviderProfileHeader({ provider, canBook = true }) {
               )}
               {provider.hourlyRate && (
                 <span className="pph-meta-item">
-                  <IconDollarSign size={16} style={{ color: 'var(--color-neutral-400)' }} />
                   Rs. {provider.hourlyRate}/hr
                 </span>
               )}
