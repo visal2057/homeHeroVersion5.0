@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import FormInput from '../../../components/common/FormInput.jsx';
 import PasswordInput from '../../../components/common/PasswordInput.jsx';
 import MapPicker from '../../../components/common/MapPicker.jsx';
@@ -35,6 +35,7 @@ export default function ClientRegistrationForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { showSuccess, showError } = useAlert();
   const navigate = useNavigate();
+  const location = useLocation();
 
   function handleChange(event) {
     const { name, value } = event.target;
@@ -69,7 +70,12 @@ export default function ClientRegistrationForm() {
     try {
       await registerClient(form);
       showSuccess('Registration completed successfully. Please log in.');
-      navigate(ROUTES.LOGIN);
+      // If this signup was triggered by "Book Now" on a provider's profile
+      // (see ProviderProfileHeader / ProviderPublicProfilePage), that profile's
+      // location was handed to us as router state - forward it on to the login
+      // page so LoginForm's existing `location.state.from` redirect sends the
+      // newly-registered client straight back to it after they log in.
+      navigate(ROUTES.LOGIN, { state: location.state?.from ? { from: location.state.from } : undefined });
     } catch (error) {
       showError(extractErrorMessage(error));
     } finally {

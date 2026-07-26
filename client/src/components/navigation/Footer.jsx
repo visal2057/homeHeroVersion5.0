@@ -1,7 +1,14 @@
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { ROUTES } from '../../constants/routes.js';
 
 export default function Footer() {
+  const location = useLocation();
+  // Mirrors PublicHeader's Login link: forward any return-to location
+  // already attached to the current page (e.g. client signup reached via a
+  // guest's "Book Now" click) so choosing to log in instead of registering
+  // still lands back where they started.
+  const loginState = location.state?.from ? { from: location.state.from } : undefined;
+
   return (
     <footer
       style={{
@@ -33,7 +40,7 @@ export default function Footer() {
           <h4 style={{ color: 'var(--color-neutral-0)' }}>Get Started</h4>
           <p><Link to={ROUTES.REGISTER_CLIENT}>Book a Service</Link></p>
           <p><Link to={ROUTES.REGISTER_PROVIDER}>Become a Provider</Link></p>
-          <p><Link to={ROUTES.LOGIN}>Login</Link></p>
+          <p><Link to={ROUTES.LOGIN} state={loginState}>Login</Link></p>
         </div>
 
         <div>
