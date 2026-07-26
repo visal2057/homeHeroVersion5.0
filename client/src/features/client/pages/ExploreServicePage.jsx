@@ -219,13 +219,30 @@ export default function ExploreServicePage() {
         .ep-back-row { display: flex; justify-content: flex-end; margin-top: var(--space-lg); }
         .ep-back-btn {
           display: inline-flex; align-items: center; gap: 8px;
-          padding: 9px 16px; border: 1.5px solid var(--color-neutral-200);
-          border-radius: var(--radius-full); background: white;
-          color: var(--color-secondary-700); font-family: inherit;
+          padding: 9px 18px; border: none;
+          border-radius: var(--radius-full); background: var(--color-primary-600);
+          color: var(--color-neutral-0); font-family: inherit;
           font-size: var(--font-size-sm); font-weight: 600; cursor: pointer;
-          transition: border-color var(--transition-base), color var(--transition-base), transform var(--transition-base);
+          position: relative; overflow: hidden;
+          transition: background-color var(--transition-base), transform var(--transition-base), box-shadow var(--transition-base);
         }
-        .ep-back-btn:hover { border-color: var(--color-primary-500); color: var(--color-primary-600); transform: translateX(-2px); }
+        .ep-back-btn:hover {
+          background-color: var(--color-secondary-700);
+          transform: translateY(-2px);
+          box-shadow: 0 8px 24px rgba(5, 150, 105, 0.3);
+        }
+        .ep-back-btn:active { transform: translateY(0); }
+        /* Diagonal shine sweep on hover, same mechanic as the SP dashboard
+           logout button (see .provider-sidebar-footer button in provider.css). */
+        .ep-back-btn::after {
+          content: '';
+          position: absolute; top: 0; left: -60%; width: 25%; height: 100%;
+          background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.55), transparent);
+          transform: skewX(-20deg);
+          transition: left 0.4s ease;
+          pointer-events: none;
+        }
+        .ep-back-btn:hover::after { left: 130%; }
         .ep-filters {
           display: flex; gap: var(--space-md); flex-wrap: wrap;
           margin: var(--space-xl) 0; align-items: center;
