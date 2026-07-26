@@ -14,6 +14,26 @@ import {
   updateProviderProfileImage,
 } from './provider.queries.js';
 
+// A provider who paid for N categories can't add more mid-cycle for free --
+// the membership price (and what it entitles them to show clients) was
+// locked in as category_count_snapshot at purchase time. Extra categories
+// only take effect once the next membership quote/payment covers them.
+async function assertCategoryCountCoveredByMembership(userId, requestedCategoryIds) {
+  const { rows } = await getProviderMembership(userId);
+  const membership = rows[0];
+  if (!membership) return;
+
+  const isCurrentlyInEffect = membership.membership_status === 'ACTIVE' || membership.is_in_grace_period;
+  if (!isCurrentlyInEffect) return;
+
+  if (requestedCategoryIds.length > membership.category_count_snapshot) {
+    throw new AppError(
+      `Your current membership covers ${membership.category_count_snapshot} service categor${membership.category_count_snapshot === 1 ? 'y' : 'ies'}. To add more, renew your membership once it expires and the new category count will be included in that payment.`,
+      409,
+    );
+  }
+}
+
 function toProfileResponse(core, categories, membership, stats, bookability) {
   return {
     userId: core.user_id,
@@ -92,6 +112,8 @@ export async function updateProviderProfile(userId, input) {
   if (existing.length > 0 && Number(existing[0].user_id) !== Number(userId)) {
     throw new AppError('Username is already taken', 409);
   }
+
+  await assertCategoryCountCoveredByMembership(userId, input.serviceCategoryIds);
 
   const client = await pool.connect();
   try {

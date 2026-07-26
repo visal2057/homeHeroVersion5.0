@@ -1,6 +1,8 @@
 import { env } from './environment.js';
 
+const allowedOrigins = env.clientUrl.split(',').map((origin) => origin.trim());
+
 export const corsOptions = {
-  origin: env.clientUrl,
+  origin: allowedOrigins,
   credentials: true,
 };
