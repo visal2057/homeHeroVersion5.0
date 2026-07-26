@@ -64,7 +64,7 @@ export default function MyBookingsPage() {
             <div className="mb-hero-icon">
               <IconClipboardList size={38} style={{ color: 'white' }} />
             </div>
-            <div>
+            <div className="mb-hero-text">
               <div className="hh-eyebrow" style={{ color: 'rgba(255,255,255,0.75)', marginBottom: 6 }}>Your Account</div>
               <h1 className="mb-hero-title">My Bookings</h1>
               <p className="mb-hero-sub">Track all your service requests and jobs</p>
@@ -130,7 +130,8 @@ export default function MyBookingsPage() {
           position: absolute; inset: 0;
           background: linear-gradient(135deg, rgba(15,45,25,0.60) 0%, rgba(21,128,61,0.42) 100%);
         }
-        .mb-hero-inner { display: flex; align-items: center; gap: var(--space-xl); }
+        .mb-hero-inner { display: flex; align-items: center; gap: var(--space-xl); flex-wrap: wrap; }
+        .mb-hero-text { min-width: 0; overflow-wrap: break-word; }
         .mb-hero-icon {
           width: 77px; height: 77px; border-radius: var(--radius-lg);
           background: rgba(255,255,255,0.15); backdrop-filter: blur(8px);

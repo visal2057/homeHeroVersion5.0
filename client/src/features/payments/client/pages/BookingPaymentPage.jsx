@@ -81,7 +81,7 @@ export default function BookingPaymentPage() {
             <div className="bp-hero-icon">
               <IconCreditCard size={32} style={{ color: 'white' }} />
             </div>
-            <div>
+            <div className="bp-hero-text">
               <div className="hh-eyebrow" style={{ color: 'rgba(255,255,255,0.75)', marginBottom: 6 }}>Payment</div>
               <h1 className="bp-hero-title">Complete Your Payment</h1>
               <p className="bp-hero-sub">
@@ -158,7 +158,8 @@ export default function BookingPaymentPage() {
           position: absolute; inset: 0;
           background: linear-gradient(135deg, rgba(15,45,25,0.60) 0%, rgba(21,128,61,0.42) 100%);
         }
-        .bp-hero-inner { display: flex; align-items: center; gap: var(--space-xl); }
+        .bp-hero-inner { display: flex; align-items: center; gap: var(--space-xl); flex-wrap: wrap; }
+        .bp-hero-text { min-width: 0; overflow-wrap: break-word; }
         .bp-hero-icon {
           width: 64px; height: 64px; border-radius: var(--radius-lg);
           background: rgba(255,255,255,0.15); backdrop-filter: blur(8px);

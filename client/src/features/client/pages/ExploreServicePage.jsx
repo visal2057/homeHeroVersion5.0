@@ -118,7 +118,7 @@ export default function ExploreServicePage() {
             <div className="ep-hero-icon-wrap">
               <HeroIcon size={43} style={{ color: 'white' }} />
             </div>
-            <div>
+            <div className="ep-hero-text">
               <div className="hh-eyebrow" style={{ color: 'rgba(255,255,255,0.75)', marginBottom: 6 }}>Explore Services</div>
               <h1 className="ep-hero-title">{meta.label}</h1>
               <p className="ep-hero-desc">{meta.desc}</p>
@@ -207,7 +207,8 @@ export default function ExploreServicePage() {
           position: absolute; inset: 0;
           background: linear-gradient(135deg, rgba(15,45,25,0.60) 0%, rgba(21,128,61,0.42) 100%);
         }
-        .ep-hero-inner { display: flex; align-items: center; gap: var(--space-xl); position: relative; z-index: 1; }
+        .ep-hero-inner { display: flex; align-items: center; gap: var(--space-xl); position: relative; z-index: 1; flex-wrap: wrap; }
+        .ep-hero-text { min-width: 0; overflow-wrap: break-word; }
         .ep-hero-icon-wrap {
           width: 86px; height: 86px; border-radius: var(--radius-lg);
           background: rgba(255,255,255,0.15); backdrop-filter: blur(8px);

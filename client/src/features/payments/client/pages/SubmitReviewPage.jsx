@@ -82,7 +82,7 @@ export default function SubmitReviewPage() {
             <div className="sr-hero-icon">
               <IconStar size={32} style={{ color: 'white' }} />
             </div>
-            <div>
+            <div className="sr-hero-text">
               <div className="hh-eyebrow" style={{ color: 'rgba(255,255,255,0.75)', marginBottom: 6 }}>Review</div>
               <h1 className="sr-hero-title">Leave a Review</h1>
               <p className="sr-hero-sub">Share your experience to help others find great providers</p>
@@ -119,7 +119,8 @@ export default function SubmitReviewPage() {
           position: absolute; inset: 0;
           background: linear-gradient(135deg, rgba(15,45,25,0.60) 0%, rgba(21,128,61,0.42) 100%);
         }
-        .sr-hero-inner { display: flex; align-items: center; gap: var(--space-xl); }
+        .sr-hero-inner { display: flex; align-items: center; gap: var(--space-xl); flex-wrap: wrap; }
+        .sr-hero-text { min-width: 0; overflow-wrap: break-word; }
         .sr-hero-icon {
           width: 64px; height: 64px; border-radius: var(--radius-lg);
           background: rgba(255,255,255,0.15); backdrop-filter: blur(8px);

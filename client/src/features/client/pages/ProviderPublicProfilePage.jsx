@@ -388,6 +388,10 @@ export default function ProviderPublicProfilePage() {
           max-width: 624px;
           box-shadow: 0 8px 32px rgba(0,0,0,0.18);
         }
+        @media (max-width: 640px) {
+          .pp-cta-inner { padding: 40px 16px; }
+          .pp-cta-glass { padding: 28px 22px; }
+        }
         .pp-cta-title {
           font-size: var(--font-size-2xl); font-weight: 800;
           color: white; margin-bottom: 12px;

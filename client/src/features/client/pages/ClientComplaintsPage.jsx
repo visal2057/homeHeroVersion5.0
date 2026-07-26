@@ -43,7 +43,7 @@ export default function ClientComplaintsPage() {
             <div className="ccmp-hero-icon">
               <IconFlag size={38} style={{ color: 'white' }} />
             </div>
-            <div>
+            <div className="ccmp-hero-text">
               <div className="hh-eyebrow" style={{ color: 'rgba(255,255,255,0.75)', marginBottom: 6 }}>Support</div>
               <h1 className="ccmp-hero-title">Submit a Complaint</h1>
               <p className="ccmp-hero-sub">
@@ -124,7 +124,8 @@ export default function ClientComplaintsPage() {
           position: absolute; inset: 0;
           background: linear-gradient(135deg, rgba(15,45,25,0.60) 0%, rgba(21,128,61,0.42) 100%);
         }
-        .ccmp-hero-inner { display: flex; align-items: center; gap: var(--space-xl); }
+        .ccmp-hero-inner { display: flex; align-items: center; gap: var(--space-xl); flex-wrap: wrap; }
+        .ccmp-hero-text { min-width: 0; overflow-wrap: break-word; }
         .ccmp-hero-icon {
           width: 77px; height: 77px; border-radius: var(--radius-lg);
           background: rgba(255,255,255,0.15); backdrop-filter: blur(8px);

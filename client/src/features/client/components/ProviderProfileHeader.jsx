@@ -192,7 +192,7 @@ export default function ProviderProfileHeader({ provider, canBook = true }) {
           display: flex; align-items: center; gap: 3px;
         }
         .pph-info { flex: 1; padding-top: 8px; min-width: 0; }
-        .pph-name { font-size: var(--font-size-2xl); font-weight: 800; color: var(--color-neutral-0); margin-bottom: 8px; }
+        .pph-name { font-size: var(--font-size-2xl); font-weight: 800; color: var(--color-neutral-0); margin-bottom: 8px; overflow-wrap: break-word; }
         .pph-meta { display: flex; gap: var(--space-md); flex-wrap: wrap; margin-bottom: 10px; }
         .pph-meta-item { display: flex; align-items: center; gap: 5px; font-size: var(--font-size-sm); color: var(--color-neutral-0); }
         .pph-unavailable-notice {

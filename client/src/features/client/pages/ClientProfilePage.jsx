@@ -56,7 +56,7 @@ export default function ClientProfilePage() {
               </div>
               <input id="profile-img-input" type="file" accept="image/jpeg,image/png" onChange={handleImageChange} style={{ display: 'none' }} />
             </div>
-            <div>
+            <div className="cp-hero-text">
               <h1 className="cp-hero-name">{profile?.fullName ?? profile?.username ?? 'My Profile'}</h1>
               {profile?.username && <div className="cp-hero-username">@{profile.username}</div>}
               <div className="cp-hero-email">{profile?.email}</div>
@@ -152,7 +152,8 @@ export default function ClientProfilePage() {
           position: absolute; inset: 0;
           background: linear-gradient(135deg, rgba(15,45,25,0.60) 0%, rgba(21,128,61,0.42) 100%);
         }
-        .cp-hero-inner { display: flex; align-items: center; gap: var(--space-xl); }
+        .cp-hero-inner { display: flex; align-items: center; gap: var(--space-xl); flex-wrap: wrap; }
+        .cp-hero-text { min-width: 0; overflow-wrap: break-word; }
         .cp-hero-avatar {
           width: 148px; height: 148px; border-radius: 50%; flex-shrink: 0;
           background: linear-gradient(135deg, var(--color-primary-400), var(--color-secondary-700));

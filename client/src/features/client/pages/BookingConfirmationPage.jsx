@@ -71,7 +71,7 @@ export default function BookingConfirmationPage() {
             <div className="bcp-hero-icon">
               <IconCalendar size={38} style={{ color: 'white' }} />
             </div>
-            <div>
+            <div className="bcp-hero-text">
               <div className="hh-eyebrow" style={{ color: 'rgba(255,255,255,0.75)', marginBottom: 6 }}>Booking</div>
               <h1 className="bcp-hero-title">Confirm Your Booking</h1>
               <p className="bcp-hero-sub">
@@ -124,7 +124,8 @@ export default function BookingConfirmationPage() {
           position: absolute; inset: 0;
           background: linear-gradient(135deg, rgba(15,45,25,0.60) 0%, rgba(21,128,61,0.42) 100%);
         }
-        .bcp-hero-inner { display: flex; align-items: center; gap: var(--space-xl); }
+        .bcp-hero-inner { display: flex; align-items: center; gap: var(--space-xl); flex-wrap: wrap; }
+        .bcp-hero-text { min-width: 0; overflow-wrap: break-word; }
         .bcp-hero-icon {
           width: 77px; height: 77px; border-radius: var(--radius-lg);
           background: rgba(255,255,255,0.15); backdrop-filter: blur(8px);
