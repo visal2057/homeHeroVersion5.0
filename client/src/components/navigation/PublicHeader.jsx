@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { NavLink, Link, useNavigate } from 'react-router-dom';
+import { NavLink, Link, useNavigate, useLocation } from 'react-router-dom';
 import { ROUTES } from '../../constants/routes.js';
 import { useAuth } from '../../hooks/useAuth.js';
 import { useAlert } from '../../hooks/useAlert.js';
@@ -24,6 +24,12 @@ export default function PublicHeader() {
   const { user, logout } = useAuth();
   const { showSuccess, showError } = useAlert();
   const navigate = useNavigate();
+  const location = useLocation();
+  // If the current page (e.g. client signup, reached via a guest's "Book Now"
+  // click on a provider profile) is already carrying a return-to location,
+  // forward it along so a visitor who opts to log in instead of finishing
+  // signup still lands back where they started, not the homepage.
+  const loginState = location.state?.from ? { from: location.state.from } : undefined;
 
   const isClient = user?.role === ROLES.CLIENT;
   // A Service Provider only ever renders this header while PENDING or
@@ -342,7 +348,7 @@ export default function PublicHeader() {
             ) : (
               <>
                 <Link to={ROUTES.REGISTER_ROLE} className="btn btn-outline">Sign Up</Link>
-                <Link to={ROUTES.LOGIN} className="btn btn-primary">Login</Link>
+                <Link to={ROUTES.LOGIN} state={loginState} className="btn btn-primary">Login</Link>
               </>
             )}
           </div>
@@ -377,7 +383,7 @@ export default function PublicHeader() {
             ) : (
               <>
                 <Link to={ROUTES.REGISTER_ROLE} className="btn btn-outline btn-block" onClick={closeMobileMenu}>Sign Up</Link>
-                <Link to={ROUTES.LOGIN} className="btn btn-primary btn-block" onClick={closeMobileMenu}>Login</Link>
+                <Link to={ROUTES.LOGIN} state={loginState} className="btn btn-primary btn-block" onClick={closeMobileMenu}>Login</Link>
               </>
             )}
           </div>
