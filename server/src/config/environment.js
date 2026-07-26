@@ -18,19 +18,16 @@ export const env = {
   sessionExpiryDays: Number(process.env.SESSION_EXPIRY_DAYS) || 7,
   passwordResetExpiryMinutes: Number(process.env.PASSWORD_RESET_EXPIRY_MINUTES) || 30,
 
-  smtp: {
-    host: process.env.SMTP_HOST,
-    port: Number(process.env.SMTP_PORT) || 587,
-    user: process.env.SMTP_USER,
-    password: process.env.SMTP_PASSWORD,
-    from: process.env.EMAIL_FROM || 'HomeHero <noreply@homehero.lk>',
+  // Sent over Resend's HTTPS API rather than raw SMTP -- most PaaS hosts
+  // (Railway included) block outbound SMTP ports to prevent spam abuse,
+  // which made direct SMTP delivery hang until connection timeout.
+  resend: {
+    apiKey: process.env.RESEND_API_KEY,
+    from: process.env.EMAIL_FROM || 'HomeHero <onboarding@resend.dev>',
   },
 
-  // Inbox that receives Contact Us form submissions. Defaults to the SMTP
-  // account itself (a real, already-verified mailbox) rather than the
-  // support@homehero.lk address shown on the Contact page, since that
-  // domain isn't a real mailbox this app can send to.
-  contactNotificationEmail: process.env.CONTACT_NOTIFICATION_EMAIL || process.env.SMTP_USER,
+  // Inbox that receives Contact Us form submissions.
+  contactNotificationEmail: process.env.CONTACT_NOTIFICATION_EMAIL,
 
   membershipBasePrice: Number(process.env.MEMBERSHIP_BASE_PRICE) || 4999,
   clientPlatformFeePercentage: Number(process.env.CLIENT_PLATFORM_FEE_PERCENTAGE) || 5,

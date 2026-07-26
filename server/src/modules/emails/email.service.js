@@ -1,10 +1,19 @@
-import { mailTransport } from '../../config/email.js';
 import { env } from '../../config/environment.js';
 import { logger } from '../../utils/logger.js';
 
 export async function sendEmail({ to, subject, html, replyTo }) {
   try {
-    await mailTransport.sendMail({ from: env.smtp.from, to, subject, html, replyTo });
+    const response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${env.resend.apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ from: env.resend.from, to, subject, html, reply_to: replyTo }),
+    });
+    if (!response.ok) {
+      throw new Error(`Resend API ${response.status}: ${await response.text()}`);
+    }
   } catch (err) {
     logger.error('Failed to send email', { to, subject, error: err.message });
   }
