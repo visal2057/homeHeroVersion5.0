@@ -42,6 +42,19 @@ function ProviderWorkPreview({ posts, align, onMouseEnter, onMouseLeave }) {
   // itself, never the card.
   const [lightbox, setLightbox] = useState(null);
 
+  // The slideshow has no click-outside-to-close, so without this the page
+  // behind it - fully blurred and hidden - would still scroll under the
+  // client's mouse wheel. Runs before the early return below so the hook
+  // order never changes between renders.
+  useEffect(() => {
+    if (!lightbox) return undefined;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [Boolean(lightbox)]);
+
   if (!posts?.length) return null;
 
   function openLightbox(images, index) {
@@ -50,22 +63,11 @@ function ProviderWorkPreview({ posts, align, onMouseEnter, onMouseLeave }) {
   function closeLightbox() {
     setLightbox(null);
   }
-  // The nav/close buttons sit inside pc-lightbox-overlay (so they stay
-  // reachable at the viewport edges, same as pgallery-lb-nav/close), which
-  // means their clicks would otherwise bubble up to the overlay's own
-  // onClick={closeLightbox} and instantly close the slideshow - stopPropagation
-  // keeps each button's own action from also triggering that.
-  function showPrev(e) {
-    e.stopPropagation();
+  function showPrev() {
     setLightbox((lb) => (lb.index > 0 ? { ...lb, index: lb.index - 1 } : lb));
   }
-  function showNext(e) {
-    e.stopPropagation();
+  function showNext() {
     setLightbox((lb) => (lb.index < lb.images.length - 1 ? { ...lb, index: lb.index + 1 } : lb));
-  }
-  function handleClose(e) {
-    e.stopPropagation();
-    closeLightbox();
   }
 
   return createPortal(
@@ -116,19 +118,25 @@ function ProviderWorkPreview({ posts, align, onMouseEnter, onMouseLeave }) {
           slideshow. backdrop-filter blur (rather than the body:has() blur
           used for the page below the preview popup) blurs literally
           everything behind this overlay - popup included - in one rule,
-          since this can open on top of the popup from any of its posts. */}
+          since this can open on top of the popup from any of its posts.
+          No click-outside-to-close here (unlike a typical lightbox): this
+          overlay sits inside .pc-preview-overlay, which is deliberately
+          `pointer-events: none` so the popup never blocks clicks on the
+          rest of the page while it's just open - this overlay must
+          re-enable `pointer-events: auto` for itself (see CSS) or every
+          click here, including the arrows and close button, silently falls
+          through to whatever's underneath instead of hitting this layer. */}
       {lightbox && (
         <div
           className="pc-lightbox-overlay"
           onMouseEnter={onMouseEnter}
           onMouseLeave={onMouseLeave}
-          onClick={closeLightbox}
         >
-          <button type="button" className="pc-lightbox-close" onClick={handleClose} aria-label="Close">✕</button>
+          <button type="button" className="pc-lightbox-close" onClick={closeLightbox} aria-label="Close">✕</button>
           {lightbox.index > 0 && (
             <button type="button" className="pc-lightbox-nav pc-lightbox-prev" onClick={showPrev} aria-label="Previous image">‹</button>
           )}
-          <div className="pc-lightbox-frame" onClick={(e) => e.stopPropagation()}>
+          <div className="pc-lightbox-frame">
             <img src={getAssetUrl(lightbox.images[lightbox.index])} alt="" />
           </div>
           {lightbox.index < lightbox.images.length - 1 && (
@@ -389,13 +397,21 @@ export default function ProviderCard({ provider }) {
 
         /* Full-size slideshow, opened from a previous-work thumbnail above.
            z-index sits above .pc-preview-overlay (1200) so it always lands
-           on top of the popup it was opened from. */
+           on top of the popup it was opened from. pointer-events: auto is
+           required here - the parent .pc-preview-overlay is pointer-events:
+           none (on purpose, so the popup never blocks the page while it's
+           just sitting open), and pointer-events inherits, so without this
+           override the whole slideshow - arrows, close button, everything -
+           would be visible but un-clickable, silently passing every real
+           click through to whatever's underneath. cursor: default (not
+           pointer) since there's deliberately no click-outside-to-close;
+           only the close button can dismiss this. */
         .pc-lightbox-overlay {
           position: fixed; inset: 0; z-index: 1300;
           background: rgba(15, 23, 42, 0.55);
           backdrop-filter: blur(7px); -webkit-backdrop-filter: blur(7px);
           display: flex; align-items: center; justify-content: center;
-          cursor: pointer;
+          cursor: default; pointer-events: auto;
         }
         /* Same light-green halo recipe as .pc-preview, so the slideshow
            reads as a natural extension of the popup it was opened from. */
