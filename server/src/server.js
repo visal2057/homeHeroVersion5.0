@@ -1,8 +1,11 @@
 import 'dotenv/config';
 import app from './app.js';
+import { ensureStorageDirs } from './config/ensureStorageDirs.js';
 import { startMembershipExpiryJob } from './jobs/membershipExpiry.job.js';
 import { startTemporaryBanExpiryJob } from './jobs/temporaryBanExpiry.job.js';
 import { startScheduledAnnouncementsJob } from './jobs/scheduledAnnouncements.job.js';
+
+ensureStorageDirs();
 
 const PORT = process.env.PORT || 5000;
 
