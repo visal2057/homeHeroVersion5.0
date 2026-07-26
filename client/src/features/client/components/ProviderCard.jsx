@@ -36,7 +36,38 @@ import { IconMapPin, IconStar, IconToolbox } from '../../../components/common/ic
 // on hover" / "Remove the fixed-overlay/portal hover-blur mechanism") got
 // wrong by covering the page with a hit-testable overlay.
 function ProviderWorkPreview({ posts, align, onMouseEnter, onMouseLeave }) {
+  // { images, index } for whichever post's image was clicked, or null when
+  // no slideshow is open. Scoped to this component (not lifted to
+  // ProviderCard) because the lightbox only ever needs to outlive the popup
+  // itself, never the card.
+  const [lightbox, setLightbox] = useState(null);
+
   if (!posts?.length) return null;
+
+  function openLightbox(images, index) {
+    setLightbox({ images, index });
+  }
+  function closeLightbox() {
+    setLightbox(null);
+  }
+  // The nav/close buttons sit inside pc-lightbox-overlay (so they stay
+  // reachable at the viewport edges, same as pgallery-lb-nav/close), which
+  // means their clicks would otherwise bubble up to the overlay's own
+  // onClick={closeLightbox} and instantly close the slideshow - stopPropagation
+  // keeps each button's own action from also triggering that.
+  function showPrev(e) {
+    e.stopPropagation();
+    setLightbox((lb) => (lb.index > 0 ? { ...lb, index: lb.index - 1 } : lb));
+  }
+  function showNext(e) {
+    e.stopPropagation();
+    setLightbox((lb) => (lb.index < lb.images.length - 1 ? { ...lb, index: lb.index + 1 } : lb));
+  }
+  function handleClose(e) {
+    e.stopPropagation();
+    closeLightbox();
+  }
+
   return createPortal(
     <div className={`pc-preview-overlay${align !== 'center' ? ` pc-preview-overlay-${align}` : ''}`}>
       <div
@@ -49,21 +80,65 @@ function ProviderWorkPreview({ posts, align, onMouseEnter, onMouseLeave }) {
           Previous Work
         </div>
         <div className="pc-preview-scroll">
-          {posts.slice(0, 5).map((post, idx) => (
-            <div className="pc-preview-post" key={idx}>
-              {post.title && <div className="pc-preview-title">{post.title}</div>}
-              {post.description && <p className="pc-preview-desc">{post.description}</p>}
-              {post.images?.length > 0 && (
-                <div className="pc-preview-grid">
-                  {post.images.slice(0, 3).map((img, i) => (
-                    <img key={i} src={getAssetUrl(img)} alt={post.title ? `${post.title} ${i + 1}` : ''} />
-                  ))}
-                </div>
-              )}
-            </div>
-          ))}
+          {posts.slice(0, 5).map((post, idx) => {
+            const images = post.images?.slice(0, 3) ?? [];
+            return (
+              <div className="pc-preview-post" key={idx}>
+                {post.title && <div className="pc-preview-title">{post.title}</div>}
+                {post.description && <p className="pc-preview-desc">{post.description}</p>}
+                {images.length > 0 && (
+                  <div className="pc-preview-grid">
+                    {images.map((img, i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        className="pc-preview-img-btn"
+                        onClick={() => openLightbox(images, i)}
+                        aria-label={`View image ${i + 1}${post.title ? ` of ${post.title}` : ''} full size`}
+                      >
+                        <img src={getAssetUrl(img)} alt={post.title ? `${post.title} ${i + 1}` : ''} />
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
+
+      {/* Full-size slideshow for a clicked previous-work image. Passing
+          onMouseEnter/onMouseLeave through to this overlay too (same as
+          .pc-preview above) keeps the card counted as "hovered" while the
+          slideshow is open - since it covers the whole viewport, the pointer
+          never actually leaves it, so ProviderCard's close-on-leave grace
+          timer never fires and the popup won't vanish out from under the
+          slideshow. backdrop-filter blur (rather than the body:has() blur
+          used for the page below the preview popup) blurs literally
+          everything behind this overlay - popup included - in one rule,
+          since this can open on top of the popup from any of its posts. */}
+      {lightbox && (
+        <div
+          className="pc-lightbox-overlay"
+          onMouseEnter={onMouseEnter}
+          onMouseLeave={onMouseLeave}
+          onClick={closeLightbox}
+        >
+          <button type="button" className="pc-lightbox-close" onClick={handleClose} aria-label="Close">✕</button>
+          {lightbox.index > 0 && (
+            <button type="button" className="pc-lightbox-nav pc-lightbox-prev" onClick={showPrev} aria-label="Previous image">‹</button>
+          )}
+          <div className="pc-lightbox-frame" onClick={(e) => e.stopPropagation()}>
+            <img src={getAssetUrl(lightbox.images[lightbox.index])} alt="" />
+          </div>
+          {lightbox.index < lightbox.images.length - 1 && (
+            <button type="button" className="pc-lightbox-nav pc-lightbox-next" onClick={showNext} aria-label="Next image">›</button>
+          )}
+          {lightbox.images.length > 1 && (
+            <div className="pc-lightbox-counter">{lightbox.index + 1} / {lightbox.images.length}</div>
+          )}
+        </div>
+      )}
     </div>,
     document.body,
   );
@@ -304,7 +379,63 @@ export default function ProviderCard({ provider }) {
           display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
         }
         .pc-preview-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }
-        .pc-preview-grid img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: var(--radius-sm); }
+        .pc-preview-img-btn {
+          position: relative; border: none; padding: 0; cursor: pointer;
+          border-radius: var(--radius-sm); overflow: hidden;
+          aspect-ratio: 1; background: var(--color-neutral-100);
+        }
+        .pc-preview-img-btn img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.2s; }
+        .pc-preview-img-btn:hover img { transform: scale(1.06); }
+
+        /* Full-size slideshow, opened from a previous-work thumbnail above.
+           z-index sits above .pc-preview-overlay (1200) so it always lands
+           on top of the popup it was opened from. */
+        .pc-lightbox-overlay {
+          position: fixed; inset: 0; z-index: 1300;
+          background: rgba(15, 23, 42, 0.55);
+          backdrop-filter: blur(7px); -webkit-backdrop-filter: blur(7px);
+          display: flex; align-items: center; justify-content: center;
+          cursor: pointer;
+        }
+        /* Same light-green halo recipe as .pc-preview, so the slideshow
+           reads as a natural extension of the popup it was opened from. */
+        .pc-lightbox-frame {
+          cursor: default; background: white; border-radius: var(--radius-lg);
+          box-shadow:
+            0 0 0 6px rgba(16, 185, 129, 0.12),
+            0 24px 60px -12px rgba(16, 185, 129, 0.40),
+            0 8px 24px rgba(0, 0, 0, 0.20);
+          border: 1px solid rgba(16, 185, 129, 0.25);
+          padding: 10px; display: flex;
+          max-width: min(720px, calc(100vw - 140px));
+          max-height: calc(100vh - 120px);
+        }
+        .pc-lightbox-frame img {
+          display: block; max-width: 100%; max-height: calc(100vh - 140px);
+          object-fit: contain; border-radius: var(--radius-md);
+        }
+        .pc-lightbox-close {
+          position: absolute; top: 24px; right: 24px;
+          width: 43px; height: 43px; border-radius: 50%; border: none;
+          background: rgba(255,255,255,0.15); color: white;
+          font-size: 1.5rem; display: flex; align-items: center; justify-content: center;
+          cursor: pointer; opacity: 0.9; transition: background-color 0.2s, transform 0.2s;
+        }
+        .pc-lightbox-close:hover { background: rgba(255,255,255,0.28); transform: scale(1.05); }
+        .pc-lightbox-nav {
+          position: absolute; top: 50%; transform: translateY(-50%);
+          background: rgba(255,255,255,0.18); border: none; color: white;
+          font-size: 2.2rem; cursor: pointer; border-radius: var(--radius-sm);
+          width: 50px; height: 74px; display: flex; align-items: center; justify-content: center;
+          transition: background-color 0.2s;
+        }
+        .pc-lightbox-nav:hover { background: rgba(255,255,255,0.3); }
+        .pc-lightbox-prev { left: 24px; }
+        .pc-lightbox-next { right: 24px; }
+        .pc-lightbox-counter {
+          position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%);
+          color: rgba(255,255,255,0.85); font-size: var(--font-size-sm); font-weight: 600;
+        }
       `}</style>
     </div>
   );
