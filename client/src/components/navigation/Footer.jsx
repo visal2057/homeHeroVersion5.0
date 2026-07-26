@@ -27,6 +27,13 @@ export default function Footer() {
           <p style={{ color: 'var(--color-primary-100)' }}>
             Connecting Sri Lankan homeowners with trusted, verified service professionals.
           </p>
+          <p style={{ marginTop: 'var(--space-sm)', fontSize: 'var(--font-size-sm)', color: 'var(--color-primary-200)' }}>
+            Proudly engineered for HomeHero by{' '}
+            <span style={{ color: 'var(--color-neutral-0)', fontWeight: 700, letterSpacing: '0.03em' }}>
+              KIMERA SOLUTIONS
+              <sup style={{ fontSize: '0.6em', marginLeft: 2 }}>TM</sup>
+            </span>
+          </p>
         </div>
 
         <div>
@@ -48,24 +55,6 @@ export default function Footer() {
           <p>support@homehero.lk</p>
           <p>+94 11 234 5678</p>
         </div>
-      </div>
-
-      {/* Dev-company credit, sandwiched between the main footer content and
-          the copyright bar per the client/supervisor's request. */}
-      <div
-        style={{
-          textAlign: 'center',
-          padding: 'var(--space-sm) var(--space-lg)',
-          borderTop: '1px solid rgba(255,255,255,0.12)',
-          fontSize: 'var(--font-size-sm)',
-          color: 'var(--color-primary-200)',
-        }}
-      >
-        Proudly engineered for HomeHero by{' '}
-        <span style={{ color: 'var(--color-neutral-0)', fontWeight: 700, letterSpacing: '0.03em' }}>
-          KIMERA SOLUTIONS
-          <sup style={{ fontSize: '0.6em', marginLeft: 2 }}>TM</sup>
-        </span>
       </div>
 
       <div style={{ textAlign: 'center', padding: 'var(--space-md)', borderTop: '1px solid rgba(255,255,255,0.12)', fontSize: 'var(--font-size-sm)' }}>
