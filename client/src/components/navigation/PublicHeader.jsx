@@ -8,6 +8,7 @@ import { axiosClient } from '../../api/axiosClient.js';
 import { API_ENDPOINTS } from '../../api/apiEndpoints.js';
 import { bookingApi } from '../../features/client/bookingApi.js';
 import { emitBookingsChanged } from '../../utils/bookingEvents.js';
+import { getAssetUrl } from '../../utils/storageUtils.js';
 import {
   IconHome, IconUser, IconClipboardList, IconFlag,
   IconLogOut, IconChevronDown, IconBell,
@@ -285,7 +286,11 @@ export default function PublicHeader() {
                   aria-label="Account menu"
                   onClick={() => { setIsAccountOpen((v) => !v); setIsNotifOpen(false); }}
                 >
-                  <span className="ph-avatar-initials">{initials}</span>
+                  {user?.profileImageUrl ? (
+                    <img src={getAssetUrl(user.profileImageUrl)} alt="" className="ph-avatar-photo" />
+                  ) : (
+                    <span className="ph-avatar-initials">{initials}</span>
+                  )}
                   <span className="ph-avatar-name">{displayName}</span>
                   <IconChevronDown size={14} style={{ color: 'var(--color-neutral-500)', flexShrink: 0 }} />
                 </button>
@@ -474,6 +479,10 @@ export default function PublicHeader() {
           background: var(--color-primary-600); color: white;
           display: flex; align-items: center; justify-content: center;
           font-weight: 700; font-size: var(--font-size-sm); flex-shrink: 0;
+        }
+        .ph-avatar-photo {
+          width: 34px; height: 34px; border-radius: 50%;
+          object-fit: cover; flex-shrink: 0;
         }
         .ph-avatar-name {
           font-weight: 600; font-size: var(--font-size-sm); color: var(--color-secondary-700);

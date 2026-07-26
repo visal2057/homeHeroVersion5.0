@@ -3,7 +3,7 @@ import { IconCheckCircle } from '../../../components/common/icons.jsx';
 import AlertMessage from '../../../components/common/AlertMessage.jsx';
 
 export default function ProviderComplaintForm({ onSubmit, submitting, error, success }) {
-  const [form, setForm] = useState({ token: '', description: '' });
+  const [form, setForm] = useState({ bookingId: '', token: '', description: '' });
 
   function handleChange(e) {
     const { name, value } = e.target;
@@ -31,8 +31,24 @@ export default function ProviderComplaintForm({ onSubmit, submitting, error, suc
 
       <div className="provider-form-grid">
         <div className="provider-form-group full">
+          <label className="provider-form-label" htmlFor="comp-booking">
+            Complaint For — Booking ID <span className="required">*</span>
+          </label>
+          <input
+            id="comp-booking"
+            name="bookingId"
+            className="provider-form-input"
+            value={form.bookingId}
+            onChange={handleChange}
+            placeholder="e.g. 42"
+            required
+          />
+          <span className="provider-form-hint">Enter the ID of the booking this complaint relates to - it identifies the client for you.</span>
+        </div>
+
+        <div className="provider-form-group full">
           <label className="provider-form-label" htmlFor="comp-token">
-            Complaint For — Client Token <span className="required">*</span>
+            Client Token (optional)
           </label>
           <input
             id="comp-token"
@@ -42,9 +58,8 @@ export default function ProviderComplaintForm({ onSubmit, submitting, error, suc
             onChange={handleChange}
             placeholder="e.g. A7b2X9"
             maxLength={6}
-            required
           />
-          <span className="provider-form-hint">Enter the unique 6-character token of the Client you're reporting.</span>
+          <span className="provider-form-hint">Optional - if provided, it must match the client on the booking above.</span>
         </div>
 
         <div className="provider-form-group full">

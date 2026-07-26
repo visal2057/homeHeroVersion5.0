@@ -264,7 +264,7 @@ export default function ProviderPublicProfilePage() {
                   Send your request and get a response within 24 hours.
                 </p>
                 <Link to={bookingHref} state={bookingState} className="pp-cta-btn btn btn-shine">
-                  Book This Provider
+                  Proceed to Booking
                 </Link>
               </div>
             </div>
@@ -305,7 +305,17 @@ export default function ProviderPublicProfilePage() {
           background: white; border: 1px solid var(--color-neutral-200);
           border-radius: var(--radius-lg); padding: var(--space-xl);
         }
-        .pp-sticky { position: sticky; top: 88px; }
+        /* Halo + matching shadow layers, same light-green-glow recipe used
+           for the Explore page's provider-card hover preview, so this card
+           reads as an elevated, elegant focal point of the layout. */
+        .pp-sticky {
+          position: sticky; top: 88px;
+          border-color: rgba(16, 185, 129, 0.25);
+          box-shadow:
+            0 0 0 6px rgba(16, 185, 129, 0.08),
+            0 20px 50px -10px rgba(16, 185, 129, 0.30),
+            0 8px 24px rgba(0, 0, 0, 0.06);
+        }
         .pp-card-title { font-size: var(--font-size-lg); color: var(--color-secondary-700); margin-bottom: var(--space-lg); font-weight: 700; }
 
         /* Service details */

@@ -2,7 +2,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { ROUTES } from '../../../constants/routes.js';
 import { useAuth } from '../../../hooks/useAuth.js';
 import { getAssetUrl } from '../../../utils/storageUtils.js';
-import { IconMapPin, IconToolbox, IconCalendar } from '../../../components/common/icons.jsx';
+import { IconMapPin, IconToolbox, IconCalendar, IconStar } from '../../../components/common/icons.jsx';
 
 const CATEGORY_IMAGES = {
   gardening:  'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?auto=format&fit=crop&w=2000&q=80',
@@ -32,11 +32,23 @@ function formatShortDate(dateStr) {
 function StarRating({ rating, count }) {
   const filled = Math.round(rating ?? 0);
   return (
-    <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-      <span style={{ color: '#f59e0b', letterSpacing: '-1px' }}>
-        {'★'.repeat(filled)}{'☆'.repeat(5 - filled)}
+    <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+      <span style={{ display: 'flex', gap: 2 }}>
+        {Array.from({ length: 5 }, (_, i) => (
+          <IconStar
+            key={i}
+            size={21}
+            style={{
+              color: i < filled ? '#f59e0b' : 'rgba(255,255,255,0.35)',
+              // Gives the flat SVG glyph a bit of 2D depth - a soft cast
+              // shadow beneath it, like a small enamel/glass star charm,
+              // rather than a plain flat-colored shape.
+              filter: i < filled ? 'drop-shadow(0 2px 2px rgba(0,0,0,0.35))' : 'none',
+            }}
+          />
+        ))}
       </span>
-      <span style={{ color: 'var(--color-neutral-500)', fontSize: 'var(--font-size-sm)' }}>
+      <span style={{ color: 'rgba(255,255,255,0.85)', fontSize: 'var(--font-size-sm)' }}>
         {rating > 0 ? `${Number(rating).toFixed(1)} (${count ?? 0})` : 'No reviews yet'}
       </span>
     </span>
@@ -67,68 +79,78 @@ export default function ProviderProfileHeader({ provider, canBook = true }) {
         <div className="pph-banner-overlay" />
       </div>
 
-      <div className="container">
-        <div className="pph-card">
-          {/* Avatar overlapping banner */}
-          <div className="pph-avatar-wrap">
-            <div className="pph-avatar">
-              {provider.profilePhoto
-                ? <img src={getAssetUrl(provider.profilePhoto)} alt={provider.name} />
-                : <span>{(provider.name ?? 'P')[0].toUpperCase()}</span>}
-            </div>
-            {provider.isVerified && (
-              <span className="pph-badge">
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                  <path d="M20 6L9 17l-5-5"/>
-                </svg>
-                Verified
-              </span>
-            )}
-          </div>
-
-          {/* Info */}
-          <div className="pph-info">
-            <h1 className="pph-name">{provider.name}</h1>
-            <div className="pph-meta">
-              {districtLabel && (
-                <span className="pph-meta-item">
-                  <IconMapPin size={16} style={{ color: 'var(--color-neutral-400)' }} />
-                  {districtLabel}
-                </span>
-              )}
-              {provider.category && (
-                <span className="pph-meta-item">
-                  <IconToolbox size={16} style={{ color: 'var(--color-neutral-400)' }} />
-                  {provider.category}
-                </span>
-              )}
-              {provider.hourlyRate && (
-                <span className="pph-meta-item">
-                  Rs. {provider.hourlyRate}/hr
-                </span>
-              )}
-            </div>
-            <StarRating rating={provider.averageRating} count={provider.reviewCount} />
-            {provider.unavailablePeriods?.[0] && (
-              <div className="pph-unavailable-notice">
-                Unavailable {formatShortDate(provider.unavailablePeriods[0].startDate)} – {formatShortDate(provider.unavailablePeriods[0].endDate)}
+      {/* Full-bleed green band - the container inside it just keeps the
+          actual content (avatar/info/CTA) aligned to the page's usual
+          content column, same as everywhere else. */}
+      <div className="pph-meta-band">
+        <div className="container">
+          <div className="pph-card">
+            {/* Avatar overlapping banner */}
+            <div className="pph-avatar-wrap">
+              <div className="pph-avatar">
+                {provider.profilePhoto
+                  ? <img src={getAssetUrl(provider.profilePhoto)} alt={provider.name} />
+                  : <span>{(provider.name ?? 'P')[0].toUpperCase()}</span>}
               </div>
-            )}
-          </div>
+              {provider.isVerified && (
+                <span className="pph-badge">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <path d="M20 6L9 17l-5-5"/>
+                  </svg>
+                  Verified
+                </span>
+              )}
+            </div>
 
-          {/* CTA - hidden entirely for a viewer who isn't allowed to book
-              (e.g. a pending Service Provider browsing profiles) */}
-          <div className="pph-actions">
-            {provider.isAvailable !== false ? (
-              canBook && (
-                <Link to={bookingHref} state={bookingState} className="btn btn-primary btn-shine pph-book-btn">
-                  <IconCalendar size={19} style={{ marginRight: 6 }} />
-                  Book Now
-                </Link>
-              )
-            ) : (
-              <span className="pph-unavailable">Currently Unavailable</span>
-            )}
+            {/* Info */}
+            <div className="pph-info">
+              <h1 className="pph-name">{provider.name}</h1>
+              <div className="pph-meta">
+                {districtLabel && (
+                  <span className="pph-meta-item">
+                    <IconMapPin size={16} style={{ color: 'var(--color-neutral-0)' }} />
+                    {districtLabel}
+                  </span>
+                )}
+                {provider.category && (
+                  <span className="pph-meta-item">
+                    <IconToolbox size={16} style={{ color: 'var(--color-neutral-0)' }} />
+                    {provider.category}
+                  </span>
+                )}
+                {provider.hourlyRate && (
+                  <span className="pph-meta-item">
+                    Rs. {provider.hourlyRate}/hr
+                  </span>
+                )}
+              </div>
+              <StarRating rating={provider.averageRating} count={provider.reviewCount} />
+              {provider.unavailablePeriods?.[0] && (
+                <div className="pph-unavailable-notice">
+                  Unavailable {formatShortDate(provider.unavailablePeriods[0].startDate)} – {formatShortDate(provider.unavailablePeriods[0].endDate)}
+                </div>
+              )}
+            </div>
+
+            {/* CTA - hidden entirely for a viewer who isn't allowed to book
+                (e.g. a pending Service Provider browsing profiles) */}
+            <div className="pph-actions">
+              {provider.isAvailable !== false ? (
+                canBook && (
+                  <Link
+                    to={bookingHref}
+                    state={bookingState}
+                    className="btn btn-primary btn-shine pph-book-btn"
+                    style={{ backgroundColor: 'var(--color-neutral-0)', color: 'var(--color-secondary-700)' }}
+                  >
+                    <IconCalendar size={19} style={{ marginRight: 6 }} />
+                    Book Now
+                  </Link>
+                )
+              ) : (
+                <span className="pph-unavailable">Currently Unavailable</span>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -142,6 +164,12 @@ export default function ProviderProfileHeader({ provider, canBook = true }) {
         .pph-banner-overlay {
           position: absolute; inset: 0;
           background: linear-gradient(160deg, rgba(15,45,25,0.52) 0%, rgba(21,128,61,0.35) 100%);
+        }
+        /* Full-bleed: spans edge-to-edge regardless of the page's max-width
+           content column, same as .pph-banner above it. */
+        .pph-meta-band {
+          background: var(--color-primary-600);
+          box-shadow: 0 16px 36px rgba(5, 150, 105, 0.18);
         }
         .pph-card {
           display: flex; gap: var(--space-xl); align-items: center;
@@ -164,9 +192,9 @@ export default function ProviderProfileHeader({ provider, canBook = true }) {
           display: flex; align-items: center; gap: 3px;
         }
         .pph-info { flex: 1; padding-top: 8px; min-width: 0; }
-        .pph-name { font-size: var(--font-size-2xl); font-weight: 800; color: var(--color-secondary-700); margin-bottom: 8px; }
+        .pph-name { font-size: var(--font-size-2xl); font-weight: 800; color: var(--color-neutral-0); margin-bottom: 8px; }
         .pph-meta { display: flex; gap: var(--space-md); flex-wrap: wrap; margin-bottom: 10px; }
-        .pph-meta-item { display: flex; align-items: center; gap: 5px; font-size: var(--font-size-sm); color: var(--color-neutral-500); }
+        .pph-meta-item { display: flex; align-items: center; gap: 5px; font-size: var(--font-size-sm); color: var(--color-neutral-0); }
         .pph-unavailable-notice {
           display: inline-block; margin-top: 8px; font-size: var(--font-size-sm); font-weight: 600;
           color: #b45309; background: #fef3c7; border-radius: var(--radius-sm); padding: 4px 10px;

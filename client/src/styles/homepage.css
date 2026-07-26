@@ -227,6 +227,10 @@
 .hh-services-section {
   position: relative;
   background: var(--color-neutral-0);
+  /* Offsets the sticky header when this section is brought into view via
+     scrollIntoView (see HeroSection/GetStartedSection "logged in" CTAs), so
+     the section title doesn't land underneath it. */
+  scroll-margin-top: var(--header-height);
 }
 
 /* Always a single horizontal row of all 5 cards - never 4-then-1 wrapping.

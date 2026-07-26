@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import { ROUTES } from '../../../constants/routes.js';
 import { getAssetUrl } from '../../../utils/storageUtils.js';
-import { IconMapPin, IconStar } from '../../../components/common/icons.jsx';
+import { IconMapPin, IconStar, IconToolbox } from '../../../components/common/icons.jsx';
 
 // The "All Providers" hover-preview popup (system flow section 13.4): shows
 // up to the provider's five most recent portfolio posts, most recent first,
@@ -44,7 +44,10 @@ function ProviderWorkPreview({ posts, align, onMouseEnter, onMouseLeave }) {
         onMouseEnter={onMouseEnter}
         onMouseLeave={onMouseLeave}
       >
-        <div className="pc-preview-header">Previous Work</div>
+        <div className="pc-preview-header">
+          <IconToolbox size={15} />
+          Previous Work
+        </div>
         <div className="pc-preview-scroll">
           {posts.slice(0, 5).map((post, idx) => (
             <div className="pc-preview-post" key={idx}>
@@ -270,15 +273,23 @@ export default function ProviderCard({ provider }) {
         .pc-preview-overlay-left { justify-content: flex-start; }
         .pc-preview {
           pointer-events: auto;
-          background: white; border-radius: var(--radius-lg); box-shadow: var(--shadow-lg);
-          border: 1px solid var(--color-neutral-200); padding: var(--space-lg);
+          background: white; border-radius: var(--radius-lg);
+          /* Light-green halo: a soft inner glow ring plus a wider, gently
+             tinted drop shadow, layered under a neutral shadow for depth. */
+          box-shadow:
+            0 0 0 6px rgba(16, 185, 129, 0.10),
+            0 24px 60px -12px rgba(16, 185, 129, 0.35),
+            0 8px 24px rgba(0, 0, 0, 0.10);
+          border: 1px solid rgba(16, 185, 129, 0.22); padding: var(--space-lg);
           width: min(420px, calc(100vw - 48px));
           max-height: min(520px, calc(100vh - 48px));
           display: flex; flex-direction: column;
         }
         .pc-preview-header {
-          font-weight: 700; font-size: var(--font-size-xs); text-transform: uppercase;
-          letter-spacing: 0.04em; color: var(--color-neutral-400); margin-bottom: 8px;
+          display: flex; align-items: center; gap: 7px;
+          font-weight: 700; font-size: var(--font-size-sm); text-transform: uppercase;
+          letter-spacing: 0.05em; color: var(--color-primary-700); margin-bottom: 12px;
+          padding-bottom: 10px; border-bottom: 2px solid var(--color-primary-100);
           flex-shrink: 0;
         }
         /* Up to 5 posts (system flow 13.4), scrollable instead of growing
