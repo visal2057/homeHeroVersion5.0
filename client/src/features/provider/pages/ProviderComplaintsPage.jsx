@@ -103,6 +103,7 @@ export default function ProviderComplaintsPage() {
                   <table className="provider-table">
                     <thead>
                       <tr>
+                        <th>Booking</th>
                         <th>Complaint For</th>
                         <th>Token</th>
                         <th>Details</th>
@@ -113,6 +114,7 @@ export default function ProviderComplaintsPage() {
                     <tbody>
                       {complaints.map((c) => (
                         <tr key={c.id}>
+                          <td>{c.relatedBookingId ? `#${c.relatedBookingId}` : '—'}</td>
                           <td>{c.targetName ?? '—'}</td>
                           <td>{c.targetToken ?? '—'}</td>
                           <td style={{ maxWidth: 280 }}>{c.description ?? '—'}</td>
