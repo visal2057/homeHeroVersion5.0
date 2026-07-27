@@ -125,11 +125,14 @@ export default function SubmitReviewPage() {
           width: 64px; height: 64px; border-radius: var(--radius-lg);
           background: rgba(255,255,255,0.15); backdrop-filter: blur(8px);
           display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-          border: 1px solid rgba(255,255,255,0.25);
+          border: 1px solid rgba(255,255,255,0.25); box-shadow: var(--shadow-lg);
         }
         .sr-hero-title { font-size: var(--font-size-3xl); font-weight: 800; color: white; margin-bottom: 6px; }
         .sr-hero-sub { color: rgba(255,255,255,0.8); font-size: var(--font-size-lg); margin: 0; }
-        .sr-card { background: white; border: 1px solid var(--color-neutral-200); border-radius: var(--radius-lg); padding: var(--space-2xl); }
+        .sr-card {
+          background: var(--color-neutral-0); border: 1px solid var(--color-border);
+          border-radius: var(--radius-lg); padding: var(--space-2xl); box-shadow: var(--shadow-sm);
+        }
         .sr-card-header { margin-bottom: var(--space-lg); padding-bottom: var(--space-md); border-bottom: 1px solid var(--color-neutral-100); }
         .sr-card-title { font-size: var(--font-size-xl); color: var(--color-secondary-700); margin-bottom: 6px; font-weight: 700; }
         .sr-card-sub { color: var(--color-neutral-500); font-size: var(--font-size-sm); margin: 0; }

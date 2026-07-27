@@ -7,6 +7,7 @@ import FormInput from '../../../../components/common/FormInput.jsx';
 import ConfirmModal from '../../../../components/common/ConfirmModal.jsx';
 import AlertMessage from '../../../../components/common/AlertMessage.jsx';
 import { useAlert } from '../../../../hooks/useAlert.js';
+import { IconCreditCard } from '../../../../components/common/icons.jsx';
 
 // Card flow: HomeHero processes the payment and keeps the 5% platform fee.
 // We collect the card details, show the client the fee breakdown, then
@@ -90,7 +91,7 @@ export default function CardPaymentForm({ context, onCancel, onPaid }) {
 
   return (
     <div>
-      <h2 className="cf-title">💳 Card payment</h2>
+      <h2 className="cf-title"><IconCreditCard size={20} /> Card payment</h2>
 
       {apiError && <AlertMessage type="error" message={apiError} onDismiss={() => setApiError('')} />}
 
@@ -152,11 +153,15 @@ export default function CardPaymentForm({ context, onCancel, onPaid }) {
       />
 
       <style>{`
-        .cf-title { font-size: var(--font-size-lg); color: var(--color-secondary-700); margin-bottom: var(--space-md); }
+        .cf-title { display: flex; align-items: center; gap: 8px; font-size: var(--font-size-lg); font-weight: 700; color: var(--color-secondary-700); margin-bottom: var(--space-md); }
         .cf-split { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-md); }
-        .cf-breakdown { margin-top: var(--space-lg); padding: var(--space-md) var(--space-lg); background: var(--color-neutral-50); border: 1px solid var(--color-neutral-200); border-radius: var(--radius-md); }
+        .cf-breakdown {
+          margin-top: var(--space-lg); padding: var(--space-md) var(--space-lg);
+          background: var(--color-neutral-50); border: 1px solid var(--color-border);
+          border-radius: var(--radius-md); box-shadow: var(--shadow-sm);
+        }
         .cf-line { display: flex; justify-content: space-between; padding: 6px 0; font-size: var(--font-size-sm); color: var(--color-neutral-600); }
-        .cf-total { border-top: 1px solid var(--color-neutral-200); margin-top: 4px; padding-top: 10px; font-size: var(--font-size-base); font-weight: 700; color: var(--color-primary-700); }
+        .cf-total { border-top: 1px solid var(--color-border); margin-top: 4px; padding-top: 10px; font-size: var(--font-size-base); font-weight: 700; color: var(--color-primary-700); }
         .cf-actions { display: flex; gap: var(--space-sm); justify-content: flex-end; margin-top: var(--space-lg); }
       `}</style>
     </div>

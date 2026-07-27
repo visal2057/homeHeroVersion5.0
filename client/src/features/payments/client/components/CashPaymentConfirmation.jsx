@@ -4,6 +4,7 @@ import { extractErrorMessage } from '../../../../api/apiErrorHandler.js';
 import ConfirmModal from '../../../../components/common/ConfirmModal.jsx';
 import AlertMessage from '../../../../components/common/AlertMessage.jsx';
 import { useAlert } from '../../../../hooks/useAlert.js';
+import { IconDollarSign } from '../../../../components/common/icons.jsx';
 
 // Cash flow: the client pays the provider directly, so HomeHero collects
 // nothing and the commission is zero. We only record that it happened.
@@ -31,7 +32,7 @@ export default function CashPaymentConfirmation({ context, onCancel, onPaid }) {
 
   return (
     <div>
-      <h2 className="cash-title">💵 Cash payment</h2>
+      <h2 className="cash-title"><IconDollarSign size={20} /> Cash payment</h2>
       <p className="cash-note">
         You will pay the agreed amount directly to{' '}
         <strong>{context.providerName}</strong>. HomeHero does not collect cash and
@@ -61,8 +62,12 @@ export default function CashPaymentConfirmation({ context, onCancel, onPaid }) {
       />
 
       <style>{`
-        .cash-title { font-size: var(--font-size-lg); color: var(--color-secondary-700); margin-bottom: var(--space-md); }
-        .cash-note { color: var(--color-neutral-600); line-height: 1.6; margin-bottom: var(--space-lg); }
+        .cash-title { display: flex; align-items: center; gap: 8px; font-size: var(--font-size-lg); font-weight: 700; color: var(--color-secondary-700); margin-bottom: var(--space-md); }
+        .cash-note {
+          color: var(--color-neutral-700); line-height: 1.6; margin-bottom: var(--space-lg);
+          background: var(--color-primary-50); border: 1px solid var(--color-primary-200);
+          border-radius: var(--radius-md); padding: var(--space-md) var(--space-lg);
+        }
         .cash-actions { display: flex; gap: var(--space-sm); justify-content: flex-end; margin-top: var(--space-lg); }
       `}</style>
     </div>

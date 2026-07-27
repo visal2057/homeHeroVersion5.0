@@ -21,16 +21,23 @@ export default function PaymentSummary({ context }) {
       </div>
       <div className="ps-row ps-row-total">
         <span>Status</span>
-        <strong>{context.status}</strong>
+        <strong className="ps-status-pill">{context.status}</strong>
       </div>
 
       <style>{`
-        .ps-card { background: white; border: 1px solid var(--color-neutral-200); border-radius: var(--radius-lg); padding: var(--space-xl); }
-        .ps-title { font-size: var(--font-size-lg); color: var(--color-secondary-700); margin-bottom: var(--space-md); }
+        .ps-card {
+          background: var(--color-neutral-0); border: 1px solid var(--color-border);
+          border-radius: var(--radius-lg); padding: var(--space-xl); box-shadow: var(--shadow-sm);
+        }
+        .ps-title { font-size: var(--font-size-lg); font-weight: 700; color: var(--color-secondary-700); margin-bottom: var(--space-md); }
         .ps-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--color-neutral-100); font-size: var(--font-size-sm); color: var(--color-neutral-600); }
         .ps-row strong { color: var(--color-neutral-800); }
-        .ps-row-total { border-bottom: none; font-size: var(--font-size-base); }
-        .ps-row-total strong { color: var(--color-primary-700); }
+        .ps-row-total { border-bottom: none; padding-top: var(--space-md); font-size: var(--font-size-base); }
+        .ps-status-pill {
+          display: inline-flex; align-items: center; padding: 3px 12px; border-radius: var(--radius-full);
+          background: var(--color-primary-50); color: var(--color-primary-700); font-size: var(--font-size-xs);
+          font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em;
+        }
       `}</style>
     </div>
   );
