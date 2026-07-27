@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { getAssetUrl } from '../../../utils/storageUtils.js';
+import { IconImage } from '../../../components/common/icons.jsx';
 
 function formatDate(dateStr) {
   if (!dateStr) return '';
@@ -12,7 +13,7 @@ export default function PreviousWorkGallery({ posts = [] }) {
   if (!posts.length) {
     return (
       <div className="pgallery-empty">
-        <span>🖼️</span>
+        <span className="pgallery-empty-icon"><IconImage size={26} /></span>
         <p>No previous work photos uploaded yet.</p>
       </div>
     );
@@ -85,8 +86,10 @@ export default function PreviousWorkGallery({ posts = [] }) {
         .pwork-list { display: flex; flex-direction: column; gap: var(--space-lg); }
         .pwork-card {
           background: white; border: 1px solid var(--color-neutral-200);
-          border-radius: var(--radius-lg); padding: var(--space-lg);
+          border-radius: var(--radius-lg); padding: var(--space-lg); box-shadow: var(--shadow-sm);
+          transition: box-shadow var(--transition-base), transform var(--transition-base);
         }
+        .pwork-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
         .pwork-card-header {
           display: flex; align-items: baseline; justify-content: space-between;
           gap: var(--space-md); margin-bottom: 6px;
@@ -112,7 +115,11 @@ export default function PreviousWorkGallery({ posts = [] }) {
         .pwork-card-image img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.2s; }
         .pwork-card-image:hover img { transform: scale(1.05); }
         .pgallery-empty { text-align: center; padding: var(--space-2xl); color: var(--color-neutral-400); }
-        .pgallery-empty span { font-size: 3rem; }
+        .pgallery-empty-icon {
+          display: inline-flex; align-items: center; justify-content: center;
+          width: 64px; height: 64px; border-radius: 50%; margin-bottom: var(--space-sm);
+          background: var(--color-neutral-100); color: var(--color-neutral-400);
+        }
         .pgallery-lightbox {
           position: fixed; inset: 0; background: rgba(0,0,0,0.85);
           display: flex; align-items: center; justify-content: center;

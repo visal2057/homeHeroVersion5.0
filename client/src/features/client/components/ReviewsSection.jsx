@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ROUTES } from '../../../constants/routes.js';
+import { IconStar, IconChatBubble } from '../../../components/common/icons.jsx';
 
 function WriteReviewButton({ reviewEligibility }) {
   const [showReason, setShowReason] = useState(false);
@@ -33,7 +34,17 @@ function WriteReviewButton({ reviewEligibility }) {
 
 function StarRating({ rating }) {
   const filled = Math.round(rating ?? 0);
-  return <span style={{ color: '#f59e0b' }}>{'★'.repeat(filled)}{'☆'.repeat(5 - filled)}</span>;
+  return (
+    <span style={{ display: 'inline-flex', gap: 2 }}>
+      {Array.from({ length: 5 }, (_, i) => (
+        <IconStar
+          key={i}
+          size={16}
+          style={{ color: i < filled ? '#f59e0b' : 'var(--color-neutral-300)' }}
+        />
+      ))}
+    </span>
+  );
 }
 
 function ReviewCard({ review }) {
@@ -61,7 +72,7 @@ export default function ReviewsSection({ reviews = [], averageRating, reviewCoun
     <div>
       {!reviews.length ? (
         <div className="reviews-empty">
-          <span>💬</span>
+          <span className="reviews-empty-icon"><IconChatBubble size={26} /></span>
           <p>No reviews yet. Be the first to book this provider!</p>
           <WriteReviewButton reviewEligibility={reviewEligibility} />
         </div>
@@ -88,19 +99,22 @@ export default function ReviewsSection({ reviews = [], averageRating, reviewCoun
       <style>{`
         .reviews-summary {
           display: flex; align-items: center; gap: var(--space-lg);
-          background: var(--color-primary-50); border-radius: var(--radius-lg);
-          padding: var(--space-lg); margin-bottom: var(--space-xl);
+          background: linear-gradient(135deg, var(--color-primary-50), var(--color-neutral-0));
+          border: 1px solid var(--color-primary-100); border-radius: var(--radius-lg);
+          padding: var(--space-lg); margin-bottom: var(--space-xl); box-shadow: var(--shadow-sm);
         }
         .reviews-avg { font-size: 3.6rem; font-weight: 800; color: var(--color-primary-700); }
         .reviews-list { display: flex; flex-direction: column; gap: var(--space-md); }
         .review-card {
           background: white; border: 1px solid var(--color-neutral-200);
-          border-radius: var(--radius-md); padding: var(--space-lg);
+          border-radius: var(--radius-md); padding: var(--space-lg); box-shadow: var(--shadow-sm);
+          transition: box-shadow var(--transition-base), transform var(--transition-base);
         }
+        .review-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
         .review-header { display: flex; gap: var(--space-md); align-items: center; margin-bottom: 12px; }
         .review-avatar {
           width: 48px; height: 48px; border-radius: 50%;
-          background: var(--color-primary-600); color: white;
+          background: linear-gradient(135deg, var(--color-primary-500), var(--color-secondary-700)); color: white;
           display: flex; align-items: center; justify-content: center;
           font-weight: 700; font-size: var(--font-size-sm); flex-shrink: 0;
         }
@@ -108,7 +122,11 @@ export default function ReviewsSection({ reviews = [], averageRating, reviewCoun
         .review-date { color: var(--color-neutral-400); font-size: var(--font-size-xs); }
         .review-comment { color: var(--color-neutral-700); margin: 0; }
         .reviews-empty { text-align: center; padding: var(--space-2xl); color: var(--color-neutral-400); }
-        .reviews-empty span { font-size: 2.4rem; }
+        .reviews-empty-icon {
+          display: inline-flex; align-items: center; justify-content: center;
+          width: 64px; height: 64px; border-radius: 50%; margin-bottom: var(--space-sm);
+          background: var(--color-neutral-100); color: var(--color-neutral-400);
+        }
         .write-review-btn { white-space: nowrap; margin-top: var(--space-md); }
         .reviews-summary .write-review-btn { margin-top: 0; }
         .write-review-ineligible { display: inline-block; text-align: left; }
