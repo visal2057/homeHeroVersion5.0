@@ -4,6 +4,10 @@ export const env = {
   nodeEnv: process.env.NODE_ENV || 'development',
   port: Number(process.env.PORT) || 5000,
   clientUrl: process.env.CLIENT_URL || 'http://localhost:5173',
+  // CLIENT_URL may hold a comma-separated list (for CORS to allow multiple
+  // origins - see cors.js). Anything building an actual link (password
+  // reset, email CTAs) needs a single URL, so it always takes the first one.
+  primaryClientUrl: (process.env.CLIENT_URL || 'http://localhost:5173').split(',')[0].trim().replace(/\/+$/, ''),
 
   db: {
     host: process.env.DATABASE_HOST || 'localhost',

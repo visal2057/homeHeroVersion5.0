@@ -210,7 +210,7 @@ export async function forgotPassword(email) {
     client.release();
   }
 
-  const resetLink = `${env.clientUrl}/reset-password?token=${rawToken}`;
+  const resetLink = `${env.primaryClientUrl}/reset-password?token=${rawToken}`;
   await sendPasswordResetEmail(user, resetLink);
 }
 

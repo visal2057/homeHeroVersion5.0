@@ -51,7 +51,7 @@ export function sendVerificationApprovedEmail(user) {
   return sendEmail({
     to: user.email,
     subject: 'Your HomeHero Service Provider application was approved',
-    html: `<p>Hi ${user.full_name},</p><p>Congratulations! Your Service Provider verification has been approved. You can now <a href="${env.clientUrl}/login">log in</a>.</p><p>Before you can go online and receive bookings, you will need an active HomeHero membership.</p>`,
+    html: `<p>Hi ${user.full_name},</p><p>Congratulations! Your Service Provider verification has been approved. You can now <a href="${env.primaryClientUrl}/login">log in</a>.</p><p>Before you can go online and receive bookings, you will need an active HomeHero membership.</p>`,
   });
 }
 
