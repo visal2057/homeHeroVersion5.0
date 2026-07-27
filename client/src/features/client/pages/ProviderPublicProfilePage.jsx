@@ -310,24 +310,26 @@ export default function ProviderPublicProfilePage() {
         }
         @media (max-width: 768px) { .pp-layout { grid-template-columns: 1fr; } }
 
-        /* Tabs */
+        /* Tabs - pill switcher, same recipe as the dashboard's .provider-tabs */
         .pp-tabs {
-          display: flex; gap: 0; border-bottom: 2px solid var(--color-neutral-200);
-          margin-bottom: var(--space-lg);
+          display: inline-flex; align-items: center; gap: 2px;
+          background: var(--color-neutral-100); border-radius: var(--radius-full);
+          padding: 4px; margin-bottom: var(--space-lg); flex-wrap: wrap;
         }
         .pp-tab {
-          padding: 13px 26px; background: none; border: none; cursor: pointer;
+          padding: 0.55rem 1.3rem; border-radius: var(--radius-full); border: none;
+          background: transparent; cursor: pointer;
           font-family: inherit; font-size: var(--font-size-sm); font-weight: 600;
-          color: var(--color-neutral-500); border-bottom: 2px solid transparent;
-          margin-bottom: -2px; transition: color 0.2s, border-color 0.2s; white-space: nowrap;
+          color: var(--color-neutral-500); white-space: nowrap;
+          transition: background-color var(--transition-base), color var(--transition-base), box-shadow var(--transition-base);
         }
-        .pp-tab:hover { color: var(--color-primary-600); }
-        .pp-tab-active { color: var(--color-primary-700); border-bottom-color: var(--color-primary-600); }
+        .pp-tab:hover { color: var(--color-secondary-700); }
+        .pp-tab-active { background: var(--color-neutral-0); color: var(--color-primary-700); box-shadow: var(--shadow-sm); }
 
         /* Cards */
         .pp-card {
           background: white; border: 1px solid var(--color-neutral-200);
-          border-radius: var(--radius-lg); padding: var(--space-xl);
+          border-radius: var(--radius-lg); padding: var(--space-xl); box-shadow: var(--shadow-sm);
         }
         /* Halo + matching shadow layers, same light-green-glow recipe used
            for the Explore page's provider-card hover preview, so this card

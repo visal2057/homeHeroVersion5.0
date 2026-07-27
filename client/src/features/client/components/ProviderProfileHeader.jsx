@@ -168,7 +168,7 @@ export default function ProviderProfileHeader({ provider, canBook = true }) {
         /* Full-bleed: spans edge-to-edge regardless of the page's max-width
            content column, same as .pph-banner above it. */
         .pph-meta-band {
-          background: var(--color-primary-600);
+          background: linear-gradient(120deg, var(--color-secondary-700) 0%, var(--color-primary-600) 100%);
           box-shadow: 0 16px 36px rgba(5, 150, 105, 0.18);
         }
         .pph-card {
@@ -178,7 +178,7 @@ export default function ProviderProfileHeader({ provider, canBook = true }) {
         .pph-avatar-wrap { position: relative; margin-top: -74px; flex-shrink: 0; }
         .pph-avatar {
           width: 156px; height: 156px; border-radius: 50%;
-          border: 4px solid white; box-shadow: 0 4px 14px rgba(0,0,0,0.12);
+          border: 4px solid white; box-shadow: 0 10px 28px rgba(0,0,0,0.22);
           background: var(--color-primary-100); overflow: hidden;
           display: flex; align-items: center; justify-content: center;
           font-size: 3.4rem; font-weight: 700; color: var(--color-primary-700);
@@ -192,7 +192,11 @@ export default function ProviderProfileHeader({ provider, canBook = true }) {
           display: flex; align-items: center; gap: 3px;
         }
         .pph-info { flex: 1; padding-top: 8px; min-width: 0; }
-        .pph-name { font-size: var(--font-size-2xl); font-weight: 800; color: var(--color-neutral-0); margin-bottom: 8px; overflow-wrap: break-word; }
+        .pph-name {
+          font-size: var(--font-size-2xl); font-weight: 800; color: var(--color-neutral-0);
+          margin-bottom: 8px; overflow-wrap: break-word; text-transform: capitalize;
+          text-shadow: 0 2px 10px rgba(3, 42, 32, 0.35);
+        }
         .pph-meta { display: flex; gap: var(--space-md); flex-wrap: wrap; margin-bottom: 10px; }
         .pph-meta-item { display: flex; align-items: center; gap: 5px; font-size: var(--font-size-sm); color: var(--color-neutral-0); }
         .pph-unavailable-notice {
@@ -200,7 +204,10 @@ export default function ProviderProfileHeader({ provider, canBook = true }) {
           color: #b45309; background: #fef3c7; border-radius: var(--radius-sm); padding: 4px 10px;
         }
         .pph-actions { flex-shrink: 0; }
-        .pph-book-btn { display: flex; align-items: center; padding: 14px 34px; font-size: var(--font-size-base); }
+        .pph-book-btn {
+          display: flex; align-items: center; padding: 14px 34px; font-size: var(--font-size-base);
+          box-shadow: 0 10px 28px rgba(0,0,0,0.18);
+        }
         .pph-unavailable { padding: 12px 24px; border-radius: var(--radius-md); background: var(--color-neutral-100); color: var(--color-neutral-500); font-size: var(--font-size-sm); font-weight: 600; }
         @media (max-width: 640px) {
           .pph-card { flex-wrap: wrap; }
