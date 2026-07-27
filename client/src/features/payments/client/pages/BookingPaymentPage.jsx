@@ -100,7 +100,9 @@ export default function BookingPaymentPage() {
           <div className="bp-main">
             {context.alreadyPaid ? (
               <div style={{ textAlign: 'center', padding: 'var(--space-lg) 0' }}>
-                <IconCheckCircle size={48} style={{ color: 'var(--color-secondary-600)', marginBottom: 'var(--space-md)' }} />
+                <div className="bp-paid-icon">
+                  <IconCheckCircle size={40} />
+                </div>
                 <h3 style={{ marginBottom: 6 }}>This booking has already been paid</h3>
                 <p style={{ color: 'var(--color-neutral-500)', marginBottom: 'var(--space-lg)' }}>
                   Continue to leave your review and finish this job.
@@ -164,21 +166,32 @@ export default function BookingPaymentPage() {
           width: 64px; height: 64px; border-radius: var(--radius-lg);
           background: rgba(255,255,255,0.15); backdrop-filter: blur(8px);
           display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-          border: 1px solid rgba(255,255,255,0.25);
+          border: 1px solid rgba(255,255,255,0.25); box-shadow: var(--shadow-lg);
         }
         .bp-hero-title { font-size: var(--font-size-3xl); font-weight: 800; color: white; margin-bottom: 6px; }
         .bp-hero-sub { color: rgba(255,255,255,0.8); font-size: var(--font-size-lg); margin: 0; }
         .bp-body { padding-top: var(--space-2xl); }
         .bp-grid { display: grid; grid-template-columns: 1fr 1.2fr; gap: var(--space-xl); align-items: start; }
         @media (max-width: 800px) { .bp-grid { grid-template-columns: 1fr; } }
-        .bp-main { background: white; border: 1px solid var(--color-neutral-200); border-radius: var(--radius-lg); padding: var(--space-xl); }
+        .bp-main {
+          background: var(--color-neutral-0); border: 1px solid var(--color-border);
+          border-radius: var(--radius-lg); padding: var(--space-xl); box-shadow: var(--shadow-sm);
+        }
+        .bp-paid-icon {
+          width: 84px; height: 84px; border-radius: 50%; margin: 0 auto var(--space-md);
+          background: var(--color-primary-50); color: var(--color-primary-600);
+          display: flex; align-items: center; justify-content: center;
+          border: 3px solid var(--color-primary-100);
+        }
         .bp-proceed {
           margin-top: var(--space-xl); width: 100%; padding: 12px;
           background: var(--color-primary-600); color: white; border: none;
           border-radius: var(--radius-md); font-weight: 600; font-size: var(--font-size-base); cursor: pointer;
+          box-shadow: var(--shadow-sm);
+          transition: background-color var(--transition-base), transform var(--transition-base), box-shadow var(--transition-base);
         }
-        .bp-proceed:hover { background: var(--color-primary-700); }
-        .bp-proceed:disabled { background: var(--color-neutral-300); cursor: not-allowed; }
+        .bp-proceed:hover:not(:disabled) { background: var(--color-primary-700); transform: translateY(-2px); box-shadow: var(--shadow-md); }
+        .bp-proceed:disabled { background: var(--color-neutral-300); cursor: not-allowed; box-shadow: none; }
       `}</style>
     </div>
   );

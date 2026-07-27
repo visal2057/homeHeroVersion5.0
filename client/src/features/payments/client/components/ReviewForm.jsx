@@ -57,10 +57,15 @@ export default function ReviewForm({ providerName, onSubmit, submitting }) {
       </button>
 
       <style>{`
-        .rv-lead { color: var(--color-neutral-600); margin-bottom: var(--space-lg); }
-        .rv-stars { display: flex; gap: 4px; }
-        .rv-star { background: none; border: none; cursor: pointer; font-size: 2rem; line-height: 1; color: var(--color-neutral-300); padding: 0; }
-        .rv-star-on { color: #f59e0b; }
+        .rv-lead { color: var(--color-neutral-600); margin-bottom: var(--space-lg); font-size: var(--font-size-base); }
+        .rv-stars { display: flex; gap: 6px; }
+        .rv-star {
+          background: none; border: none; cursor: pointer; font-size: 2.4rem; line-height: 1;
+          color: var(--color-neutral-300); padding: 0;
+          transition: color var(--transition-base), transform var(--transition-base);
+        }
+        .rv-star:hover { transform: scale(1.15); }
+        .rv-star-on { color: #f59e0b; filter: drop-shadow(0 2px 4px rgba(245, 158, 11, 0.35)); }
         .rv-submit { margin-top: var(--space-lg); }
       `}</style>
     </form>
