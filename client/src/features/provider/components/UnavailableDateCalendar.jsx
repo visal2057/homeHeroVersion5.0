@@ -176,7 +176,7 @@ export default function UnavailableDateCalendar({ unavailableDates = [], onToggl
       </div>
 
       <p className="provider-calendar-hint">
-        Hover or click a day to see what's due. Red dates are blocked for new bookings — go offline from the Dashboard to mark a day unavailable.
+        Hover or click a day to see what's due. Red dates are blocked for new bookings — use "Mark unavailable dates" on the Dashboard to block a date range.
       </p>
 
       {activeDay && (

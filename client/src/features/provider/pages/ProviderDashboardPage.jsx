@@ -201,6 +201,24 @@ export default function ProviderDashboardPage() {
                   onToggle={handleToggleStatus}
                   loading={togglingStatus}
                 />
+                {/* The toggle on its own can never reach the range picker in
+                    every state: when today falls inside an unavailable period
+                    it acts purely as the same-day override, and when the
+                    provider is already offline it only switches them back on
+                    (see handleToggleStatus). Marking a date range therefore
+                    gets its own entry point, reachable whatever mode the
+                    toggle is currently in. */}
+                {!showOfflinePicker && (
+                  <button
+                    type="button"
+                    className="btn btn-outline"
+                    style={{ marginTop: 'var(--space-md)' }}
+                    onClick={() => setShowOfflinePicker(true)}
+                    disabled={togglingStatus}
+                  >
+                    Mark unavailable dates
+                  </button>
+                )}
                 {showOfflinePicker && (
                   <OfflineDateRangePicker
                     onConfirm={handleConfirmOffline}
