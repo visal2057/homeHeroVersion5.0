@@ -3,6 +3,11 @@ import { ROUTES } from '../../../constants/routes.js';
 import { getAssetUrl } from '../../../utils/storageUtils.js';
 import { IconTrophy, IconStar } from '../../../components/common/icons.jsx';
 
+function formatShortDate(dateStr) {
+  if (!dateStr) return '';
+  return new Date(dateStr).toLocaleDateString('en-LK', { month: 'short', day: 'numeric' });
+}
+
 function StarRating({ rating }) {
   const filled = Math.round(rating ?? 0);
   return (
@@ -18,7 +23,7 @@ function StarRating({ rating }) {
   );
 }
 
-export default function TopProvidersSection({ providers = [], category }) {
+export default function TopProvidersSection({ providers = [], category, originCategory }) {
   if (!providers.length) return null;
 
   return (
@@ -36,7 +41,11 @@ export default function TopProvidersSection({ providers = [], category }) {
       </div>
       <div className="tps-grid">
         {providers.slice(0, 5).map((p, idx) => {
-          const href = ROUTES.CLIENT_PROVIDER_PROFILE.replace(':providerId', p.providerId ?? p.id);
+          // See ProviderCard.jsx - same ?from=<slug> handoff so this card's
+          // link lands the client back on the category they were browsing.
+          const href = originCategory
+            ? `${ROUTES.CLIENT_PROVIDER_PROFILE.replace(':providerId', p.providerId ?? p.id)}?from=${originCategory}`
+            : ROUTES.CLIENT_PROVIDER_PROFILE.replace(':providerId', p.providerId ?? p.id);
           return (
             <Link key={p.providerId ?? p.id} to={href} className={`tps-card${idx === 0 ? ' tps-card-first' : ''}`}>
               {idx === 0 && (
@@ -55,6 +64,11 @@ export default function TopProvidersSection({ providers = [], category }) {
               <StarRating rating={p.averageRating} />
               <div className="tps-reviews">{p.reviewCount ?? 0} reviews</div>
               {p.hourlyRate && <div className="tps-rate">Rs. {p.hourlyRate}/hr</div>}
+              {p.unavailableFrom && p.unavailableTo && (
+                <div className="tps-unavailable">
+                  Unavailable {formatShortDate(p.unavailableFrom)} – {formatShortDate(p.unavailableTo)}
+                </div>
+              )}
             </Link>
           );
         })}
@@ -108,6 +122,11 @@ export default function TopProvidersSection({ providers = [], category }) {
         .tps-name { font-weight: 700; color: var(--color-secondary-700); font-size: var(--font-size-sm); }
         .tps-reviews { font-size: var(--font-size-xs); color: var(--color-neutral-400); }
         .tps-rate { font-weight: 700; color: var(--color-primary-600); font-size: var(--font-size-xs); }
+        .tps-unavailable {
+          display: inline-block; font-size: 11px; font-weight: 600;
+          color: #b45309; background: #fef3c7; border-radius: var(--radius-sm);
+          padding: 2px 7px;
+        }
       `}</style>
     </section>
   );

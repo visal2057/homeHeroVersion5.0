@@ -183,12 +183,18 @@ function StarRating({ rating }) {
 // exact middle of the viewport in either direction.
 const PREVIEW_HALF_WIDTH = 420 / 2 + 24;
 
-export default function ProviderCard({ provider }) {
+export default function ProviderCard({ provider, originCategory }) {
   const [hovered, setHovered] = useState(false);
   const [previewAlign, setPreviewAlign] = useState('center');
   const closeTimerRef = useRef(null);
   const cardRef = useRef(null);
-  const profileHref = ROUTES.CLIENT_PROVIDER_PROFILE.replace(':providerId', provider.providerId ?? provider.id);
+  // Carries the Explore category this card was browsed under along to the
+  // profile page (as ?from=<slug>) so a provider offering multiple
+  // categories shows the hero banner/back-link for the category the client
+  // actually came from, not an arbitrary one - see ProviderPublicProfilePage.
+  const profileHref = originCategory
+    ? `${ROUTES.CLIENT_PROVIDER_PROFILE.replace(':providerId', provider.providerId ?? provider.id)}?from=${originCategory}`
+    : ROUTES.CLIENT_PROVIDER_PROFILE.replace(':providerId', provider.providerId ?? provider.id);
 
   const hasPreview = provider.workPreview?.posts?.length > 0;
 
@@ -451,6 +457,15 @@ export default function ProviderCard({ provider }) {
         .pc-lightbox-counter {
           position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%);
           color: rgba(255,255,255,0.85); font-size: var(--font-size-sm); font-weight: 600;
+        }
+
+        /* At narrow phone widths the fixed 86px avatar leaves too little
+           room for the rate + "View Profile" button to sit side by side
+           without either squeezing onto multiple cramped lines or pushing
+           past the card edge - stack them instead. */
+        @media (max-width: 480px) {
+          .pc-footer { flex-wrap: wrap; row-gap: 8px; }
+          .pc-footer .btn { width: 100%; justify-content: center; }
         }
       `}</style>
     </div>
