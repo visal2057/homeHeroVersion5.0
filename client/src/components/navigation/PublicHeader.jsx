@@ -193,91 +193,93 @@ export default function PublicHeader() {
             <NavLink to={ROUTES.CONTACT} style={navLinkStyle}>Contact Us</NavLink>
           </nav>
 
-          <div className="public-header-actions">
-            {/* Notification bell — clients only */}
-            {isClient && (
-              <div ref={notifRef} style={{ position: 'relative' }}>
-                <button type="button" className="ph-bell-btn" aria-label="Notifications" onClick={handleOpenNotif}>
-                  <IconBell size={20} style={{ color: 'var(--color-secondary-700)' }} />
-                  {unreadCount > 0 && (
-                    <span className="ph-bell-badge">{unreadCount > 9 ? '9+' : unreadCount}</span>
-                  )}
-                </button>
+          {/* Notification bell — clients only. Lives outside .public-header-actions
+              (which is display:none on mobile) so it stays visible next to the
+              hamburger toggle on narrow screens instead of disappearing with it. */}
+          {isClient && (
+            <div ref={notifRef} className="ph-notif-standalone" style={{ position: 'relative' }}>
+              <button type="button" className="ph-bell-btn" aria-label="Notifications" onClick={handleOpenNotif}>
+                <IconBell size={20} style={{ color: 'var(--color-secondary-700)' }} />
+                {unreadCount > 0 && (
+                  <span className="ph-bell-badge">{unreadCount > 9 ? '9+' : unreadCount}</span>
+                )}
+              </button>
 
-                {isNotifOpen && (
-                  <div className="ph-notif-dropdown animate-fade-in-up">
-                    <div className="ph-notif-header">
-                      <span className="ph-notif-title">Notifications</span>
-                      {unreadCount > 0 && (
-                        <button type="button" className="ph-notif-mark-read" onClick={markAllRead}>
-                          Mark all read
-                        </button>
-                      )}
-                    </div>
-                    {visibleAnnouncements.length === 0 ? (
-                      <div className="ph-notif-empty">No notifications at the moment.</div>
-                    ) : (
-                      <div className="ph-notif-list">
-                        {visibleAnnouncements.slice(0, 6).map((a) => {
-                          const id = getId(a);
-                          const isRead = a.isRead;
-                          return (
-                            <div
-                              key={a.feedKey ?? id}
-                              className={`ph-notif-item${isRead ? '' : ' ph-notif-item-unread'}`}
-                              onMouseEnter={() => markRead(id, a.type)}
-                              onClick={() => markRead(id, a.type)}
-                              role="button"
-                              tabIndex={0}
-                              onKeyDown={(e) => e.key === 'Enter' && markRead(id, a.type)}
-                            >
-                              {!isRead && <span className="ph-notif-dot" />}
-                              <div className="ph-notif-item-body">
-                                <div className="ph-notif-item-title-row">
-                                  <span className={`ph-notif-type-badge${a.type === 'ANNOUNCEMENT' ? ' is-announcement' : ' is-personal'}`}>
-                                    {a.type === 'ANNOUNCEMENT' ? 'Announcement' : 'Personal'}
-                                  </span>
-                                </div>
-                                <div className="ph-notif-item-title">{a.title}</div>
-                                <div className={`ph-notif-item-msg${a.type === 'PERSONAL' ? ' ph-notif-item-msg-full' : ''}`}>
-                                  {a.message}
-                                </div>
-                                {a.type === 'PERSONAL' && a.relatedType === 'BOOKING_RESCHEDULE_PROPOSED' && (
-                                  <div className="ph-notif-item-actions" onClick={(e) => e.stopPropagation()}>
-                                    <button
-                                      type="button"
-                                      className="ph-notif-action-btn accept"
-                                      disabled={rescheduleActingId === a.relatedId}
-                                      onClick={() => handleRescheduleDecision(a.relatedId, 'accept')}
-                                    >
-                                      Accept
-                                    </button>
-                                    <button
-                                      type="button"
-                                      className="ph-notif-action-btn reject"
-                                      disabled={rescheduleActingId === a.relatedId}
-                                      onClick={() => handleRescheduleDecision(a.relatedId, 'reject')}
-                                    >
-                                      Reject
-                                    </button>
-                                  </div>
-                                )}
-                                <div className="ph-notif-item-date">
-                                  {a.createdAt
-                                    ? new Date(a.createdAt).toLocaleDateString('en-LK', { day: 'numeric', month: 'short' })
-                                    : ''}
-                                </div>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
+              {isNotifOpen && (
+                <div className="ph-notif-dropdown animate-fade-in-up">
+                  <div className="ph-notif-header">
+                    <span className="ph-notif-title">Notifications</span>
+                    {unreadCount > 0 && (
+                      <button type="button" className="ph-notif-mark-read" onClick={markAllRead}>
+                        Mark all read
+                      </button>
                     )}
                   </div>
-                )}
-              </div>
-            )}
+                  {visibleAnnouncements.length === 0 ? (
+                    <div className="ph-notif-empty">No notifications at the moment.</div>
+                  ) : (
+                    <div className="ph-notif-list">
+                      {visibleAnnouncements.slice(0, 6).map((a) => {
+                        const id = getId(a);
+                        const isRead = a.isRead;
+                        return (
+                          <div
+                            key={a.feedKey ?? id}
+                            className={`ph-notif-item${isRead ? '' : ' ph-notif-item-unread'}`}
+                            onMouseEnter={() => markRead(id, a.type)}
+                            onClick={() => markRead(id, a.type)}
+                            role="button"
+                            tabIndex={0}
+                            onKeyDown={(e) => e.key === 'Enter' && markRead(id, a.type)}
+                          >
+                            {!isRead && <span className="ph-notif-dot" />}
+                            <div className="ph-notif-item-body">
+                              <div className="ph-notif-item-title-row">
+                                <span className={`ph-notif-type-badge${a.type === 'ANNOUNCEMENT' ? ' is-announcement' : ' is-personal'}`}>
+                                  {a.type === 'ANNOUNCEMENT' ? 'Announcement' : 'Personal'}
+                                </span>
+                              </div>
+                              <div className="ph-notif-item-title">{a.title}</div>
+                              <div className={`ph-notif-item-msg${a.type === 'PERSONAL' ? ' ph-notif-item-msg-full' : ''}`}>
+                                {a.message}
+                              </div>
+                              {a.type === 'PERSONAL' && a.relatedType === 'BOOKING_RESCHEDULE_PROPOSED' && (
+                                <div className="ph-notif-item-actions" onClick={(e) => e.stopPropagation()}>
+                                  <button
+                                    type="button"
+                                    className="ph-notif-action-btn accept"
+                                    disabled={rescheduleActingId === a.relatedId}
+                                    onClick={() => handleRescheduleDecision(a.relatedId, 'accept')}
+                                  >
+                                    Accept
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className="ph-notif-action-btn reject"
+                                    disabled={rescheduleActingId === a.relatedId}
+                                    onClick={() => handleRescheduleDecision(a.relatedId, 'reject')}
+                                  >
+                                    Reject
+                                  </button>
+                                </div>
+                              )}
+                              <div className="ph-notif-item-date">
+                                {a.createdAt
+                                  ? new Date(a.createdAt).toLocaleDateString('en-LK', { day: 'numeric', month: 'short' })
+                                  : ''}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
 
+          <div className="public-header-actions">
             {isClient ? (
               <div ref={accountRef} style={{ position: 'relative' }}>
                 <button
@@ -378,6 +380,17 @@ export default function PublicHeader() {
             <hr />
             {isClient ? (
               <>
+                <div className="ph-mobile-account-badge">
+                  {user?.profileImageUrl ? (
+                    <img src={getAssetUrl(user.profileImageUrl)} alt="" className="ph-avatar-photo" />
+                  ) : (
+                    <span className="ph-avatar-initials">{initials}</span>
+                  )}
+                  <div className="ph-mobile-account-info">
+                    <div className="ph-mobile-account-name">{fullName}</div>
+                    <div className="ph-mobile-account-email">{user?.email}</div>
+                  </div>
+                </div>
                 <Link to={ROUTES.CLIENT_PROFILE} onClick={closeMobileMenu} className="btn btn-outline btn-block" style={{ marginBottom: 8 }}>My Profile</Link>
                 <Link to={ROUTES.CLIENT_MY_BOOKINGS} onClick={closeMobileMenu} className="btn btn-outline btn-block" style={{ marginBottom: 8 }}>My Bookings</Link>
                 <Link to={ROUTES.CLIENT_COMPLAINTS} onClick={closeMobileMenu} className="btn btn-outline btn-block" style={{ marginBottom: 8 }}>Complaints</Link>
@@ -510,6 +523,20 @@ export default function PublicHeader() {
         .ph-dropdown-divider { height: 1px; background: var(--color-neutral-100); margin: 4px 0; }
         .ph-dropdown-logout { color: #dc2626; }
         .ph-dropdown-logout:hover { background: #fef2f2; color: #dc2626; }
+        .ph-mobile-account-badge {
+          display: flex; align-items: center; gap: 10px;
+          padding: 10px 4px; margin-bottom: 8px;
+          border-bottom: 1px solid var(--color-border);
+        }
+        .ph-mobile-account-info { min-width: 0; }
+        .ph-mobile-account-name {
+          font-weight: 700; font-size: var(--font-size-sm); color: var(--color-secondary-700);
+          overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .ph-mobile-account-email {
+          font-size: var(--font-size-xs); color: var(--color-neutral-400);
+          overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
       `}</style>
     </>
   );

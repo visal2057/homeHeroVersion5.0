@@ -47,10 +47,14 @@ export function isDateUnavailableForProvider(providerUserId, date) {
   );
 }
 
+// Only an already-ACCEPTED booking actually holds the slot -- multiple
+// clients are allowed to have PENDING requests on the same provider/slot at
+// once, so the provider can pick which one to accept and reject/reschedule
+// the rest.
 export function findConflictingBooking(providerUserId, scheduledAt) {
   return query(
     `SELECT booking_id FROM bookings
-     WHERE provider_user_id = $1 AND scheduled_at = $2 AND booking_status IN ('PENDING', 'ACCEPTED')`,
+     WHERE provider_user_id = $1 AND scheduled_at = $2 AND booking_status = 'ACCEPTED'`,
     [providerUserId, scheduledAt],
   );
 }
@@ -98,7 +102,7 @@ export function findReviewableBookingForClientAndProvider(clientUserId, provider
 
 export function findBookingForOwnershipCheck(bookingId) {
   return query(
-    `SELECT booking_id, client_user_id, provider_user_id, booking_status,
+    `SELECT booking_id, client_user_id, provider_user_id, booking_status, scheduled_at,
             proposed_scheduled_at, proposed_scheduled_end_at
      FROM bookings WHERE booking_id = $1`,
     [bookingId],
@@ -180,6 +184,7 @@ export function listClientBookings(clientUserId) {
 export function listProviderBookingsByStatuses(providerUserId, statuses, limit) {
   return query(
     `SELECT b.booking_id, b.job_description, b.scheduled_at, b.scheduled_end_at, b.requested_at, b.completed_at, b.booking_status,
+            b.proposed_scheduled_at, b.proposed_scheduled_end_at,
             cu.full_name AS client_name, cu.phone AS client_phone, cu.email AS client_email, cu.user_token AS client_token,
             sc.category_name AS service_category,
             bl.address_snapshot, bl.latitude_snapshot, bl.longitude_snapshot,
