@@ -137,7 +137,7 @@ export default function ExploreServicePage() {
 
         {topProviders.length > 0 && (
           <div style={{ marginTop: 'var(--space-2xl)' }}>
-            <TopProvidersSection providers={topProviders} category={meta.label} />
+            <TopProvidersSection providers={topProviders} category={meta.label} originCategory={category} />
           </div>
         )}
 
@@ -192,7 +192,7 @@ export default function ExploreServicePage() {
           </div>
         ) : (
           <div className="ep-grid">
-            {displayed.map((p) => <ProviderCard key={p.providerId ?? p.id} provider={p} />)}
+            {displayed.map((p) => <ProviderCard key={p.providerId ?? p.id} provider={p} originCategory={category} />)}
           </div>
         )}
       </div>
@@ -276,6 +276,14 @@ export default function ExploreServicePage() {
         @keyframes spin { to { transform: rotate(360deg); } }
         .ep-empty { text-align: center; padding: var(--space-2xl) var(--space-md); color: var(--color-neutral-400); display: flex; flex-direction: column; align-items: center; }
         .ep-empty h3 { color: var(--color-neutral-600); margin-bottom: 8px; }
+
+        /* Below 768px the fixed 380px column minimum in .ep-grid's
+           auto-fill exceeds the available width on any phone viewport,
+           forcing a wider-than-viewport track and horizontal page scroll -
+           collapse to a single fluid column instead. */
+        @media (max-width: 768px) {
+          .ep-grid { grid-template-columns: 1fr; }
+        }
       `}</style>
     </div>
   );

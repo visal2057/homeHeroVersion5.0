@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { useParams, useLocation, useNavigate, Link } from 'react-router-dom';
+import { useParams, useLocation, useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { ROUTES } from '../../../constants/routes.js';
 import { useAuth } from '../../../hooks/useAuth.js';
 import { ROLES } from '../../../constants/roles.js';
@@ -12,27 +12,20 @@ import EmptyState from '../../../components/common/EmptyState.jsx';
 import {
   IconToolbox, IconMapPin, IconDollarSign, IconCalendar,
   IconShield, IconUser, IconStar, IconAlertCircle, IconArrowLeft,
+  IconImage, IconClipboardList,
 } from '../../../components/common/icons.jsx';
 
-const CATEGORY_CTA_IMAGES = {
-  gardening:  'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?auto=format&fit=crop&w=2000&q=80',
-  cleaning:   'https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=2000&q=80',
-  'pet-care': 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&w=2000&q=80',
-  plumbing:   'https://images.unsplash.com/photo-1607472586893-edb57bdc0e39?auto=format&fit=crop&w=2000&q=80',
-  'ac-repair':'https://images.unsplash.com/photo-1621905251918-48416bd8575a?auto=format&fit=crop&w=2000&q=80',
-};
-const DEFAULT_CTA_IMAGE = 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=2000&q=80';
-
-function getCategoryImage(category) {
-  if (!category) return DEFAULT_CTA_IMAGE;
-  return CATEGORY_CTA_IMAGES[category.toLowerCase().replace(/\s+/g, '-')] ?? DEFAULT_CTA_IMAGE;
-}
+// One shared background photo behind every "Ready to Book" CTA, regardless
+// of the provider's category - unlike the profile hero banner above it,
+// this section is intentionally not category-specific.
+const CTA_IMAGE_URL = 'https://images.unsplash.com/photo-1754325899655-5e9b7bf05cdc?auto=format&fit=crop&w=2000&q=80';
 
 export default function ProviderPublicProfilePage() {
   const { providerId } = useParams();
   const { user } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   // A pending Service Provider may view profiles (see ProtectedRoute's
   // `allowPendingProvider`) but not book - only a Client viewer sees the
   // booking CTAs.
@@ -118,30 +111,39 @@ export default function ProviderPublicProfilePage() {
     ? ROUTES.CLIENT_BOOKING_CONFIRM.replace(':providerId', provider.providerId ?? provider.id)
     : ROUTES.REGISTER_CLIENT;
   const bookingState = user ? undefined : { from: location };
-  const ctaImage = getCategoryImage(provider.category);
-  // Same category-slug format BookingConfirmationPage already uses to link
-  // back into Explore: prefer the first entry of `categories` over the
-  // combined `category` string ("AC Repair & Plumbing" for a provider with
-  // two categories isn't a real Explore route on its own).
-  const exploreHref = ROUTES.CLIENT_EXPLORE.replace(
-    ':category',
-    (provider.categories?.[0] ?? provider.category ?? '').toLowerCase().replace(/\s+/g, '-'),
-  );
+  // A provider offering more than one category (e.g. "AC Repair" and
+  // "Cleaning") has no single home category - which one this profile
+  // should be treated as depends on which Explore page the client actually
+  // browsed in from. ProviderCard/TopProvidersSection tag their profile
+  // links with ?from=<slug> for exactly this reason (see ProviderCard.jsx);
+  // it's only trusted here if it's actually one of this provider's real
+  // categories, so a stale/tampered query string can't misrepresent them.
+  // Falls back to the provider's first listed category (previous
+  // behavior) when there's no origin - e.g. reached via a direct link or
+  // the booking confirmation page.
+  const categorySlugs = (provider.categories?.length ? provider.categories : [provider.category])
+    .filter(Boolean)
+    .map((c) => c.toLowerCase().replace(/\s+/g, '-'));
+  const originCategory = searchParams.get('from');
+  const activeCategory = (originCategory && categorySlugs.includes(originCategory))
+    ? originCategory
+    : categorySlugs[0];
+  const exploreHref = ROUTES.CLIENT_EXPLORE.replace(':category', activeCategory ?? '');
 
   function handleBackToExplore() {
     navigate(exploreHref);
   }
 
   const tabs = [
-    { key: 'about',   label: 'About' },
-    { key: 'gallery', label: `Previous Work (${provider.portfolioPosts?.length ?? 0})` },
-    { key: 'reviews', label: `Reviews (${provider.reviewCount ?? reviews.length})` },
+    { key: 'about',   label: 'About', icon: IconUser },
+    { key: 'gallery', label: `Previous Work (${provider.portfolioPosts?.length ?? 0})`, icon: IconImage },
+    { key: 'reviews', label: `Reviews (${provider.reviewCount ?? reviews.length})`, icon: IconStar },
   ];
 
   return (
     <div className="pp-page">
       {/* Header: banner + avatar row + Book Now — all in one line */}
-      <ProviderProfileHeader provider={provider} canBook={canBook} />
+      <ProviderProfileHeader provider={provider} canBook={canBook} bannerCategory={activeCategory} />
 
       <div className="container pp-body">
         {/* Two-column layout: tabs left, service details right */}
@@ -150,31 +152,43 @@ export default function ProviderPublicProfilePage() {
           {/* LEFT: tab bar + content */}
           <div className="pp-left">
             <div className="pp-tabs">
-              {tabs.map((t) => (
-                <button
-                  key={t.key}
-                  type="button"
-                  className={`pp-tab${activeTab === t.key ? ' pp-tab-active' : ''}`}
-                  onClick={() => setActiveTab(t.key)}
-                >
-                  {t.label}
-                </button>
-              ))}
+              {tabs.map((t) => {
+                const TabIcon = t.icon;
+                return (
+                  <button
+                    key={t.key}
+                    type="button"
+                    className={`pp-tab${activeTab === t.key ? ' pp-tab-active' : ''}`}
+                    onClick={() => setActiveTab(t.key)}
+                  >
+                    <TabIcon size={15} />
+                    {t.label}
+                  </button>
+                );
+              })}
             </div>
 
             <div className="pp-tab-content">
               {activeTab === 'about' && (
-                <div className="pp-card">
-                  <h3 className="pp-card-title">About {provider.name}</h3>
-                  <p style={{ color: 'var(--color-neutral-600)', lineHeight: 1.8, margin: 0 }}>
-                    {provider.bio ?? 'No bio provided.'}
-                  </p>
+                <div className="pp-card animate-fade-in-up">
+                  <div className="pp-card-title-row">
+                    <span className="pp-title-icon"><IconUser size={18} /></span>
+                    <h3 className="pp-card-title">About {provider.name}</h3>
+                  </div>
+                  <div className="pp-about-box">
+                    <p className="pp-about-text">
+                      {provider.bio ?? 'No bio provided.'}
+                    </p>
+                  </div>
                 </div>
               )}
 
               {activeTab === 'gallery' && (
-                <div className="pp-card">
-                  <h3 className="pp-card-title">Previous Work</h3>
+                <div className="pp-card animate-fade-in-up">
+                  <div className="pp-card-title-row">
+                    <span className="pp-title-icon"><IconImage size={18} /></span>
+                    <h3 className="pp-card-title">Previous Work</h3>
+                  </div>
                   {(provider.portfolioPosts?.length ?? 0) === 0 ? (
                     <div style={{ textAlign: 'center', padding: 'var(--space-xl)', color: 'var(--color-neutral-400)' }}>
                       <IconToolbox size={48} style={{ color: 'var(--color-neutral-300)', marginBottom: 14 }} />
@@ -187,8 +201,11 @@ export default function ProviderPublicProfilePage() {
               )}
 
               {activeTab === 'reviews' && (
-                <div className="pp-card">
-                  <h3 className="pp-card-title">Client Reviews</h3>
+                <div className="pp-card animate-fade-in-up">
+                  <div className="pp-card-title-row">
+                    <span className="pp-title-icon"><IconStar size={18} /></span>
+                    <h3 className="pp-card-title">Client Reviews</h3>
+                  </div>
                   <ReviewsSection
                     reviews={reviews}
                     averageRating={provider.averageRating}
@@ -202,13 +219,16 @@ export default function ProviderPublicProfilePage() {
 
           {/* RIGHT: service details (sticky) */}
           <div className="pp-right">
-            <div className="pp-card pp-sticky">
-              <h3 className="pp-card-title">Service Details</h3>
+            <div className="pp-card pp-sticky animate-fade-in-up">
+              <div className="pp-card-title-row">
+                <span className="pp-title-icon pp-title-icon-solid"><IconClipboardList size={18} /></span>
+                <h3 className="pp-card-title">Service Details</h3>
+              </div>
               <div className="pp-detail-list">
                 {token && (
                   <div className="pp-detail-item">
                     <span className="pp-detail-label">
-                      <IconUser size={17} style={{ color: 'var(--color-neutral-400)' }} />
+                      <span className="pp-detail-icon pp-detail-icon-neutral"><IconUser size={15} /></span>
                       Provider Token
                     </span>
                     <span className="pp-detail-value pp-token">{token}</span>
@@ -216,14 +236,14 @@ export default function ProviderPublicProfilePage() {
                 )}
                 <div className="pp-detail-item">
                   <span className="pp-detail-label">
-                    <IconToolbox size={17} style={{ color: 'var(--color-neutral-400)' }} />
+                    <span className="pp-detail-icon pp-detail-icon-teal"><IconToolbox size={15} /></span>
                     Category
                   </span>
                   <span className="pp-detail-value">{provider.category ?? 'N/A'}</span>
                 </div>
                 <div className="pp-detail-item">
                   <span className="pp-detail-label">
-                    <IconMapPin size={17} style={{ color: 'var(--color-neutral-400)' }} />
+                    <span className="pp-detail-icon pp-detail-icon-blue"><IconMapPin size={15} /></span>
                     District
                   </span>
                   <span className="pp-detail-value" style={{ textTransform: 'capitalize' }}>
@@ -233,7 +253,7 @@ export default function ProviderPublicProfilePage() {
                 {provider.hourlyRate && (
                   <div className="pp-detail-item">
                     <span className="pp-detail-label">
-                      <IconDollarSign size={17} style={{ color: 'var(--color-neutral-400)' }} />
+                      <span className="pp-detail-icon pp-detail-icon-green"><IconDollarSign size={15} /></span>
                       Hourly Rate
                     </span>
                     <span className="pp-detail-value">Rs. {provider.hourlyRate}/hr</span>
@@ -241,7 +261,7 @@ export default function ProviderPublicProfilePage() {
                 )}
                 <div className="pp-detail-item">
                   <span className="pp-detail-label">
-                    <IconShield size={17} style={{ color: 'var(--color-neutral-400)' }} />
+                    <span className={`pp-detail-icon ${provider.isVerified ? 'pp-detail-icon-green' : 'pp-detail-icon-neutral'}`}><IconShield size={15} /></span>
                     Verified
                   </span>
                   <span className={`pp-detail-value pp-verified-chip ${provider.isVerified ? 'pp-verified-yes' : 'pp-verified-no'}`}>
@@ -251,7 +271,7 @@ export default function ProviderPublicProfilePage() {
                 {provider.averageRating > 0 && (
                   <div className="pp-detail-item">
                     <span className="pp-detail-label">
-                      <IconStar size={17} style={{ color: 'var(--color-neutral-400)' }} />
+                      <span className="pp-detail-icon pp-detail-icon-amber"><IconStar size={15} /></span>
                       Rating
                     </span>
                     <span className="pp-detail-value" style={{ color: '#d97706', fontWeight: 700 }}>
@@ -266,7 +286,7 @@ export default function ProviderPublicProfilePage() {
 
         {/* Full-width Ready to Book — category image + glassmorphism card */}
         {canBook && provider.isAvailable !== false && (
-          <div className="pp-cta-section" style={{ backgroundImage: `url(${ctaImage})` }}>
+          <div className="pp-cta-section" style={{ backgroundImage: `url(${CTA_IMAGE_URL})` }}>
             <div className="pp-cta-overlay" />
             <div className="pp-cta-inner">
               <div className="pp-cta-glass">
@@ -297,7 +317,18 @@ export default function ProviderPublicProfilePage() {
       </div>
 
       <style>{`
-        .pp-page { padding-bottom: 0; }
+        .pp-page {
+          padding-bottom: 0;
+          /* A very mild green wash across the whole page - same light-mint
+             recipe as the homepage's "How It Works" section (steps-section
+             in homepage.css) - plus a soft accent glow near the top-right
+             for a touch more depth. Both are subtle enough to stay felt
+             rather than seen, so they never compete with the cards/photos
+             on top of them. */
+          background:
+            radial-gradient(1100px 480px at 88% 0%, var(--color-primary-50) 0%, rgba(236,253,245,0) 65%),
+            linear-gradient(180deg, var(--color-primary-50) 0%, var(--color-bg) 45%);
+        }
         .pp-body { padding-top: var(--space-xl); padding-bottom: var(--space-2xl); }
 
         /* Two-column layout */
@@ -317,6 +348,7 @@ export default function ProviderPublicProfilePage() {
           padding: 4px; margin-bottom: var(--space-lg); flex-wrap: wrap;
         }
         .pp-tab {
+          display: inline-flex; align-items: center; gap: 6px;
           padding: 0.55rem 1.3rem; border-radius: var(--radius-full); border: none;
           background: transparent; cursor: pointer;
           font-family: inherit; font-size: var(--font-size-sm); font-weight: 600;
@@ -342,7 +374,31 @@ export default function ProviderPublicProfilePage() {
             0 20px 50px -10px rgba(16, 185, 129, 0.30),
             0 8px 24px rgba(0, 0, 0, 0.06);
         }
-        .pp-card-title { font-size: var(--font-size-lg); color: var(--color-secondary-700); margin-bottom: var(--space-lg); font-weight: 700; }
+        .pp-card-title { font-size: var(--font-size-lg); color: var(--color-secondary-700); margin: 0; font-weight: 700; }
+
+        /* Card title row - small icon badge beside the heading, echoing the
+           icon-badge language used on the homepage/step cards, so each
+           section reads with a bit more personality than plain text alone. */
+        .pp-card-title-row { display: flex; align-items: center; gap: 12px; margin-bottom: var(--space-lg); }
+        .pp-title-icon {
+          display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+          width: 38px; height: 38px; border-radius: var(--radius-md);
+          background: var(--color-primary-50); color: var(--color-primary-700);
+        }
+        .pp-title-icon-solid {
+          background: linear-gradient(135deg, var(--color-primary-500), var(--color-secondary-700));
+          color: var(--color-neutral-0); box-shadow: var(--shadow-glow);
+        }
+
+        /* About bio - a softly tinted panel instead of bare paragraph text,
+           matching the gradient-tint recipe already used for the reviews
+           summary strip (see .reviews-summary in ReviewsSection.jsx). */
+        .pp-about-box {
+          background: linear-gradient(135deg, var(--color-primary-50), var(--color-neutral-0));
+          border: 1px solid var(--color-primary-100); border-radius: var(--radius-md);
+          padding: var(--space-lg);
+        }
+        .pp-about-text { color: var(--color-neutral-600); line-height: 1.8; margin: 0; }
 
         /* Service details */
         .pp-detail-list { display: flex; flex-direction: column; }
@@ -352,8 +408,20 @@ export default function ProviderPublicProfilePage() {
           font-size: var(--font-size-sm); gap: var(--space-md);
         }
         .pp-detail-item:last-child { border-bottom: none; }
-        .pp-detail-label { display: flex; align-items: center; gap: 6px; color: var(--color-neutral-500); }
+        .pp-detail-label { display: flex; align-items: center; gap: 10px; color: var(--color-neutral-500); }
         .pp-detail-value { font-weight: 600; color: var(--color-secondary-700); text-align: right; }
+        /* Colored icon badges per row, same green/teal/amber/blue palette
+           the Provider Dashboard's own stat cards use, so this list feels
+           like a natural extension of the SP-side visual language. */
+        .pp-detail-icon {
+          display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+          width: 30px; height: 30px; border-radius: var(--radius-sm);
+        }
+        .pp-detail-icon-green   { background: var(--color-primary-50); color: var(--color-primary-700); }
+        .pp-detail-icon-teal    { background: #ecfeff; color: #0e7490; }
+        .pp-detail-icon-amber   { background: var(--color-warning-bg); color: var(--color-warning); }
+        .pp-detail-icon-blue    { background: var(--color-info-bg); color: var(--color-info); }
+        .pp-detail-icon-neutral { background: var(--color-neutral-100); color: var(--color-neutral-400); }
         .pp-token {
           font-family: monospace; background: var(--color-primary-50);
           color: var(--color-primary-700); padding: 2px 8px; border-radius: var(--radius-sm);

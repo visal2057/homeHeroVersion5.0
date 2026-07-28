@@ -3,7 +3,10 @@ import { sendSuccess } from '../../utils/responseUtils.js';
 import * as availabilityService from './availability.service.js';
 
 export const toggleAvailabilityHandler = asyncHandler(async (req, res) => {
-  const result = await availabilityService.toggleManualOnline(req.user.userId, req.body.manualOnline);
+  const { manualOnline, todayOverride } = req.body;
+  const result = typeof todayOverride === 'boolean'
+    ? await availabilityService.setTodayOverride(req.user.userId, todayOverride)
+    : await availabilityService.toggleManualOnline(req.user.userId, manualOnline);
   sendSuccess(res, result);
 });
 

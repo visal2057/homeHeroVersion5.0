@@ -139,6 +139,19 @@ export default function PaymentSettingsSection() {
         .pset-sub { color: var(--color-neutral-500); font-size: var(--font-size-sm); margin-bottom: var(--space-md); }
         .pset-current { font-size: var(--font-size-sm); color: var(--color-neutral-600); margin-bottom: var(--space-md); }
         .pset-split { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-md); }
+
+        /* This section isn't wrapped in a .provider-card, so its own
+           var(--space-xl) padding is the only inset — on a narrow phone that
+           squeezes the Bank/Branch split into two very thin columns. Ease
+           the padding and stack the fields. */
+        @media (max-width: 480px) {
+          .pset {
+            padding: var(--space-md);
+          }
+          .pset-split {
+            grid-template-columns: 1fr;
+          }
+        }
       `}</style>
     </form>
   );

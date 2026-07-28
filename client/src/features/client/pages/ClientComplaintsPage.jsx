@@ -151,6 +151,13 @@ export default function ClientComplaintsPage() {
         .ccmp-item-token { font-family: monospace; background: var(--color-primary-50); color: var(--color-primary-700); padding: 1px 6px; border-radius: var(--radius-sm); }
         .ccmp-item-desc { color: var(--color-neutral-600); font-size: var(--font-size-sm); margin: 0 0 8px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
         .ccmp-item-date { font-size: var(--font-size-xs); color: var(--color-neutral-400); }
+
+        /* .ccmp-item-target has no wrap, so a longer provider name plus a
+           booking-ref token can outrun a phone-width card - let it wrap
+           instead of overflowing. */
+        @media (max-width: 480px) {
+          .ccmp-item-target { flex-wrap: wrap; }
+        }
       `}</style>
     </div>
   );

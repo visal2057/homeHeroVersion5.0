@@ -134,6 +134,14 @@ export default function ReviewsSection({ reviews = [], averageRating, reviewCoun
           margin: 8px 0 0; font-size: var(--font-size-xs); color: var(--color-neutral-500);
           max-width: 260px;
         }
+
+        /* .reviews-summary has no wrap, so the big average number + star
+           row + the Write Review button (pushed right via marginLeft:auto)
+           can outrun a phone-width card - let it wrap instead of
+           overflowing. */
+        @media (max-width: 480px) {
+          .reviews-summary { flex-wrap: wrap; row-gap: var(--space-sm); }
+        }
       `}</style>
     </div>
   );

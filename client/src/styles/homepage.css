@@ -221,6 +221,22 @@
   }
 }
 
+/* Same title/subtitle shrink as the max-height rule above, but keyed off
+   viewport WIDTH instead. Taller phones (e.g. many Android devices, iPhone
+   Pro Max models) never trigger the max-height:760 query above since their
+   viewport height comfortably exceeds it, so without this the hero title
+   still rendered at the full 48px (--font-size-4xl) size on a narrow phone
+   screen, forcing very heavy word-wrap. */
+@media (max-width: 480px) {
+  .hh-hero-title {
+    font-size: var(--font-size-3xl);
+  }
+
+  .hh-hero-subtitle {
+    font-size: var(--font-size-base);
+  }
+}
+
 /* -------------------------------------------------------------------------
    Services section: clean glass tiles with a floating icon badge
    ------------------------------------------------------------------------- */
@@ -577,6 +593,16 @@
 
   .theme-page-hero-title {
     font-size: var(--font-size-3xl);
+  }
+}
+
+/* Further reduction for phone-width screens (About Us / Careers / Contact
+   Us hero titles) - 36px (--font-size-3xl) still wrapped to many short
+   lines once the glass-hero-panel padding fix (global.css) narrowed the
+   available text column on a ~375-428px phone. */
+@media (max-width: 480px) {
+  .theme-page-hero-title {
+    font-size: var(--font-size-2xl);
   }
 }
 

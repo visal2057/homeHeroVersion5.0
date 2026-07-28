@@ -104,6 +104,20 @@ export default function MembershipPaymentForm({ quote, onCancel, onPaid }) {
         .mpf-sub { color: var(--color-neutral-500); font-size: var(--font-size-sm); margin-bottom: var(--space-lg); }
         .mpf-split { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-md); }
         .mpf-actions { display: flex; gap: var(--space-sm); justify-content: flex-end; margin-top: var(--space-lg); }
+
+        /* This form renders inside the shared Modal, which already pads its
+           card by var(--space-xl) — stacked with .mpf's own var(--space-xl)
+           padding that's a lot of compounded inset on a narrow phone.
+           Trim it and stack the Expiry/CVV split so the fields aren't
+           squeezed into a sliver of the modal's already-clamped width. */
+        @media (max-width: 480px) {
+          .mpf {
+            padding: var(--space-md);
+          }
+          .mpf-split {
+            grid-template-columns: 1fr;
+          }
+        }
       `}</style>
     </div>
   );

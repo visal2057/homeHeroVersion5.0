@@ -5,11 +5,11 @@ import { getAssetUrl } from '../../../utils/storageUtils.js';
 import { IconMapPin, IconToolbox, IconCalendar, IconStar } from '../../../components/common/icons.jsx';
 
 const CATEGORY_IMAGES = {
-  gardening:  'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?auto=format&fit=crop&w=2000&q=80',
-  cleaning:   'https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=2000&q=80',
-  'pet-care': 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&w=2000&q=80',
-  plumbing:   'https://images.unsplash.com/photo-1607472586893-edb57bdc0e39?auto=format&fit=crop&w=2000&q=80',
-  'ac-repair':'https://images.unsplash.com/photo-1621905251918-48416bd8575a?auto=format&fit=crop&w=2000&q=80',
+  gardening:  'https://images.unsplash.com/photo-1760643571416-8b2a08504a84?auto=format&fit=crop&w=2000&q=80',
+  cleaning:   'https://images.unsplash.com/photo-1758272422155-d898efd14f81?auto=format&fit=crop&w=2000&q=80',
+  'pet-care': 'https://images.unsplash.com/photo-1695071319752-371dcee7bb97?auto=format&fit=crop&w=2000&q=80',
+  plumbing:   'https://images.unsplash.com/photo-1676210134188-4c05dd172f89?auto=format&fit=crop&w=2000&q=80',
+  'ac-repair':'https://images.unsplash.com/photo-1642749776312-aa42ce20c9f5?auto=format&fit=crop&w=2000&q=80',
 };
 const DEFAULT_BANNER = 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=2000&q=80';
 
@@ -55,7 +55,7 @@ function StarRating({ rating, count }) {
   );
 }
 
-export default function ProviderProfileHeader({ provider, canBook = true }) {
+export default function ProviderProfileHeader({ provider, canBook = true, bannerCategory }) {
   const { user } = useAuth();
   const location = useLocation();
   // A logged-out visitor can browse all the way to a provider's profile
@@ -69,7 +69,13 @@ export default function ProviderProfileHeader({ provider, canBook = true }) {
     ? ROUTES.CLIENT_BOOKING_CONFIRM.replace(':providerId', provider.providerId ?? provider.id)
     : ROUTES.REGISTER_CLIENT;
   const bookingState = user ? undefined : { from: location };
-  const bannerImage = getBannerImage(provider.category);
+  // A provider offering more than one category has no single "correct"
+  // banner - bannerCategory (the category the client is currently browsing
+  // under, passed down from ProviderPublicProfilePage) picks the right one
+  // instead of always falling back to provider.category's raw combined
+  // string (e.g. "AC Repair & Cleaning"), which never matches a category
+  // key and used to silently fall through to the generic default banner.
+  const bannerImage = getBannerImage(bannerCategory ?? provider.category);
   const districtLabel = DISTRICTS[provider.district?.toLowerCase()] ?? provider.district;
 
   return (
@@ -158,30 +164,47 @@ export default function ProviderProfileHeader({ provider, canBook = true }) {
       <style>{`
         .pph-wrap { background: white; border-bottom: 1px solid var(--color-neutral-200); }
         .pph-banner {
-          height: 240px; background-size: cover; background-position: center;
+          height: 296px; background-size: cover; background-position: center;
           position: relative;
         }
         .pph-banner-overlay {
           position: absolute; inset: 0;
-          background: linear-gradient(160deg, rgba(15,45,25,0.52) 0%, rgba(21,128,61,0.35) 100%);
+          /* The second layer adds a faint green deepening right at the
+             photo's bottom edge - just enough that the seam into the band
+             below (which starts dark green on its own left edge) reads as
+             a soft dissolve rather than a hard cut. Kept subtle: fully
+             transparent until the last ~15% of the photo's height. */
+          background:
+            linear-gradient(160deg, rgba(15,45,25,0.52) 0%, rgba(21,128,61,0.35) 100%),
+            linear-gradient(to bottom, rgba(3,42,32,0) 85%, rgba(3,42,32,0.38) 100%);
         }
         /* Full-bleed: spans edge-to-edge regardless of the page's max-width
            content column, same as .pph-banner above it. */
         .pph-meta-band {
-          background: linear-gradient(120deg, var(--color-secondary-700) 0%, var(--color-primary-600) 100%);
+          /* Base tone: dark green on the left softening to a lighter green
+             on the right. Layered above it, two very faint washes fade the
+             band's own top and bottom edges - top toward the photo's dark
+             tone (so it feels like it dissolves out of the hero image),
+             bottom toward white (so it melts into the content section
+             below) - both kept minimal so the green itself still reads as
+             solid at a glance. */
+          background:
+            linear-gradient(to bottom, rgba(3,42,32,0.22) 0%, rgba(3,42,32,0) 8%),
+            linear-gradient(to top, rgba(255,255,255,0.16) 0%, rgba(255,255,255,0) 10%),
+            linear-gradient(90deg, var(--color-secondary-700) 0%, var(--color-primary-600) 100%);
           box-shadow: 0 16px 36px rgba(5, 150, 105, 0.18);
         }
         .pph-card {
           display: flex; gap: var(--space-xl); align-items: center;
-          padding: 0 0 var(--space-xl);
+          padding: 0 0 var(--space-lg);
         }
-        .pph-avatar-wrap { position: relative; margin-top: -74px; flex-shrink: 0; }
+        .pph-avatar-wrap { position: relative; margin-top: -60px; flex-shrink: 0; }
         .pph-avatar {
-          width: 156px; height: 156px; border-radius: 50%;
+          width: 140px; height: 140px; border-radius: 50%;
           border: 4px solid white; box-shadow: 0 10px 28px rgba(0,0,0,0.22);
           background: var(--color-primary-100); overflow: hidden;
           display: flex; align-items: center; justify-content: center;
-          font-size: 3.4rem; font-weight: 700; color: var(--color-primary-700);
+          font-size: 3.1rem; font-weight: 700; color: var(--color-primary-700);
         }
         .pph-avatar img { width: 100%; height: 100%; object-fit: cover; }
         .pph-badge {

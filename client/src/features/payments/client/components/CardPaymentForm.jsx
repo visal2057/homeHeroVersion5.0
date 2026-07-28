@@ -163,6 +163,12 @@ export default function CardPaymentForm({ context, onCancel, onPaid }) {
         .cf-line { display: flex; justify-content: space-between; padding: 6px 0; font-size: var(--font-size-sm); color: var(--color-neutral-600); }
         .cf-total { border-top: 1px solid var(--color-border); margin-top: 4px; padding-top: 10px; font-size: var(--font-size-base); font-weight: 700; color: var(--color-primary-700); }
         .cf-actions { display: flex; gap: var(--space-sm); justify-content: flex-end; margin-top: var(--space-lg); }
+
+        @media (max-width: 480px) {
+          .cf-split { grid-template-columns: 1fr; }
+          .cf-actions { flex-direction: column-reverse; }
+          .cf-actions .btn { width: 100%; }
+        }
       `}</style>
     </div>
   );

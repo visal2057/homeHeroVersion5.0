@@ -38,6 +38,14 @@ export default function BookingTabs({ activeTab, onTabChange }) {
         .bt-label { font-weight: 600; color: var(--color-secondary-700); font-size: var(--font-size-base); }
         .bt-desc { font-size: var(--font-size-xs); color: var(--color-neutral-500); }
         .bt-tab-active .bt-label { color: var(--color-primary-700); }
+
+        /* 3 tabs at min-width:144px (432px total) no longer fit side by
+           side below this width, so stack them instead of letting them
+           wrap into an uneven 2-then-1 layout. */
+        @media (max-width: 480px) {
+          .booking-tabs { flex-direction: column; }
+          .bt-tab { min-width: 100%; }
+        }
       `}</style>
     </div>
   );

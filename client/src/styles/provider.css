@@ -1966,3 +1966,68 @@
     display: flex;
   }
 }
+
+/* --------------------------------------------------------------------------
+   Responsive: further collapsing for narrow phones (~480px and below).
+   New block only — the 768px block above is the established sidebar
+   breakpoint and is left untouched.
+   -------------------------------------------------------------------------- */
+@media (max-width: 480px) {
+  /* Two dashboard stat cards per row get too narrow for the nowrap
+     currency/value text (e.g. "Total Earnings via HomeHero") on phones —
+     drop to a single column. */
+  .provider-stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* The Go Offline start/end date inputs get cramped side-by-side on a
+     narrow phone — stack them. */
+  .provider-offline-picker-row {
+    grid-template-columns: 1fr;
+  }
+
+  /* Trim card padding so nested content (forms, calendar, tables) has more
+     usable width on small phones. */
+  .provider-card-body {
+    padding: var(--space-md);
+  }
+
+  /* The 7-column task calendar gets extremely cramped on narrow phones —
+     tighten the wrap padding and cell gap to give each day cell more room. */
+  .provider-calendar-wrap {
+    padding: var(--space-md);
+  }
+
+  .provider-calendar-grid {
+    gap: 4px;
+  }
+
+  /* Found via live mobile testing: the topbar's fixed-width elements
+     (hamburger + bell + divider + full account bubble) plus its own
+     var(--space-xl) side padding leave too little room for longer page
+     titles ("Subscriptions", "Profile & Settings") to fit, since
+     .provider-topbar-title's flex:1 has an implicit min-width:auto floor
+     it won't shrink below - the row ends up wider than the viewport
+     itself rather than the title just wrapping/truncating in place.
+     Reclaim room by dropping the account name (keep just the avatar
+     initials) and tightening the topbar's own padding, plus add a safety
+     ellipsis on the title so no future page-title length can reopen this. */
+  .provider-topbar {
+    padding: 0 var(--space-md);
+  }
+
+  .provider-topbar-title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+  }
+
+  .provider-account-name {
+    display: none;
+  }
+
+  .provider-account-bubble {
+    padding: 0.3rem;
+  }
+}

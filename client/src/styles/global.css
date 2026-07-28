@@ -769,6 +769,25 @@ footer a:hover {
   }
 }
 
+/* On phone-width screens the glass hero/CTA panels' 64px (--space-2xl)
+   padding on every side left almost no room for the heading/body text to
+   breathe (e.g. ~215px on a 375px-wide phone), forcing severe word-wrap.
+   Shrinking the padding here keeps the same glass-panel look while giving
+   the text a readable column width. */
+@media (max-width: 480px) {
+  .glass-hero-panel {
+    padding: var(--space-lg);
+  }
+
+  .glass-hero-inner {
+    padding: var(--space-lg) 0;
+  }
+
+  .collage-cta-panel {
+    padding: var(--space-lg);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

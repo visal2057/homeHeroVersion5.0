@@ -38,6 +38,11 @@ export default function PaymentSummary({ context }) {
           background: var(--color-primary-50); color: var(--color-primary-700); font-size: var(--font-size-xs);
           font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em;
         }
+
+        @media (max-width: 480px) {
+          .ps-card { padding: var(--space-lg); }
+          .ps-row { flex-wrap: wrap; gap: 4px; }
+        }
       `}</style>
     </div>
   );

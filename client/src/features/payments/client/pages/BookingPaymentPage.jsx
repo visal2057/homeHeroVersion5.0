@@ -192,6 +192,10 @@ export default function BookingPaymentPage() {
         }
         .bp-proceed:hover:not(:disabled) { background: var(--color-primary-700); transform: translateY(-2px); box-shadow: var(--shadow-md); }
         .bp-proceed:disabled { background: var(--color-neutral-300); cursor: not-allowed; box-shadow: none; }
+
+        @media (max-width: 480px) {
+          .bp-main { padding: var(--space-md); }
+        }
       `}</style>
     </div>
   );

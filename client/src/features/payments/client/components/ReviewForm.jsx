@@ -67,6 +67,11 @@ export default function ReviewForm({ providerName, onSubmit, submitting }) {
         .rv-star:hover { transform: scale(1.15); }
         .rv-star-on { color: #f59e0b; filter: drop-shadow(0 2px 4px rgba(245, 158, 11, 0.35)); }
         .rv-submit { margin-top: var(--space-lg); }
+
+        @media (max-width: 480px) {
+          .rv-stars { gap: 2px; }
+          .rv-star { font-size: 1.9rem; }
+        }
       `}</style>
     </form>
   );

@@ -32,7 +32,7 @@ export default function DayTasksPreview({ dateLabel, jobs, isUnavailable, pinned
           <span>Marked unavailable</span>
           {pinned && (
             <button type="button" className="provider-day-preview-remove-btn" onClick={onRemoveUnavailable}>
-              Remove
+              Go online
             </button>
           )}
         </div>

@@ -23,6 +23,7 @@ export default function ProviderDashboardPage() {
   const [totalEarnings,    setTotalEarnings]    = useState(null);
   const [recentRequests,   setRecentRequests]   = useState([]);
   const [isOnline,         setIsOnline]         = useState(false);
+  const [isUnavailableToday, setIsUnavailableToday] = useState(false);
   const [loading,          setLoading]          = useState(true);
   const [togglingStatus,   setTogglingStatus]   = useState(false);
   const [showOfflinePicker, setShowOfflinePicker] = useState(false);
@@ -64,7 +65,8 @@ export default function ProviderDashboardPage() {
         if (profileRes.status === 'fulfilled') {
           const p = profileRes.value.data?.data ?? profileRes.value.data;
           setProfile(p);
-          setIsOnline(p?.manualOnline ?? false);
+          setIsOnline(p?.isOnlineToday ?? false);
+          setIsUnavailableToday(p?.isUnavailableToday ?? false);
         }
         if (statsRes.status === 'fulfilled') {
           setStats(statsRes.value.data?.data ?? statsRes.value.data);
@@ -88,12 +90,18 @@ export default function ProviderDashboardPage() {
     return () => clearInterval(interval);
   }, []);
 
-  async function patchAvailability(manualOnline) {
+  // The toggle now shows a server-computed "online today" value, not the
+  // raw account-wide manualOnline flag (see provider.service.js's
+  // isOnlineToday) - so every response is trusted over whatever was sent,
+  // rather than optimistically echoing the input back.
+  async function patchAvailability(body) {
     setTogglingStatus(true);
     setStatusError('');
     try {
-      await axiosClient.patch(API_ENDPOINTS.PROVIDER.AVAILABILITY, { manualOnline });
-      setIsOnline(manualOnline);
+      const { data } = await axiosClient.patch(API_ENDPOINTS.PROVIDER.AVAILABILITY, body);
+      const result = data?.data ?? data;
+      setIsOnline(result?.isOnlineToday ?? false);
+      setIsUnavailableToday(result?.isUnavailableToday ?? false);
     } catch (err) {
       setStatusError(err?.response?.data?.message ?? 'Could not update availability. Please try again.');
     } finally {
@@ -102,12 +110,20 @@ export default function ProviderDashboardPage() {
   }
 
   function handleToggleStatus() {
+    if (isUnavailableToday) {
+      // Today is already blocked by a marked-unavailable period - the
+      // toggle only overrides (or cancels the override for) today; it
+      // never edits the underlying unavailable period itself, so it
+      // reverts back to off on its own once the day is over.
+      patchAvailability({ manualOnline: true, todayOverride: !isOnline });
+      return;
+    }
     if (isOnline) {
       // Going offline opens the date-range picker instead of toggling immediately.
       setShowOfflinePicker(true);
       return;
     }
-    patchAvailability(true);
+    patchAvailability({ manualOnline: true });
   }
 
   async function handleConfirmOffline(dateKeys) {
@@ -123,6 +139,13 @@ export default function ProviderDashboardPage() {
       // bookable outside this range, same as the Jobs To Do calendar.
       await axiosClient.put(API_ENDPOINTS.PROVIDER.UNAVAILABLE_DATES, { dates: merged });
       setShowOfflinePicker(false);
+
+      // The dates just picked may include today, which must flip the
+      // toggle off immediately rather than waiting for the next full page load.
+      const profileRes = await axiosClient.get(API_ENDPOINTS.PROVIDER.PROFILE);
+      const p = profileRes.data?.data ?? profileRes.data;
+      setIsOnline(p?.isOnlineToday ?? false);
+      setIsUnavailableToday(p?.isUnavailableToday ?? false);
     } catch (err) {
       setStatusError(err?.response?.data?.message ?? 'Could not save unavailable dates. Please try again.');
     } finally {
@@ -174,6 +197,7 @@ export default function ProviderDashboardPage() {
                   isOnline={isOnline}
                   eligible={eligibleToGoOnline}
                   ineligibleReason={ineligibleReason}
+                  unavailableToday={isUnavailableToday}
                   onToggle={handleToggleStatus}
                   loading={togglingStatus}
                 />

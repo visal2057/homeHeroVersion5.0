@@ -1167,7 +1167,11 @@
      top/left are document coordinates (see banPopoverPosition.js). */
   position: absolute;
   z-index: 1151;
-  width: 300px;
+  /* min() so this shrinks to fit phone-width viewports instead of
+     overflowing past the edge; the 24px = banPopoverPosition.js's
+     VIEWPORT_MARGIN * 2, kept in sync so the JS-computed left offset
+     matches the actual rendered width. */
+  width: min(300px, calc(100vw - 24px));
   background: var(--color-neutral-0);
   border: 2px solid var(--color-secondary-700);
   border-radius: var(--radius-lg);
@@ -1295,4 +1299,166 @@
   border-radius: 50%;
   background-color: var(--color-primary-50);
   color: var(--color-primary-600);
+}
+
+/* ---------------------------------------------------------------------
+   Admin header mobile nav - hidden by default, shown below the breakpoint
+   in responsive.css (same base-here/breakpoint-in-responsive.css split as
+   .public-header-toggle/.public-header-mobile-menu in global.css).
+   ------------------------------------------------------------------- */
+.admin-header-toggle {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 32px;
+  height: 32px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.admin-header-toggle span {
+  display: block;
+  height: 2px;
+  width: 100%;
+  background-color: var(--color-neutral-0);
+  border-radius: 2px;
+}
+
+.admin-header-mobile-menu {
+  display: none;
+}
+
+/* Below this width the nav pills and account/bell actions are replaced by
+   the hamburger + stacked menu above (same idea as PublicHeader.jsx's own
+   mobile menu). Kept in this file rather than responsive.css so it always
+   loads after (and correctly overrides) this file's own base rules above -
+   responsive.css is imported before admin.css in main.jsx, so a rule there
+   targeting an admin.css selector would lose the cascade tie despite the
+   media condition being true. */
+@media (max-width: 768px) {
+  .admin-header-nav,
+  .admin-header-actions > *:not(.admin-header-toggle) {
+    display: none;
+  }
+
+  .admin-header-toggle {
+    display: flex;
+  }
+
+  /* Keeps the actions zone (now just the hamburger) pinned to the header's
+     right column even though the nav's middle column is gone - without
+     this the hamburger would auto-place into the vacated middle track. */
+  .admin-header-modern .admin-header-actions {
+    grid-column: 3;
+    justify-self: end;
+  }
+
+  .admin-header-mobile-menu {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+    padding: var(--space-md) var(--space-lg) var(--space-lg);
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
+  }
+
+  .admin-header-mobile-menu a {
+    font-weight: 600;
+    color: var(--color-neutral-0);
+  }
+
+  .admin-header-mobile-menu a.active {
+    color: var(--color-primary-200);
+  }
+
+  .admin-header-mobile-menu hr {
+    border: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
+    margin: 0;
+  }
+
+  .admin-header-mobile-account {
+    color: rgba(255, 255, 255, 0.85);
+    font-weight: 600;
+    font-size: var(--font-size-sm);
+  }
+
+  /* .btn-outline defaults to a green border/text (global.css), unreadable
+     against this menu's dark green header background - same white-outline
+     override the homepage hero panel already uses for the same reason. */
+  .admin-header-mobile-menu .btn-outline {
+    color: var(--color-neutral-0);
+    border-color: rgba(255, 255, 255, 0.6);
+  }
+
+  .admin-header-mobile-menu .btn-outline:hover {
+    background-color: rgba(255, 255, 255, 0.12);
+  }
+}
+
+/* ---------------------------------------------------------------------
+   Mobile responsiveness (System Admin batch)
+   New rules only, scoped to @media blocks so desktop is untouched. Added
+   here (not responsive.css) because all of these selectors' base rules
+   live in this file, and responsive.css loads before admin.css - see the
+   note on the admin-header mobile-nav block above for why that ordering
+   matters.
+   ------------------------------------------------------------------- */
+@media (max-width: 480px) {
+  /* Chart card title + tag pill (e.g. "Membership + Commission Revenue",
+     "Live", "Unsaved preview") had no wrap and overflowed the card
+     horizontally on phone-width screens. */
+  .chart-card-header {
+    flex-wrap: wrap;
+    row-gap: var(--space-xs);
+  }
+
+  /* The 5 announcement status pills had no wrap and overflowed the page
+     horizontally on phone-width screens. */
+  .announcement-status-tabs {
+    flex-wrap: wrap;
+  }
+
+  /* .admin-toolbar .form-control is intentionally width:auto so the
+     search/status/period filters sit inline on desktop; at phone width
+     that leaves several tiny, oddly-sized inputs wrapped onto short lines,
+     so stack them at full width instead. */
+  .admin-toolbar .form-control {
+    width: 100%;
+  }
+
+  /* Keeps a longer, comma-separated value (e.g. "LKR 1,234,567") from
+     crowding the fixed icon column at the narrowest phone widths. */
+  .stat-card-v2-icon {
+    width: 56px;
+  }
+
+  .stat-card-v2-value {
+    font-size: var(--font-size-xl);
+  }
+
+  .stat-card-v2-text {
+    padding: var(--space-sm) var(--space-md);
+  }
+}
+
+/* ---------------------------------------------------------------------
+   Verification/Complaint review cards on phones
+   .review-card-row's base rule (side-by-side info + action button, with
+   the .status-badge children forced to white-space: nowrap) lives above
+   in this same file, so this override has to live here too -- a rule in
+   responsive.css would lose the cascade tie since responsive.css loads
+   before admin.css (see the admin-header-nav media block above for the
+   same reasoning). At phone widths the fixed-width action button squeezes
+   the info column down far enough that its nowrap badges (@username /
+   Unread / Processing) can no longer fit and get clipped, so stack the
+   row instead of running it side-by-side. */
+@media (max-width: 480px) {
+  .review-card-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
 }

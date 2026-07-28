@@ -43,6 +43,10 @@ export default function PayeeDetails({ payee }) {
         }
         .pd-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: var(--font-size-sm); color: var(--color-neutral-600); }
         .pd-row strong { color: var(--color-neutral-800); }
+
+        @media (max-width: 480px) {
+          .pd-row { flex-wrap: wrap; gap: 4px; }
+        }
       `}</style>
     </div>
   );

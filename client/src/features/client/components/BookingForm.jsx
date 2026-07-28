@@ -454,6 +454,18 @@ export default function BookingForm({ provider, client }) {
 
           .bf-error { margin: 0 var(--space-xl) var(--space-md); padding: 10px 14px; background: var(--color-error-bg); color: var(--color-error); border-radius: var(--radius-md); font-size: var(--font-size-sm); }
           .bf-actions { display: flex; gap: var(--space-md); justify-content: flex-end; padding: 0 var(--space-xl) var(--space-xl); }
+
+          /* On a phone, a long provider name plus the rate badge (pushed
+             right via marginLeft:auto) has no room to sit on one line -
+             let the strip wrap instead of squeezing/overflowing. Cancel
+             and Review & Confirm are stacked full-width for the same
+             reason, and reordered so the primary action stays reachable
+             at the top instead of below a full-width Cancel button. */
+          @media (max-width: 480px) {
+            .booking-provider-strip { flex-wrap: wrap; }
+            .bf-actions { flex-direction: column-reverse; }
+            .bf-actions .btn { width: 100%; }
+          }
         `}</style>
       </form>
 
@@ -514,6 +526,16 @@ export default function BookingForm({ provider, client }) {
         .bf-modal-row span { color: var(--color-neutral-500); flex-shrink: 0; }
         .bf-modal-row strong { color: var(--color-secondary-700); }
         .bf-modal-actions { display: flex; gap: var(--space-md); justify-content: center; }
+
+        /* .bf-modal's var(--space-2xl) padding eats over half the width of
+           a phone-sized modal, leaving almost no room for the detail rows;
+           ease it back and stack the two action buttons full-width so
+           "Confirm Booking" doesn't get squeezed next to "Go Back". */
+        @media (max-width: 480px) {
+          .bf-modal { padding: var(--space-lg); }
+          .bf-modal-actions { flex-direction: column; }
+          .bf-modal-actions .btn { width: 100%; }
+        }
       `}</style>
     </>
   );
