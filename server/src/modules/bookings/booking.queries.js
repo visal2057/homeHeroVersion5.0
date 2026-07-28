@@ -31,10 +31,18 @@ export function providerHasCategory(providerUserId, serviceCategoryId) {
   );
 }
 
+// A same-day online override (see availability.service.js's setTodayOverride)
+// lets a provider cancel today's block specifically, without touching the
+// unavailable_periods row itself - so this only ever excuses a match when the
+// requested date is exactly today AND that override is active; any other
+// date within the same period stays blocked.
 export function isDateUnavailableForProvider(providerUserId, date) {
   return query(
-    `SELECT 1 FROM provider_unavailable_periods
-     WHERE provider_user_id = $1 AND $2::date BETWEEN unavailable_from AND unavailable_to`,
+    `SELECT 1 FROM provider_unavailable_periods up
+     JOIN service_provider_profiles spp ON spp.provider_user_id = up.provider_user_id
+     WHERE up.provider_user_id = $1
+       AND $2::date BETWEEN up.unavailable_from AND up.unavailable_to
+       AND NOT ($2::date = CURRENT_DATE AND COALESCE(spp.online_override_date = CURRENT_DATE, false))`,
     [providerUserId, date],
   );
 }

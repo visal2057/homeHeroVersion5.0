@@ -49,6 +49,26 @@ export function getProviderBookability(userId) {
   return query(`SELECT * FROM vw_provider_bookability WHERE provider_user_id = $1`, [userId]);
 }
 
+// Same shape as availability.queries.js's getTodayAvailabilityState -
+// duplicated locally (matching this codebase's existing precedent, e.g.
+// findProviderBookability in booking.queries.js) so this module doesn't need
+// to reach into the availability module just to show the dashboard toggle's
+// live status on profile load.
+export function getProviderTodayAvailability(userId) {
+  return query(
+    `SELECT spp.manual_online,
+            EXISTS (
+              SELECT 1 FROM provider_unavailable_periods p
+              WHERE p.provider_user_id = spp.provider_user_id
+                AND CURRENT_DATE BETWEEN p.unavailable_from AND p.unavailable_to
+            ) AS is_unavailable_today,
+            COALESCE(spp.online_override_date = CURRENT_DATE, false) AS override_active_today
+     FROM service_provider_profiles spp
+     WHERE spp.provider_user_id = $1`,
+    [userId],
+  );
+}
+
 export function updateProviderBasicInfo(client, userId, { username, fullName, phone }) {
   return client.query(
     `UPDATE users SET username = $1, full_name = $2, phone = $3, updated_at = now() WHERE user_id = $4 RETURNING *`,
@@ -165,10 +185,19 @@ export function findTopProviders(categoryId, { district, search }, limit = 5) {
             wp.title AS work_title, wp.description AS work_description, wp.images AS work_images
      FROM vw_provider_search vs
      JOIN vw_provider_bookability bk ON bk.provider_user_id = vs.provider_user_id
+     JOIN service_provider_profiles spp ON spp.provider_user_id = vs.provider_user_id
+     CROSS JOIN LATERAL (
+       -- A same-day online override (see availability.service.js) shifts the
+       -- floor a provider's displayed unavailable window is measured against
+       -- one day forward, so today reads as available without ever touching
+       -- the stored unavailable_periods row.
+       SELECT CASE WHEN COALESCE(spp.online_override_date = CURRENT_DATE, false)
+                   THEN CURRENT_DATE + 1 ELSE CURRENT_DATE END AS d
+     ) floor
      LEFT JOIN LATERAL (
-       SELECT unavailable_from, unavailable_to
+       SELECT GREATEST(unavailable_from, floor.d) AS unavailable_from, unavailable_to
        FROM provider_unavailable_periods
-       WHERE provider_user_id = vs.provider_user_id AND unavailable_to >= CURRENT_DATE
+       WHERE provider_user_id = vs.provider_user_id AND unavailable_to >= floor.d
        ORDER BY unavailable_from
        LIMIT 1
      ) up ON true${WORK_PREVIEW_LATERAL_JOIN}
@@ -200,10 +229,18 @@ export function findAvailableProviders(categoryId, { district, search }, limit =
             wp.posts AS work_posts
      FROM vw_provider_search vs
      JOIN vw_provider_bookability bk ON bk.provider_user_id = vs.provider_user_id
+     JOIN service_provider_profiles spp ON spp.provider_user_id = vs.provider_user_id
+     CROSS JOIN LATERAL (
+       -- Same floor-shift as findTopProviders above - a same-day override
+       -- makes today read as available for both the exclusion check below
+       -- and the displayed unavailable_from, without editing stored data.
+       SELECT CASE WHEN COALESCE(spp.online_override_date = CURRENT_DATE, false)
+                   THEN CURRENT_DATE + 1 ELSE CURRENT_DATE END AS d
+     ) floor
      LEFT JOIN LATERAL (
-       SELECT unavailable_from, unavailable_to
+       SELECT GREATEST(unavailable_from, floor.d) AS unavailable_from, unavailable_to
        FROM provider_unavailable_periods
-       WHERE provider_user_id = vs.provider_user_id AND unavailable_to >= CURRENT_DATE
+       WHERE provider_user_id = vs.provider_user_id AND unavailable_to >= floor.d
        ORDER BY unavailable_from
        LIMIT 1
      ) up ON true${WORK_PREVIEW_POSTS_LATERAL_JOIN}
@@ -241,10 +278,15 @@ export function getPublicProviderCore(providerId) {
 
 export function getProviderUnavailablePeriods(providerId) {
   return query(
-    `SELECT unavailable_from, unavailable_to
-     FROM provider_unavailable_periods
-     WHERE provider_user_id = $1 AND unavailable_to >= CURRENT_DATE
-     ORDER BY unavailable_from`,
+    `WITH floor AS (
+       SELECT CASE WHEN COALESCE(online_override_date = CURRENT_DATE, false)
+                   THEN CURRENT_DATE + 1 ELSE CURRENT_DATE END AS d
+       FROM service_provider_profiles WHERE provider_user_id = $1
+     )
+     SELECT GREATEST(p.unavailable_from, floor.d) AS unavailable_from, p.unavailable_to
+     FROM provider_unavailable_periods p, floor
+     WHERE p.provider_user_id = $1 AND p.unavailable_to >= floor.d
+     ORDER BY p.unavailable_from`,
     [providerId],
   );
 }

@@ -8,6 +8,7 @@ import {
   getProviderMembership,
   getProviderStatistics,
   getProviderBookability,
+  getProviderTodayAvailability,
   updateProviderBasicInfo,
   updateProviderDetails,
   replaceProviderCategories,
@@ -34,7 +35,10 @@ async function assertCategoryCountCoveredByMembership(userId, requestedCategoryI
   }
 }
 
-function toProfileResponse(core, categories, membership, stats, bookability) {
+function toProfileResponse(core, categories, membership, stats, bookability, todayAvailability) {
+  const manualOnline = todayAvailability?.manual_online ?? core.manual_online;
+  const isUnavailableToday = todayAvailability?.is_unavailable_today ?? false;
+  const overrideActiveToday = todayAvailability?.override_active_today ?? false;
   return {
     userId: core.user_id,
     username: core.username,
@@ -48,7 +52,13 @@ function toProfileResponse(core, categories, membership, stats, bookability) {
     bio: core.bio,
     workHoursDetails: core.work_hours_details,
     hourlyChargeEstimate: core.hourly_charge_estimate != null ? Number(core.hourly_charge_estimate) : null,
-    manualOnline: core.manual_online,
+    manualOnline,
+    // Live, day-aware view of the dashboard toggle: whether today falls
+    // inside one of the provider's own unavailable_periods, and whether
+    // manualOnline && (not blocked today, or overridden just for today).
+    // See availability.service.js's getTodayStatus for the same formula.
+    isUnavailableToday,
+    isOnlineToday: manualOnline && (!isUnavailableToday || overrideActiveToday),
     homeDistrictId: core.home_district_id,
     homeDistrictName: core.home_district_name,
     serviceDistrictId: core.service_district_id,
@@ -91,20 +101,21 @@ function toProfileResponse(core, categories, membership, stats, bookability) {
 }
 
 export async function getProviderProfile(userId) {
-  const [{ rows: coreRows }, { rows: categoryRows }, { rows: membershipRows }, { rows: statsRows }, { rows: bookabilityRows }] =
+  const [{ rows: coreRows }, { rows: categoryRows }, { rows: membershipRows }, { rows: statsRows }, { rows: bookabilityRows }, { rows: todayRows }] =
     await Promise.all([
       getProviderCoreProfile(userId),
       getProviderCategories(userId),
       getProviderMembership(userId),
       getProviderStatistics(userId),
       getProviderBookability(userId),
+      getProviderTodayAvailability(userId),
     ]);
 
   if (coreRows.length === 0) {
     throw new AppError('Service Provider profile not found', 404);
   }
 
-  return toProfileResponse(coreRows[0], categoryRows, membershipRows[0], statsRows[0], bookabilityRows[0]);
+  return toProfileResponse(coreRows[0], categoryRows, membershipRows[0], statsRows[0], bookabilityRows[0], todayRows[0]);
 }
 
 export async function updateProviderProfile(userId, input) {

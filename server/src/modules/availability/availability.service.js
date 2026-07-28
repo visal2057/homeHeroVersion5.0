@@ -6,6 +6,8 @@ import {
   listFutureUnavailablePeriods,
   deleteFutureUnavailablePeriods,
   insertUnavailablePeriod,
+  getTodayAvailabilityState,
+  setOnlineOverrideDate,
 } from './availability.queries.js';
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
@@ -36,29 +38,69 @@ function groupIntoRanges(sortedDates) {
   return ranges;
 }
 
+// Shared by toggleManualOnline (going online for good) and setTodayOverride
+// (going online just for today despite a marked-unavailable day) - both
+// require the same account-level prerequisites before a provider can ever
+// appear bookable.
+function assertEligibleToGoOnline(bookability) {
+  if (!bookability.is_verified) {
+    throw new AppError('Your account is not verified yet, so you cannot go online', 422);
+  }
+  if (bookability.has_active_ban) {
+    throw new AppError('Your account is banned, so you cannot go online', 403);
+  }
+  if (!bookability.has_valid_membership_or_grace) {
+    throw new AppError('You need an active membership before you can go online', 422);
+  }
+  if (bookability.forced_offline) {
+    throw new AppError('Your account was forced offline after your membership grace period ended. Renew your membership to go online again', 422);
+  }
+}
+
+// The single source of truth for "is this provider actually bookable right
+// now": the account-wide switch AND (today isn't blocked by their own
+// unavailable_periods, OR they've explicitly overridden just today).
+export async function getTodayStatus(providerUserId) {
+  const { rows } = await getTodayAvailabilityState(providerUserId);
+  if (rows.length === 0) {
+    throw new AppError('Service Provider profile not found', 404);
+  }
+  const { manual_online: manualOnline, is_unavailable_today: isUnavailableToday, override_active_today: overrideActiveToday } = rows[0];
+  return {
+    manualOnline,
+    isUnavailableToday,
+    overrideActiveToday,
+    isOnlineToday: manualOnline && (!isUnavailableToday || overrideActiveToday),
+  };
+}
+
 export async function toggleManualOnline(providerUserId, manualOnline) {
   if (manualOnline) {
     const { rows } = await getBookability(providerUserId);
     if (rows.length === 0) {
       throw new AppError('Service Provider profile not found', 404);
     }
-    const bookability = rows[0];
-    if (!bookability.is_verified) {
-      throw new AppError('Your account is not verified yet, so you cannot go online', 422);
-    }
-    if (bookability.has_active_ban) {
-      throw new AppError('Your account is banned, so you cannot go online', 403);
-    }
-    if (!bookability.has_valid_membership_or_grace) {
-      throw new AppError('You need an active membership before you can go online', 422);
-    }
-    if (bookability.forced_offline) {
-      throw new AppError('Your account was forced offline after your membership grace period ended. Renew your membership to go online again', 422);
-    }
+    assertEligibleToGoOnline(rows[0]);
   }
 
-  const { rows } = await setManualOnline(providerUserId, manualOnline);
-  return { manualOnline: rows[0].manual_online };
+  await setManualOnline(providerUserId, manualOnline);
+  return getTodayStatus(providerUserId);
+}
+
+// Lets a provider appear online for just today despite today falling inside
+// one of their own unavailable_periods, without editing that period - see
+// setOnlineOverrideDate's comment for why this expires on its own tomorrow.
+export async function setTodayOverride(providerUserId, active) {
+  if (active) {
+    const { rows } = await getBookability(providerUserId);
+    if (rows.length === 0) {
+      throw new AppError('Service Provider profile not found', 404);
+    }
+    assertEligibleToGoOnline(rows[0]);
+  }
+
+  await setOnlineOverrideDate(providerUserId, active);
+  return getTodayStatus(providerUserId);
 }
 
 export async function getUnavailableDates(providerUserId) {
