@@ -1,4 +1,4 @@
-const POPOVER_WIDTH = 300;
+const POPOVER_WIDTH_MAX = 300; // keep in sync with admin.css's .ban-popover width
 const POPOVER_HEIGHT_ESTIMATE = 300; // roomy enough to cover the optional "ends at" field
 const VIEWPORT_MARGIN = 12;
 
@@ -13,10 +13,15 @@ const VIEWPORT_MARGIN = 12;
  * the current scroll offset.
  */
 export function banPopoverPosition(anchorRect) {
-  let left = anchorRect.right - POPOVER_WIDTH;
+  // .ban-popover's CSS width is min(300px, 100vw - 24px), so on phone-width
+  // viewports the popover renders narrower than POPOVER_WIDTH_MAX -- mirror
+  // that here or the clamped `left` below would assume 300px and leave the
+  // popover off-center from where it actually renders.
+  const popoverWidth = Math.min(POPOVER_WIDTH_MAX, window.innerWidth - VIEWPORT_MARGIN * 2);
+  let left = anchorRect.right - popoverWidth;
   if (left < VIEWPORT_MARGIN) left = VIEWPORT_MARGIN;
-  if (left + POPOVER_WIDTH + VIEWPORT_MARGIN > window.innerWidth) {
-    left = window.innerWidth - POPOVER_WIDTH - VIEWPORT_MARGIN;
+  if (left + popoverWidth + VIEWPORT_MARGIN > window.innerWidth) {
+    left = window.innerWidth - popoverWidth - VIEWPORT_MARGIN;
   }
 
   let top = anchorRect.bottom + 8;
