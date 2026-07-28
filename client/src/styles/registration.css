@@ -259,16 +259,18 @@
 .login-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 440px);
-  gap: var(--space-2xl);
+  grid-template-areas:
+    "heading form"
+    "tip     form";
+  column-gap: var(--space-2xl);
+  row-gap: var(--space-xl);
   align-items: center;
   max-width: 1080px;
   margin: 0 auto;
 }
 
-.login-intro-col {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-xl);
+.login-heading-block {
+  grid-area: heading;
 }
 
 .login-intro-title {
@@ -287,6 +289,7 @@
    distinct "info" note beside the green login form rather than another
    form field. */
 .login-tip-box {
+  grid-area: tip;
   background: linear-gradient(160deg, rgba(51, 65, 85, 0.55), rgba(15, 23, 42, 0.72)) padding-box,
     linear-gradient(135deg, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0.06) 45%, rgba(203, 213, 225, 0.4) 100%)
       border-box;
@@ -321,6 +324,10 @@
   font-weight: 600;
 }
 
+.login-glass-box {
+  grid-area: form;
+}
+
 /* Sharper, brighter shine sweep for the login button only - same
    narrower/faster/whiter treatment as the SP dashboard logout button,
    scoped here so every other .btn-shine button on the site is unaffected. */
@@ -331,18 +338,17 @@
 }
 
 @media (max-width: 900px) {
+  /* The form is the primary action for a returning visitor, so it leads
+     on narrow screens even though the heading comes first in the source
+     order (which is what a keyboard/screen-reader user hits first, so
+     that order stays untouched - only the visual position moves). */
   .login-grid {
     grid-template-columns: 1fr;
-    gap: var(--space-xl);
-  }
-
-  /* The form is the primary action for a returning visitor, so it leads
-     on narrow screens even though the intro column comes first in the
-     source order (which is what a keyboard/screen-reader user hits
-     first, so that order stays untouched - only the visual position
-     moves). */
-  .login-glass-box {
-    order: -1;
+    grid-template-areas:
+      "heading"
+      "form"
+      "tip";
+    row-gap: var(--space-xl);
   }
 
   .login-intro-title,
@@ -352,9 +358,9 @@
     margin-right: auto;
   }
 
-  .login-intro-col {
+  .login-heading-block,
+  .login-tip-box {
     text-align: center;
-    align-items: center;
   }
 }
 
