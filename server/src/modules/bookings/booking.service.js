@@ -244,8 +244,26 @@ async function assertOwnedPendingBooking(bookingId, providerUserId) {
 }
 
 export async function acceptBooking(bookingId, providerUserId) {
-  await assertOwnedPendingBooking(bookingId, providerUserId);
-  const { rows } = await updateBookingStatus(bookingId, 'ACCEPTED', 'accepted_at');
+  const booking = await assertOwnedPendingBooking(bookingId, providerUserId);
+
+  // Multiple clients can hold PENDING requests for the same slot now, so
+  // accepting one of several competing requests for the same exact time is
+  // an expected case, not just a rare race -- give it a friendly message
+  // pointing the provider at reject/reschedule instead of a raw 409/500.
+  const { rows: conflictRows } = await findConflictingBooking(providerUserId, booking.scheduled_at);
+  if (conflictRows.length > 0) {
+    throw new AppError('You already have an accepted booking at that time. Please reject or reschedule this request instead.', 409);
+  }
+
+  let rows;
+  try {
+    ({ rows } = await updateBookingStatus(bookingId, 'ACCEPTED', 'accepted_at'));
+  } catch (err) {
+    if (err.code === '23505') {
+      throw new AppError('You already have an accepted booking at that time. Please reject or reschedule this request instead.', 409);
+    }
+    throw err;
+  }
 
   await logAction({
     actorUserId: providerUserId,
