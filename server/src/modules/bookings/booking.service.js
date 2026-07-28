@@ -183,6 +183,8 @@ function toProviderRowShape(row) {
     created_at: row.requested_at,
     service_date: row.scheduled_at,
     service_end_time: row.scheduled_end_at,
+    proposed_service_date: row.proposed_scheduled_at,
+    proposed_service_end_time: row.proposed_scheduled_end_at,
     completed_at: row.completed_at,
     location:
       row.address_snapshot != null || row.latitude_snapshot != null
@@ -212,7 +214,7 @@ async function attachImages(rows) {
 export async function getProviderRequests(providerUserId, limit = 100) {
   const { rows } = await listProviderBookingsByStatuses(
     providerUserId,
-    ['PENDING', 'ACCEPTED', 'REJECTED', 'CANCELLED', 'RESCHEDULE_PENDING'],
+    ['PENDING', 'ACCEPTED', 'REJECTED', 'CANCELLED', 'RESCHEDULE_PENDING', 'RESCHEDULE_REJECTED'],
     limit,
   );
   return attachImages(rows.map(toProviderRowShape));

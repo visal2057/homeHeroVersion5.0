@@ -12,6 +12,13 @@ import { formatTimeRange } from '../../../utils/timeUtils.js';
 const HERO_IMAGE = 'https://images.unsplash.com/photo-1607472586893-edb57bdc0e39?auto=format&fit=crop&w=1600&q=80';
 const POLL_INTERVAL_MS = 30_000; // pick up a client's own accept/reject/reschedule decision without a manual refresh
 
+const TAB_LABELS = {
+  reschedule_rejected: 'Rejected Reschedules',
+};
+function tabLabel(f) {
+  return TAB_LABELS[f] ?? (f.charAt(0).toUpperCase() + f.slice(1));
+}
+
 export default function ProviderRequestsPage() {
   const [requests, setRequests]   = useState([]);
   const [loading,  setLoading]    = useState(true);
@@ -160,14 +167,14 @@ export default function ProviderRequestsPage() {
 
       {/* Filter tabs */}
       <div className="provider-tabs">
-        {['all', 'pending', 'accepted', 'rejected'].map((f) => (
+        {['all', 'pending', 'accepted', 'rejected', 'reschedule_rejected'].map((f) => (
           <button
             key={f}
             type="button"
             className={`provider-tab${filter === f ? ' active' : ''}`}
             onClick={() => setFilter(f)}
           >
-            {f.charAt(0).toUpperCase() + f.slice(1)}
+            {tabLabel(f)}
             <span className="count">
               ({requests.filter((r) => f === 'all' ? true : r.status === f).length})
             </span>

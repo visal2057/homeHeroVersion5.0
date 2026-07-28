@@ -184,6 +184,7 @@ export function listClientBookings(clientUserId) {
 export function listProviderBookingsByStatuses(providerUserId, statuses, limit) {
   return query(
     `SELECT b.booking_id, b.job_description, b.scheduled_at, b.scheduled_end_at, b.requested_at, b.completed_at, b.booking_status,
+            b.proposed_scheduled_at, b.proposed_scheduled_end_at,
             cu.full_name AS client_name, cu.phone AS client_phone, cu.email AS client_email, cu.user_token AS client_token,
             sc.category_name AS service_category,
             bl.address_snapshot, bl.latitude_snapshot, bl.longitude_snapshot,

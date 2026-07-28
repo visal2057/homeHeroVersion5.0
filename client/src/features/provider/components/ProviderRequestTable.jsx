@@ -10,6 +10,7 @@ const COLUMN_COUNT = 9;
 
 const STATUS_LABELS = {
   reschedule_pending: 'Reschedule Pending',
+  reschedule_rejected: 'Rejected Reschedule',
 };
 
 function statusBadge(status) {
@@ -81,7 +82,14 @@ export default function ProviderRequestTable({ requests, onAccept, onReject, onR
               <td>{r.client_token ?? '—'}</td>
               <td>{r.service_title ?? '—'}</td>
               <td>{r.service_date ? new Date(r.service_date).toLocaleDateString() : '—'}</td>
-              <td>{r.service_date ? formatTimeRange(r.service_date, r.service_end_time) : '—'}</td>
+              <td>
+                {r.service_date ? formatTimeRange(r.service_date, r.service_end_time) : '—'}
+                {(r.status === 'reschedule_pending' || r.status === 'reschedule_rejected') && r.proposed_service_date && (
+                  <div className="provider-proposed-time">
+                    Proposed: {new Date(r.proposed_service_date).toLocaleDateString()}, {formatTimeRange(r.proposed_service_date, r.proposed_service_end_time)}
+                  </div>
+                )}
+              </td>
               <td>
                 {r.location?.latitude != null ? (
                   <a

@@ -1075,6 +1075,13 @@
 .provider-badge.active    { background: var(--color-primary-50);  color: var(--color-primary-700); }
 .provider-badge.cancelled { background: var(--color-neutral-100); color: var(--color-neutral-600); }
 .provider-badge.reschedule_pending { background: var(--color-info-bg); color: var(--color-info); }
+.provider-badge.reschedule_rejected { background: var(--color-error-bg); color: var(--color-error); }
+
+.provider-proposed-time {
+  margin-top: 2px;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
 
 /* --------------------------------------------------------------------------
    Booking detail hover preview
