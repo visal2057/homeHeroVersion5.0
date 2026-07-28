@@ -36,8 +36,9 @@ function dayPreviewPosition(tileRect) {
 // Go Offline flow -- this calendar's job is primarily to show what's due
 // each day, so the only availability action kept here is removing an
 // existing unavailable mark, folded into the same day popup.
-export default function UnavailableDateCalendar({ unavailableDates = [], onToggleDate, jobs = [] }) {
+export default function UnavailableDateCalendar({ unavailableDates = [], onToggleDate, jobs = [], overrideActiveToday = false }) {
   const today = new Date();
+  const todayKey = toKey(today);
   const [viewDate, setViewDate] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
   const [activeDay, setActiveDay] = useState(null); // date key string, e.g. "2026-09-05"
   const [isPinned, setIsPinned] = useState(false);
@@ -49,6 +50,13 @@ export default function UnavailableDateCalendar({ unavailableDates = [], onToggl
   const daysInMonth = new Date(year, month + 1, 0).getDate();
 
   const unavailableSet = new Set(unavailableDates);
+  // A same-day online override (see ProviderDashboardPage.jsx's toggle)
+  // never edits the underlying unavailable dates - it only ever changes
+  // what's displayed for today, so this is purely a display-layer check on
+  // top of unavailableSet, not a filter applied to the data itself.
+  function isDayUnavailable(key) {
+    return unavailableSet.has(key) && !(key === todayKey && overrideActiveToday);
+  }
 
   const jobsByDay = useMemo(() => {
     const map = new Map();
@@ -141,7 +149,7 @@ export default function UnavailableDateCalendar({ unavailableDates = [], onToggl
           const key = toKey(d);
           const isPast = d < new Date(today.getFullYear(), today.getMonth(), today.getDate());
           const isToday = d.toDateString() === today.toDateString();
-          const isUnavailable = unavailableSet.has(key);
+          const isUnavailable = isDayUnavailable(key);
           const taskCount = jobsByDay.get(key)?.length ?? 0;
 
           let cls = 'provider-calendar-day';
@@ -175,7 +183,7 @@ export default function UnavailableDateCalendar({ unavailableDates = [], onToggl
         <DayTasksPreview
           dateLabel={activeLabel}
           jobs={jobsByDay.get(activeDay) ?? []}
-          isUnavailable={unavailableSet.has(activeDay)}
+          isUnavailable={isDayUnavailable(activeDay)}
           pinned={isPinned}
           onRemoveUnavailable={handleRemoveUnavailable}
           onClose={closePreview}

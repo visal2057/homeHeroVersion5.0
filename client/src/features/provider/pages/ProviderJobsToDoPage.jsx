@@ -12,6 +12,7 @@ const POLL_INTERVAL_MS = 30_000; // pick up a newly-accepted reschedule (decided
 export default function ProviderJobsToDoPage() {
   const [jobs,             setJobs]             = useState([]);
   const [unavailableDates, setUnavailableDates] = useState([]);
+  const [overrideActiveToday, setOverrideActiveToday] = useState(false);
   const [loading,          setLoading]          = useState(true);
   const [calendarSaving,   setCalendarSaving]   = useState(false);
   const calendarSectionRef = useRef(null);
@@ -27,9 +28,10 @@ export default function ProviderJobsToDoPage() {
     async function load(silent = false) {
       if (!silent) {
         try {
-          const [jobsRes, datesRes] = await Promise.allSettled([
+          const [jobsRes, datesRes, profileRes] = await Promise.allSettled([
             axiosClient.get(API_ENDPOINTS.PROVIDER.JOBS),
             axiosClient.get(API_ENDPOINTS.PROVIDER.UNAVAILABLE_DATES),
+            axiosClient.get(API_ENDPOINTS.PROVIDER.PROFILE),
           ]);
           if (jobsRes.status === 'fulfilled') {
             const list = jobsRes.value.data?.data ?? jobsRes.value.data ?? [];
@@ -38,6 +40,13 @@ export default function ProviderJobsToDoPage() {
           if (datesRes.status === 'fulfilled') {
             const list = datesRes.value.data?.data ?? datesRes.value.data ?? [];
             setUnavailableDates(Array.isArray(list) ? list : []);
+          }
+          if (profileRes.status === 'fulfilled') {
+            const p = profileRes.value.data?.data ?? profileRes.value.data;
+            // A same-day online override only ever shows up as
+            // isUnavailableToday && isOnlineToday both true - see
+            // ProviderDashboardPage.jsx's identical toggle logic.
+            setOverrideActiveToday(Boolean(p?.isUnavailableToday && p?.isOnlineToday));
           }
         } finally {
           setLoading(false);
@@ -110,6 +119,7 @@ export default function ProviderJobsToDoPage() {
                 unavailableDates={unavailableDates}
                 onToggleDate={handleToggleDate}
                 jobs={jobs}
+                overrideActiveToday={overrideActiveToday}
               />
             </div>
           </div>
