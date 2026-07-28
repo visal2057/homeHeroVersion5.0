@@ -41,6 +41,12 @@ export default function PaymentSuccessPage() {
         .result-icon-ok { background: #ecfdf5; }
         .result-title { font-size: var(--font-size-2xl); color: var(--color-secondary-700); margin-bottom: var(--space-sm); font-weight: 800; }
         .result-text { color: var(--color-neutral-600); line-height: 1.6; margin-bottom: var(--space-xl); }
+
+        @media (max-width: 480px) {
+          .result-wrap { padding: var(--space-xl) var(--space-sm); }
+          .result-card { padding: var(--space-lg) var(--space-md); }
+          .result-card > .btn { width: 100%; }
+        }
       `}</style>
     </div>
   );

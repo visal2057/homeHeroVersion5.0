@@ -97,6 +97,13 @@ export default function BookingRequestSentPage() {
         .brs-step-desc { font-size: var(--font-size-sm); color: var(--color-neutral-500); }
         .brs-step-done .brs-step-label { color: var(--color-primary-700); }
         .brs-actions { display: flex; gap: var(--space-md); flex-wrap: wrap; justify-content: center; align-items: center; }
+
+        /* .brs-card's var(--space-2xl) padding leaves barely more than
+           half the viewport width for content on a phone - ease it back
+           so the reference number and step list aren't so cramped. */
+        @media (max-width: 480px) {
+          .brs-card { padding: var(--space-xl) var(--space-lg); }
+        }
       `}</style>
     </div>
   );

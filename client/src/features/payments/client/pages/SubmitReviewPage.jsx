@@ -136,6 +136,10 @@ export default function SubmitReviewPage() {
         .sr-card-header { margin-bottom: var(--space-lg); padding-bottom: var(--space-md); border-bottom: 1px solid var(--color-neutral-100); }
         .sr-card-title { font-size: var(--font-size-xl); color: var(--color-secondary-700); margin-bottom: 6px; font-weight: 700; }
         .sr-card-sub { color: var(--color-neutral-500); font-size: var(--font-size-sm); margin: 0; }
+
+        @media (max-width: 480px) {
+          .sr-card { padding: var(--space-lg) var(--space-md); }
+        }
       `}</style>
     </div>
   );

@@ -28,6 +28,7 @@ export default function AdminHeader({ roleLabel, homeRoute, navItems, variant = 
   const [announcements, setAnnouncements] = useState([]);
   const [isBellOpen, setIsBellOpen] = useState(false);
   const [isAccountOpen, setIsAccountOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [readIds, setReadIds] = useState([]);
   const isModern = variant === 'modern';
 
@@ -52,7 +53,12 @@ export default function AdminHeader({ roleLabel, homeRoute, navItems, variant = 
     // showing their own "session has ended" alert (the double-message bug).
     await logout();
     showSuccess('You have logged out successfully.');
+    setIsMobileMenuOpen(false);
     navigate(ROUTES.LOGIN);
+  }
+
+  function closeMobileMenu() {
+    setIsMobileMenuOpen(false);
   }
 
   function toggleBell() {
@@ -145,8 +151,41 @@ export default function AdminHeader({ roleLabel, homeRoute, navItems, variant = 
               </button>
             </>
           )}
+
+          {/* Mobile-only - hidden above the breakpoint via CSS, same
+              hamburger + stacked menu pattern as PublicHeader.jsx. */}
+          <button
+            type="button"
+            className="admin-header-toggle"
+            aria-label="Toggle navigation menu"
+            aria-expanded={isMobileMenuOpen}
+            onClick={() => setIsMobileMenuOpen((open) => !open)}
+          >
+            <span /><span /><span />
+          </button>
         </div>
       </div>
+
+      {isMobileMenuOpen && (
+        <div className="admin-header-mobile-menu animate-fade-in-up">
+          {navItems.map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              onClick={closeMobileMenu}
+              end={item.end}
+              className={({ isActive }) => (isActive ? 'active' : '')}
+            >
+              {item.label}
+            </NavLink>
+          ))}
+          <hr />
+          <div className="admin-header-mobile-account">{displayName}</div>
+          <button type="button" className="btn btn-outline btn-block" onClick={handleLogout}>
+            Logout
+          </button>
+        </div>
+      )}
     </header>
   );
 }

@@ -194,6 +194,15 @@ export default function PortfolioPostEditor({ posts, onSave, onDelete }) {
           display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0;
         }
         .pp-post-actions { display: flex; gap: 6px; }
+
+        /* The 320px minmax track is wider than the content area on common
+           phone widths (~375-414px after page/card padding), forcing
+           horizontal overflow — drop to a single column on narrow phones. */
+        @media (max-width: 480px) {
+          .pp-post-list {
+            grid-template-columns: 1fr;
+          }
+        }
       `}</style>
     </div>
   );

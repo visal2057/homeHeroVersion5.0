@@ -69,6 +69,11 @@ export default function CashPaymentConfirmation({ context, onCancel, onPaid }) {
           border-radius: var(--radius-md); padding: var(--space-md) var(--space-lg);
         }
         .cash-actions { display: flex; gap: var(--space-sm); justify-content: flex-end; margin-top: var(--space-lg); }
+
+        @media (max-width: 480px) {
+          .cash-actions { flex-direction: column-reverse; }
+          .cash-actions .btn { width: 100%; }
+        }
       `}</style>
     </div>
   );
