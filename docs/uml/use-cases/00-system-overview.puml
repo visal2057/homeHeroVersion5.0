@@ -1,0 +1,134 @@
+@startuml HomeHero-System-Overview
+' ============================================================
+' HomeHero - System-Level Use Case Diagram (all five modules)
+' Source: HomeHero System Flow - Updated v4
+'         Team Responsibility - Updated v4
+' ============================================================
+
+left to right direction
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam ArrowColor #4A5568
+skinparam defaultFontName Segoe UI
+skinparam defaultFontSize 13
+skinparam usecase {
+  BackgroundColor #EBF4FF
+  BorderColor #2B6CB0
+  FontColor #1A202C
+}
+skinparam rectangle {
+  BackgroundColor #F7FAFC
+  BorderColor #2D3748
+  FontStyle bold
+}
+skinparam actor {
+  BackgroundColor #FEEBC8
+  BorderColor #C05621
+}
+
+title HomeHero - System-Level Use Case Diagram
+
+actor "Visitor" as VIS
+actor "Client" as CLI
+actor "Service Provider" as SP
+actor "Verification Admin" as VA
+actor "System Admin" as SA
+actor "Payment Gateway" as PG <<external>>
+actor "Email Service" as MAIL <<external>>
+
+package "Module 1 - Authentication & Invoicing (Dinuka)" {
+    usecase "Register Account" as M1_1
+    usecase "Log In / Log Out" as M1_2
+    usecase "Recover Password" as M1_3
+    usecase "Generate & Download Invoice" as M1_4
+  }
+
+  package "Module 2 - Client System (Tharinsa)" {
+    usecase "Explore Services & Providers" as M2_1
+    usecase "Create Booking Request" as M2_2
+    usecase "Manage My Bookings" as M2_3
+    usecase "Manage Client Profile" as M2_4
+    usecase "Submit Complaint" as M2_5
+  }
+
+  package "Module 3 - Service Provider System (Maheli)" {
+    usecase "Manage Availability" as M3_1
+    usecase "Handle Booking Requests" as M3_2
+    usecase "Manage Completed Jobs & Portfolio" as M3_3
+    usecase "Manage Provider Profile" as M3_4
+  }
+
+  package "Module 4 - Payments & Memberships (Visal)" {
+    usecase "Pay for Completed Job" as M4_1
+    usecase "Submit Review & Rating" as M4_2
+    usecase "Purchase / Renew Membership" as M4_3
+    usecase "Manage Payment Settings" as M4_4
+  }
+
+  package "Module 5 - Administration (Vihas)" {
+    usecase "Verify Service Providers" as M5_1
+    usecase "Investigate Complaints" as M5_2
+    usecase "Manage Users & Bans" as M5_3
+    usecase "Monitor Revenue & Bookings" as M5_4
+    usecase "Track Provider Jobs (SP Tracking)" as M5_5
+    usecase "Manage Content & Announcements" as M5_6
+    usecase "Personal Notification Service" as M5_7 <<shared>>
+  }
+
+' --- Actor associations -------------------------------------
+VIS --> M1_1
+VIS --> M2_1
+
+CLI --> M1_2
+CLI --> M1_3
+CLI --> M2_1
+CLI --> M2_2
+CLI --> M2_3
+CLI --> M2_4
+CLI --> M2_5
+CLI --> M4_1
+CLI --> M4_2
+
+SP --> M1_2
+SP --> M1_4
+SP --> M3_1
+SP --> M3_2
+SP --> M3_3
+SP --> M3_4
+SP --> M4_3
+SP --> M4_4
+SP --> M2_5
+
+VA --> M5_1
+VA --> M5_2
+
+SA --> M5_3
+SA --> M5_4
+SA --> M5_5
+SA --> M5_6
+
+M4_1 --> PG
+M4_3 --> PG
+M1_1 --> MAIL
+M5_1 --> MAIL
+
+' --- Cross-module dependencies (integration points) ---------
+M2_2 ..> M3_2 : <<include>>
+M2_3 ..> M4_1 : <<include>>
+M4_1 ..> M4_2 : <<include>>
+M4_1 ..> M5_7 : <<include>>
+M4_3 ..> M3_1 : <<include>>
+M3_3 ..> M1_4 : <<include>>
+M5_5 ..> M1_4 : <<include>>
+M4_1 ..> M5_4 : <<include>>
+M2_5 ..> M5_2 : <<include>>
+M5_2 ..> M5_3 : <<extend>>
+
+legend right
+  |= Notation |= Meaning |
+  | <<include>> | Cross-module call \n(owner of target provides the service) |
+  | <<extend>> | Conditional / optional behaviour |
+  | <<external>> | Actor outside HomeHero |
+endlegend
+
+@enduml

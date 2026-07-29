@@ -1,0 +1,118 @@
+@startuml Module3-Service-Provider-System
+' ============================================================
+' Module 3 - Service Provider System
+' Owner: Maheli
+' Ref: System Flow v4 - Sections 21-26, 29, 30, 52.1
+' ============================================================
+
+left to right direction
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam ArrowColor #4A5568
+skinparam defaultFontName Segoe UI
+skinparam defaultFontSize 13
+skinparam usecase {
+  BackgroundColor #EBF4FF
+  BorderColor #2B6CB0
+  FontColor #1A202C
+}
+skinparam rectangle {
+  BackgroundColor #F7FAFC
+  BorderColor #2D3748
+  FontStyle bold
+}
+skinparam actor {
+  BackgroundColor #FEEBC8
+  BorderColor #C05621
+}
+
+title Module 3 - Service Provider System (Maheli)
+
+actor "Service Provider" as SP
+actor "Client" as CLI
+
+rectangle "Service Provider Module" {
+
+  usecase "View Provider Dashboard" as UC1
+  usecase "View Total Earnings via HomeHero" as UC2
+  usecase "View Completed Job Count" as UC3
+  usecase "View Average Rating" as UC4
+  usecase "View Accepted vs Rejected Chart" as UC5
+  usecase "View Recent Booking Requests" as UC6
+
+  usecase "Go Online" as UC7
+  usecase "Check Eligibility\n(verified, not banned, active membership)" as UC8
+  usecase "Go Offline" as UC9
+  usecase "Set Unavailable Dates" as UC10
+
+  usecase "View Booking Requests" as UC11
+  usecase "View Job Details and Photos" as UC12
+  usecase "Open Client Location on Map" as UC13
+  usecase "Accept Booking Request" as UC14
+  usecase "Reject Booking Request" as UC15
+  usecase "Propose Reschedule" as UC16
+  usecase "Validate New Time Slot" as UC17
+
+  usecase "View Jobs To Do" as UC18
+  usecase "View Completed Jobs" as UC19
+  usecase "Open Invoice Menu" as UC20
+  usecase "Create Portfolio Post" as UC21
+
+  usecase "Manage Profile and Settings" as UC22
+  usecase "Edit User Information" as UC23
+  usecase "Manage Portfolio Posts" as UC24
+  usecase "View Client Reviews" as UC25
+  usecase "Manage Payment Settings" as UC26
+
+  usecase "Submit Complaint against Client" as UC27
+  usecase "View Notifications" as UC28
+}
+
+' --- Actor associations -------------------------------------
+SP --> UC1
+SP --> UC7
+SP --> UC9
+SP --> UC11
+SP --> UC18
+SP --> UC19
+SP --> UC21
+SP --> UC22
+SP --> UC27
+SP --> UC28
+CLI --> UC16 : responds to proposal
+
+' --- Relationships -----------------------------------------
+UC1 ..> UC2 : <<include>>
+UC1 ..> UC3 : <<include>>
+UC1 ..> UC4 : <<include>>
+UC1 ..> UC5 : <<include>>
+UC1 ..> UC6 : <<include>>
+
+UC7 ..> UC8 : <<include>>
+UC9 ..> UC10 : <<include>>
+
+UC11 ..> UC12 : <<extend>>
+UC11 ..> UC13 : <<extend>>
+UC14 ..> UC11 : <<extend>>
+UC15 ..> UC11 : <<extend>>
+UC16 ..> UC11 : <<extend>>
+UC16 ..> UC17 : <<include>>
+
+UC19 ..> UC20 : <<extend>>
+UC19 ..> UC21 : <<extend>>
+
+UC22 ..> UC23 : <<include>>
+UC22 ..> UC24 : <<include>>
+UC22 ..> UC25 : <<include>>
+UC22 ..> UC26 : <<include>>
+
+legend bottom
+  |= Use case |= Note / integration point |
+  | View Total Earnings via HomeHero | Figure supplied by Visal's module (sum of Card-payment earning records). Cash jobs excluded. |
+  | Check Eligibility | Membership and grace-period status come from Visal's module. |
+  | Open Invoice Menu | Hosts the Generate / Download Invoice component owned by Dinuka. |
+  | Manage Payment Settings | Bank details are consumed by Visal's payment module (payee autofill). |
+  | Propose Reschedule | v3 feature. Booking moves to Reschedule Pending until the Client responds. |
+endlegend
+
+@enduml

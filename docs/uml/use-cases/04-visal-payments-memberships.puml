@@ -1,0 +1,155 @@
+@startuml Module4-Payments-Memberships
+' ============================================================
+' Module 4 - Payments and Memberships
+' Owner: Visal
+' Ref: System Flow v4 - Sections 18, 22.1, 23.3, 28, 29.4, 35.1
+' ============================================================
+
+left to right direction
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam ArrowColor #4A5568
+skinparam defaultFontName Segoe UI
+skinparam defaultFontSize 13
+skinparam usecase {
+  BackgroundColor #EBF4FF
+  BorderColor #2B6CB0
+  FontColor #1A202C
+}
+skinparam rectangle {
+  BackgroundColor #F7FAFC
+  BorderColor #2D3748
+  FontStyle bold
+}
+skinparam actor {
+  BackgroundColor #FEEBC8
+  BorderColor #C05621
+}
+
+title Module 4 - Payments and Memberships (Visal)
+
+actor "Client" as CLI
+actor "Service Provider" as SP
+actor "Payment Gateway" as PG <<external>>
+actor "Scheduler" as SCH <<system>>
+actor "Email Service" as MAIL <<external>>
+
+rectangle "Payments and Memberships Module" {
+
+  ' ---------- Job payment ----------
+  usecase "Pay for Completed Job" as UC1
+  usecase "Select Payment Method" as UC2
+  usecase "Pay by Cash" as UC3
+  usecase "Confirm Direct Cash Payment" as UC4
+  usecase "Record Zero Platform Commission" as UC5
+  usecase "Pay by Card" as UC6
+  usecase "Autofill Payee Bank Details" as UC7
+  usecase "Enter Service Amount" as UC8
+  usecase "Calculate 5% Platform Fee" as UC9
+  usecase "Process Card Transaction" as UC10
+  usecase "Record Payment Transaction" as UC11
+  usecase "Record HomeHero Revenue (5%)" as UC12
+  usecase "Record Provider Earning\nfor Booking" as UC13
+  usecase "Notify Provider of Payment" as UC14
+  usecase "Handle Failed Payment" as UC15
+
+  ' ---------- Review ----------
+  usecase "Submit Review and Rating" as UC16
+  usecase "Validate Review Eligibility" as UC17
+  usecase "Recalculate Provider Average Rating" as UC18
+  usecase "Mark Booking as Completed" as UC19
+
+  ' ---------- Membership ----------
+  usecase "View Subscription Page" as UC20
+  usecase "View Membership Status\nand Payment History" as UC21
+  usecase "Purchase Membership" as UC22
+  usecase "Renew Membership" as UC23
+  usecase "Calculate Membership Price" as UC24
+  usecase "Process Membership Payment" as UC25
+  usecase "Record Membership Revenue" as UC26
+  usecase "Activate Membership Period" as UC27
+  usecase "Send Membership Email" as UC28
+
+  usecase "Expire Membership" as UC29
+  usecase "Start 3-Day Grace Period" as UC30
+  usecase "Force Provider Offline" as UC31
+  usecase "Lift Forced-Offline Restriction" as UC32
+
+  ' ---------- Payment settings / reporting ----------
+  usecase "Manage Provider Payment Settings" as UC33
+  usecase "Provide Total Earnings Figure" as UC34
+  usecase "Provide Revenue Data" as UC35
+}
+
+' --- Actor associations -------------------------------------
+CLI --> UC1
+CLI --> UC16
+SP  --> UC20
+SP  --> UC22
+SP  --> UC23
+SP  --> UC33
+SCH --> UC29
+UC10 --> PG
+UC25 --> PG
+UC28 --> MAIL
+
+' --- Job payment flow ---------------------------------------
+UC1 ..> UC2 : <<include>>
+UC3 ..> UC2 : <<extend>>
+UC6 ..> UC2 : <<extend>>
+
+UC3 ..> UC4 : <<include>>
+UC3 ..> UC5 : <<include>>
+
+UC6 ..> UC7  : <<include>>
+UC6 ..> UC8  : <<include>>
+UC6 ..> UC9  : <<include>>
+UC6 ..> UC10 : <<include>>
+UC6 ..> UC11 : <<include>>
+UC6 ..> UC12 : <<include>>
+UC6 ..> UC13 : <<include>>
+UC6 ..> UC14 : <<include>>
+UC15 ..> UC6 : <<extend>>
+
+UC1 ..> UC16 : <<include>>
+UC16 ..> UC17 : <<include>>
+UC16 ..> UC18 : <<include>>
+UC16 ..> UC19 : <<include>>
+
+' --- Membership flow ----------------------------------------
+UC20 ..> UC21 : <<include>>
+UC22 ..> UC24 : <<include>>
+UC22 ..> UC25 : <<include>>
+UC22 ..> UC26 : <<include>>
+UC22 ..> UC27 : <<include>>
+UC22 ..> UC28 : <<include>>
+UC23 ..> UC24 : <<include>>
+UC23 ..> UC25 : <<include>>
+UC23 ..> UC26 : <<include>>
+UC23 ..> UC27 : <<include>>
+UC23 ..> UC28 : <<include>>
+UC23 ..> UC32 : <<include>>
+
+UC29 ..> UC30 : <<include>>
+UC29 ..> UC31 : <<include>>
+UC29 ..> UC28 : <<include>>
+
+' --- Outbound data services ---------------------------------
+UC13 ..> UC34 : <<include>>
+UC12 ..> UC35 : <<include>>
+UC26 ..> UC35 : <<include>>
+UC33 ..> UC7  : <<include>>
+
+legend bottom
+  |= Use case |= Business rule / integration point |
+  | Record Zero Platform Commission | Cash creates no commission, no earning record and no stored amount. The only trace is the manual invoice amount (Dinuka). |
+  | Calculate 5% Platform Fee | Platform Fee = Service Amount x 5%; Total Charged = Service Amount + Platform Fee. Always recalculated on the backend. |
+  | Record Provider Earning for Booking | Separate record from HomeHero's 5% revenue. Created at payment confirmation, not at booking completion. |
+  | Notify Provider of Payment | Uses the shared personal notification service owned by Vihas. |
+  | Calculate Membership Price | 1 category: LKR 4,999/month. 2 categories: LKR 9,998 first payment, then LKR 7,498.50 per renewal. |
+  | Force Provider Offline | Applied after the 3-day grace period. The availability flag is enforced by Maheli's Go Online use case. |
+  | Provide Total Earnings Figure | Consumed by Maheli's provider dashboard. Card payments only. |
+  | Provide Revenue Data | Consumed by Vihas's admin dashboard, 6-month revenue chart and earnings report. |
+endlegend
+
+@enduml

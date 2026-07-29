@@ -40,3 +40,6 @@ Thumbs.db
 
 # Test coverage
 coverage/
+
+# PlantUML renderer (downloaded locally, not committed)
+docs/uml/use-cases/plantuml.jar
