@@ -170,7 +170,7 @@ The 5% and the total are computed and stored by Postgres. Application code write
 | `membership_pricing_rules_category_count_key` | One pricing rule per category count |
 | `reviews_booking_id_key` | **One review per booking** |
 
-### Indexes (13)
+### Indexes (14)
 
 Partial unique indexes — the clever ones, worth calling out:
 
@@ -193,6 +193,8 @@ Plain B-tree indexes:
 | `ix_pm_expires_at` | `provider_memberships (expires_at)` | Expiry job |
 | `ix_pm_grace_ends_at` | `provider_memberships (grace_ends_at)` | Forced-offline job |
 | `ix_pm_membership_status` | `provider_memberships (membership_status)` | Status filtering |
+| `ix_rev_recognized_at` | `revenue_entries (recognized_at)` | Monthly revenue grouping (`vw_monthly_revenue`) |
+| `ix_rev_revenue_type` | `revenue_entries (revenue_type)` | Splitting membership vs commission income |
 
 ### Foreign keys (10)
 

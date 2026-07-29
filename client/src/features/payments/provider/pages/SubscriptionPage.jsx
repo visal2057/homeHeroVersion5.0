@@ -123,7 +123,12 @@ export default function SubscriptionPage() {
              (registration.css .register-glass-box) so the payment popup
              matches the rest of the site's auth forms instead of the
              shared Modal's plain white card. Scoped via :has() to just
-             this modal's card so every other Modal usage is untouched. */
+             this modal's card so every other Modal usage is untouched.
+             The padding override (needs !important - Modal.jsx sets it as
+             an inline style) replaces Modal's default var(--space-xl) on
+             every side, which - stacked with MembershipPaymentForm's own
+             padding - left a large empty margin around the compact card
+             form and forced an unnecessary scrollbar on shorter screens. */
           .card:has(.mpf) {
             background: linear-gradient(160deg, rgba(7, 70, 56, 0.55), rgba(5, 39, 34, 0.7)) padding-box,
               linear-gradient(135deg, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.08) 45%, rgba(167, 232, 205, 0.4) 100%)
@@ -132,6 +137,12 @@ export default function SubscriptionPage() {
             -webkit-backdrop-filter: blur(32px) saturate(130%);
             border: 1.5px solid transparent;
             box-shadow: 0 24px 60px rgba(3, 42, 32, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+            padding: var(--space-lg) !important;
+          }
+          @media (max-width: 480px) {
+            .card:has(.mpf) {
+              padding: var(--space-md) !important;
+            }
           }
           .sub-modal-close {
             position: absolute; top: 14px; right: 14px;
