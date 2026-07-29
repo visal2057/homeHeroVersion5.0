@@ -181,7 +181,7 @@ export default function PublicHeader() {
   return (
     <>
       <header className={`public-header ${isScrolled ? 'public-header-scrolled' : ''}`}>
-        <div className="container" style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'var(--space-lg)' }}>
+        <div className="container ph-header-row">
           <Link to={ROUTES.HOME} style={{ fontSize: 'var(--font-size-xl)', fontWeight: 800, color: 'var(--color-secondary-700)' }}>
             HomeHero
           </Link>
@@ -193,10 +193,18 @@ export default function PublicHeader() {
             <NavLink to={ROUTES.CONTACT} style={navLinkStyle}>Contact Us</NavLink>
           </nav>
 
-          {/* Notification bell — clients only. Lives outside .public-header-actions
-              (which is display:none on mobile) so it stays visible next to the
-              hamburger toggle on narrow screens instead of disappearing with it. */}
-          {isClient && (
+          {/* Bell + account bubble/auth buttons + hamburger all live in one
+              tightly-gapped right-hand group (rather than as separate flex
+              children of the header row) so the bell sits snug against
+              whichever one is visible - the account bubble on desktop, the
+              hamburger on mobile - instead of the header's own row gap
+              (previously space-between across every child) shoving the
+              centered nav off to the left. */}
+          <div className="ph-header-right">
+            {/* Notification bell — clients only. Lives outside .public-header-actions
+                (which is display:none on mobile) so it stays visible next to the
+                hamburger toggle on narrow screens instead of disappearing with it. */}
+            {isClient && (
             <div ref={notifRef} className="ph-notif-standalone" style={{ position: 'relative' }}>
               <button type="button" className="ph-bell-btn" aria-label="Notifications" onClick={handleOpenNotif}>
                 <IconBell size={20} style={{ color: 'var(--color-secondary-700)' }} />
@@ -369,6 +377,7 @@ export default function PublicHeader() {
           >
             <span /><span /><span />
           </button>
+          </div>
         </div>
 
         {isMobileMenuOpen && (
@@ -409,6 +418,37 @@ export default function PublicHeader() {
       </header>
 
       <style>{`
+        /* Three-column grid (rather than flex space-between across every
+           child) so the nav stays perfectly centered on the page no matter
+           how wide the right-hand group is - a flex row's space-between
+           would push the nav left whenever the bell is present, since it
+           counts as one more child sharing the distributed gap. Each child
+           is pinned to an explicit grid-column rather than left to
+           auto-placement order, because .public-header-nav switches to
+           display:none on mobile - with auto-placement that would shift
+           .ph-header-right into the middle track instead of the last one,
+           leaving the real right-hand column empty and the bell/hamburger
+           stranded away from the edge. */
+        .ph-header-row {
+          height: 100%;
+          display: grid;
+          grid-template-columns: 1fr auto 1fr;
+          align-items: center;
+          gap: var(--space-lg);
+        }
+        .ph-header-row > a { grid-column: 1; justify-self: start; }
+        .public-header-nav { grid-column: 2; justify-self: center; }
+        /* Bell, account bubble/auth buttons and hamburger share one flex
+           group with a small explicit gap, so the bell sits snug against
+           whichever one is visible - the account bubble on desktop, the
+           hamburger on mobile - instead of an even larger, page-wide gap. */
+        .ph-header-right {
+          grid-column: 3;
+          justify-self: end;
+          display: flex;
+          align-items: center;
+          gap: var(--space-sm);
+        }
         .ph-bell-btn {
           position: relative; background: none; border: none; cursor: pointer;
           padding: 8px; border-radius: var(--radius-md);

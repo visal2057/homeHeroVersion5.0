@@ -99,7 +99,12 @@ export default function MembershipPaymentForm({ quote, onCancel, onPaid }) {
       />
 
       <style>{`
-        .mpf { padding: var(--space-xl); }
+        /* No padding of its own - the glass card wrapping this form
+           (.card:has(.mpf) in SubscriptionPage.jsx) already supplies the
+           inset, so adding padding here on top of that stacked the two
+           into a huge empty margin around the content (and forced a
+           scrollbar on shorter viewports). */
+        .mpf { padding: 0; }
         .mpf-title { font-size: var(--font-size-xl); color: var(--color-neutral-0); }
         .mpf-sub { color: var(--color-neutral-200); font-size: var(--font-size-base); margin-bottom: var(--space-lg); }
         .mpf-split { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-md); }
@@ -145,15 +150,9 @@ export default function MembershipPaymentForm({ quote, onCancel, onPaid }) {
         }
         .mpf .btn-ghost:hover:not(:disabled) { background-color: rgba(255, 255, 255, 0.2); }
 
-        /* This form renders inside the shared Modal, which already pads its
-           card by var(--space-xl) — stacked with .mpf's own var(--space-xl)
-           padding that's a lot of compounded inset on a narrow phone.
-           Trim it and stack the Expiry/CVV split so the fields aren't
+        /* Stack the Expiry/CVV split on a narrow phone so the fields aren't
            squeezed into a sliver of the modal's already-clamped width. */
         @media (max-width: 480px) {
-          .mpf {
-            padding: var(--space-md);
-          }
           .mpf-split {
             grid-template-columns: 1fr;
           }
