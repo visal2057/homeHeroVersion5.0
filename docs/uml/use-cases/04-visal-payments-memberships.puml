@@ -33,6 +33,8 @@ actor "Service Provider" as SP
 actor "Payment Gateway" as PG <<external>>
 actor "Scheduler" as SCH <<system>>
 actor "Email Service" as MAIL <<external>>
+actor "Provider Dashboard\n(Maheli's module)" as DASH <<system>>
+actor "Admin Dashboard\n(Vihas's module)" as ADMIN <<system>>
 
 rectangle "Payments and Memberships Module" {
 
@@ -75,10 +77,8 @@ rectangle "Payments and Memberships Module" {
   usecase "Force Provider Offline" as UC31
   usecase "Lift Forced-Offline Restriction" as UC32
 
-  ' ---------- Payment settings / reporting ----------
+  ' ---------- Payment settings ----------
   usecase "Manage Provider Payment Settings" as UC33
-  usecase "Provide Total Earnings Figure" as UC34
-  usecase "Provide Revenue Data" as UC35
 }
 
 ' --- Actor associations -------------------------------------
@@ -94,9 +94,11 @@ UC25 --> PG
 UC28 --> MAIL
 
 ' --- Job payment flow ---------------------------------------
+' Cash and Card are alternative ways of performing the payment, so they
+' extend the payment use case itself - not the method-selection step.
 UC1 ..> UC2 : <<include>>
-UC3 ..> UC2 : <<extend>>
-UC6 ..> UC2 : <<extend>>
+UC3 ..> UC1 : <<extend>>
+UC6 ..> UC1 : <<extend>>
 
 UC3 ..> UC4 : <<include>>
 UC3 ..> UC5 : <<include>>
@@ -134,11 +136,12 @@ UC29 ..> UC30 : <<include>>
 UC29 ..> UC31 : <<include>>
 UC29 ..> UC28 : <<include>>
 
-' --- Outbound data services ---------------------------------
-UC13 ..> UC34 : <<include>>
-UC12 ..> UC35 : <<include>>
-UC26 ..> UC35 : <<include>>
-UC33 ..> UC7  : <<include>>
+' --- Outbound data supplied to other members' modules --------
+' These are associations to secondary (system) actors, not use cases:
+' this module records the figures, the other modules display them.
+UC13 --> DASH
+UC12 --> ADMIN
+UC26 --> ADMIN
 
 legend bottom
   |= Use case |= Business rule / integration point |
@@ -148,8 +151,9 @@ legend bottom
   | Notify Provider of Payment | Uses the shared personal notification service owned by Vihas. |
   | Calculate Membership Price | 1 category: LKR 4,999/month. 2 categories: LKR 9,998 first payment, then LKR 7,498.50 per renewal. |
   | Force Provider Offline | Applied after the 3-day grace period. The availability flag is enforced by Maheli's Go Online use case. |
-  | Provide Total Earnings Figure | Consumed by Maheli's provider dashboard. Card payments only. |
-  | Provide Revenue Data | Consumed by Vihas's admin dashboard, 6-month revenue chart and earnings report. |
+  | Manage Provider Payment Settings | Saves the bank details that Autofill Payee Bank Details later reads during a Card payment. |
+  | Record Provider Earning -> Provider Dashboard | Card payments only; summed as "Total Earnings via HomeHero" by Maheli's module. |
+  | Record HomeHero Revenue / Membership Revenue -> Admin Dashboard | Feeds Vihas's 6-month revenue chart and earnings report. |
 endlegend
 
 @enduml
