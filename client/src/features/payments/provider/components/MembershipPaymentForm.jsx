@@ -100,10 +100,50 @@ export default function MembershipPaymentForm({ quote, onCancel, onPaid }) {
 
       <style>{`
         .mpf { padding: var(--space-xl); }
-        .mpf-title { font-size: var(--font-size-lg); color: var(--color-secondary-700); }
-        .mpf-sub { color: var(--color-neutral-500); font-size: var(--font-size-sm); margin-bottom: var(--space-lg); }
+        .mpf-title { font-size: var(--font-size-xl); color: var(--color-neutral-0); }
+        .mpf-sub { color: var(--color-neutral-200); font-size: var(--font-size-base); margin-bottom: var(--space-lg); }
         .mpf-split { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-md); }
         .mpf-actions { display: flex; gap: var(--space-sm); justify-content: flex-end; margin-top: var(--space-lg); }
+
+        /* Same dark-emerald frosted-glass field treatment used on the
+           login/registration forms (registration.css .register-glass-box),
+           reapplied here since this card gets its glass background from
+           .card:has(.mpf) in SubscriptionPage.jsx rather than that class. */
+        .mpf .form-label {
+          color: var(--color-neutral-0);
+          font-weight: 700;
+          font-size: var(--font-size-base);
+        }
+        .mpf .form-control {
+          background-color: rgba(255, 255, 255, 0.14);
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
+          border: 1px solid rgba(255, 255, 255, 0.28);
+          color: var(--color-neutral-0);
+          font-size: var(--font-size-lg);
+          padding: 0.75rem 0.95rem;
+        }
+        .mpf .form-control::placeholder { color: rgba(255, 255, 255, 0.55); }
+        .mpf .form-control:focus {
+          background-color: rgba(255, 255, 255, 0.22);
+          border-color: var(--color-primary-400);
+          box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.3);
+        }
+        .mpf .form-control.has-error {
+          background-color: rgba(220, 38, 38, 0.16);
+          border-color: #f87171;
+        }
+        .mpf .form-error { color: #fca5a5; font-size: var(--font-size-sm); }
+        .mpf .form-hint { color: var(--color-neutral-300); }
+
+        .mpf .btn-ghost {
+          background: rgba(255, 255, 255, 0.12);
+          border: 1px solid rgba(255, 255, 255, 0.32);
+          color: var(--color-neutral-0);
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
+        }
+        .mpf .btn-ghost:hover:not(:disabled) { background-color: rgba(255, 255, 255, 0.2); }
 
         /* This form renders inside the shared Modal, which already pads its
            card by var(--space-xl) — stacked with .mpf's own var(--space-xl)

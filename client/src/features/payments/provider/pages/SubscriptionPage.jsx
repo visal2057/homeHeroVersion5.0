@@ -11,7 +11,7 @@ import EmptyState from '../../../../components/common/EmptyState.jsx';
 import Modal from '../../../../components/common/Modal.jsx';
 import { IconAlertCircle } from '../../../../components/common/icons.jsx';
 
-const HERO_IMAGE = 'https://images.unsplash.com/photo-1594989627219-01e365ee6d05?auto=format&fit=crop&w=1600&q=80';
+const HERO_IMAGE = 'https://images.unsplash.com/photo-1686771416282-3888ddaf249b?auto=format&fit=crop&w=1600&q=80';
 
 export default function SubscriptionPage() {
   const [overview, setOverview] = useState(null);
@@ -119,15 +119,30 @@ export default function SubscriptionPage() {
           />
         </div>
         <style>{`
+          /* Same tinted-glass slab used by the login/registration forms
+             (registration.css .register-glass-box) so the payment popup
+             matches the rest of the site's auth forms instead of the
+             shared Modal's plain white card. Scoped via :has() to just
+             this modal's card so every other Modal usage is untouched. */
+          .card:has(.mpf) {
+            background: linear-gradient(160deg, rgba(7, 70, 56, 0.55), rgba(5, 39, 34, 0.7)) padding-box,
+              linear-gradient(135deg, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.08) 45%, rgba(167, 232, 205, 0.4) 100%)
+                border-box;
+            backdrop-filter: blur(32px) saturate(130%);
+            -webkit-backdrop-filter: blur(32px) saturate(130%);
+            border: 1.5px solid transparent;
+            box-shadow: 0 24px 60px rgba(3, 42, 32, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+          }
           .sub-modal-close {
             position: absolute; top: 14px; right: 14px;
             width: 28px; height: 28px; border-radius: 50%;
-            border: none; background: var(--color-neutral-100); color: var(--color-neutral-600);
+            border: 1px solid rgba(255, 255, 255, 0.32); background: rgba(255, 255, 255, 0.14); color: var(--color-neutral-0);
             font-size: 18px; line-height: 1; cursor: pointer;
             display: flex; align-items: center; justify-content: center;
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
             transition: background var(--transition-base);
           }
-          .sub-modal-close:hover { background: var(--color-neutral-200); }
+          .sub-modal-close:hover { background: rgba(255, 255, 255, 0.24); }
         `}</style>
       </Modal>
     </div>
