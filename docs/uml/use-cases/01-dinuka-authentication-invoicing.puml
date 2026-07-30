@@ -1,0 +1,149 @@
+@startuml Module1-Authentication-Invoicing
+' ============================================================
+' Module 1 - Authentication, Registration & SP Invoicing
+' Owner: Dinuka
+' Ref: System Flow v4 - Sections 5-9, 26.2, 27
+' ============================================================
+
+left to right direction
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam ArrowColor #4A5568
+skinparam defaultFontName Segoe UI
+skinparam defaultFontSize 13
+skinparam usecase {
+  BackgroundColor #EBF4FF
+  BorderColor #2B6CB0
+  FontColor #1A202C
+}
+skinparam rectangle {
+  BackgroundColor #F7FAFC
+  BorderColor #2D3748
+  FontStyle bold
+}
+skinparam actor {
+  BackgroundColor #FEEBC8
+  BorderColor #C05621
+}
+
+title Module 1 - Authentication, Registration and Invoice Generation (Dinuka)
+
+actor "Visitor" as VIS
+actor "Client" as CLI
+actor "Service Provider" as SP
+actor "System Admin" as SA
+actor "Verification Admin" as VA
+actor "Email Service" as MAIL <<external>>
+
+rectangle "Authentication & Invoicing Module" {
+
+  usecase "Select Registration Role" as UC1
+  usecase "Register as Client" as UC2
+  usecase "Register as Service Provider" as UC3
+  usecase "Reapply After Rejection\n(max 3 attempts)" as UC28
+  usecase "Upload Verification Documents" as UC4
+  usecase "Accept Terms and Conditions" as UC5
+  usecase "Validate Registration Data" as UC6
+  usecase "Generate Unique 6-Character Token" as UC7
+  usecase "Hash and Store Password" as UC8
+
+  usecase "Log In" as UC9
+  usecase "Validate Credentials" as UC10
+  usecase "Create Authenticated Session" as UC11
+  usecase "Redirect by Role" as UC12
+  usecase "Block Banned User" as UC13
+  usecase "Show Pending Verification Page" as UC14
+  usecase "Show Rejected Application Page" as UC15
+  usecase "Log Out" as UC16
+  usecase "Invalidate Session" as UC17
+
+  usecase "Request Password Reset" as UC18
+  usecase "Validate Reset Token" as UC19
+  usecase "Set New Password" as UC20
+
+  usecase "Generate Invoice" as UC21
+  usecase "Autofill Job & Payment Details" as UC22
+  usecase "Lock Amount from Payment Record\n(Card job)" as UC23
+  usecase "Enter Amount Manually\n(Cash job)" as UC24
+  usecase "Create Invoice PDF" as UC25
+  usecase "Download Invoice" as UC26
+
+  usecase "Send System Email" as UC27
+}
+
+' --- Actor associations -------------------------------------
+VIS --> UC1
+VIS --> UC2
+VIS --> UC3
+VIS --> UC18
+VIS --> UC20
+
+' Log In / Log Out are a single path shared by every role, and Redirect by
+' Role has a destination for all four - so all four roles are actors here.
+CLI --> UC9
+CLI --> UC16
+SP  --> UC9
+SP  --> UC16
+SA  --> UC9
+SA  --> UC16
+VA  --> UC9
+VA  --> UC16
+
+SP  --> UC21
+SP  --> UC26
+CLI --> UC26
+SA  --> UC26
+SP  --> UC28
+SA  --> UC2 : creates account on\nbehalf of user
+SA  --> UC3 : creates account on\nbehalf of user
+
+UC27 --> MAIL
+
+' --- Registration ------------------------------------------
+' Extension points into role selection: the visitor picks a role, and the
+' matching registration behaviour is what continues from that choice.
+UC2 ..> UC1 : <<extend>>
+UC3 ..> UC1 : <<extend>>
+UC28 ..> UC3 : <<extend>>
+UC2 ..> UC6 : <<include>>
+UC2 ..> UC7 : <<include>>
+UC2 ..> UC8 : <<include>>
+UC2 ..> UC27 : <<include>>
+UC3 ..> UC4 : <<include>>
+UC3 ..> UC5 : <<include>>
+UC3 ..> UC6 : <<include>>
+UC3 ..> UC7 : <<include>>
+UC3 ..> UC8 : <<include>>
+
+' --- Login / Logout ----------------------------------------
+UC9 ..> UC10 : <<include>>
+UC9 ..> UC11 : <<include>>
+UC9 ..> UC12 : <<include>>
+UC13 ..> UC9 : <<extend>>
+UC14 ..> UC12 : <<extend>>
+UC15 ..> UC12 : <<extend>>
+UC16 ..> UC17 : <<include>>
+
+' --- Password recovery -------------------------------------
+UC18 ..> UC27 : <<include>>
+UC20 ..> UC19 : <<include>>
+UC20 ..> UC8  : <<include>>
+
+' --- Invoicing ---------------------------------------------
+UC21 ..> UC22 : <<include>>
+UC21 ..> UC25 : <<include>>
+UC23 ..> UC21 : <<extend>>
+UC24 ..> UC21 : <<extend>>
+
+legend bottom
+  |= Use case |= Note / integration point |
+  | Lock Amount from Payment Record | Amount is read from Visal's provider earning record and cannot be edited. |
+  | Enter Amount Manually | Cash jobs only. Self-reported figure, never a HomeHero-verified payment. |
+  | Generate Invoice | One invoice per completed booking; cannot be regenerated or edited. |
+  | Download Invoice | Returns the same stored PDF every time. Provider reaches it from Maheli's Completed Jobs, Client from My Bookings. System Admin is authorised by the backend, but Vihas's SP Tracking UI does not call it yet. |
+  | Register as Client / Provider | Also invoked by Vihas's admin "Create Account" screen - same routes, same service, same validation. |
+  | Reapply After Rejection | Same username, email and password on a REJECTED account. Reuses the existing user, so no new token or password hash is created. Capped at 3 attempts. |
+  | Log In / Log Out | One shared path for all four roles; Redirect by Role has a destination for each. |
+endlegend
+
+@enduml

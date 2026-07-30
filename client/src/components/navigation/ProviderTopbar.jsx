@@ -4,6 +4,7 @@ import { ROUTES } from '../../constants/routes.js';
 import { useAuth } from '../../hooks/useAuth.js';
 import { axiosClient } from '../../api/axiosClient.js';
 import { API_ENDPOINTS } from '../../api/apiEndpoints.js';
+import { getAssetUrl } from '../../utils/storageUtils.js';
 import { IconBell } from '../common/icons.jsx';
 
 const POLL_INTERVAL_MS = 30_000; // same interval the client bell (PublicHeader.jsx) already polls at
@@ -137,7 +138,11 @@ export default function ProviderTopbar({ onMenuToggle }) {
 
         {/* Account bubble — read-only, all navigation lives in the sidebar */}
         <div className="provider-account-bubble" aria-label={`Signed in as ${username}`}>
-          <span className="provider-account-avatar">{initialsOf(username)}</span>
+          {user?.profileImageUrl ? (
+            <img src={getAssetUrl(user.profileImageUrl)} alt="" className="provider-account-avatar-photo" />
+          ) : (
+            <span className="provider-account-avatar">{initialsOf(username)}</span>
+          )}
           <span className="provider-account-name">{username}</span>
         </div>
       </div>

@@ -1,0 +1,164 @@
+@startuml Module5-Administration
+' ============================================================
+' Module 5 - Administration (System Admin + Verification Admin)
+' Owner: Vihas
+' Ref: System Flow v4 - Sections 31-40, 45, 52.4, 52.5
+' ============================================================
+
+left to right direction
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam ArrowColor #4A5568
+skinparam defaultFontName Segoe UI
+skinparam defaultFontSize 13
+skinparam usecase {
+  BackgroundColor #EBF4FF
+  BorderColor #2B6CB0
+  FontColor #1A202C
+}
+skinparam rectangle {
+  BackgroundColor #F7FAFC
+  BorderColor #2D3748
+  FontStyle bold
+}
+skinparam actor {
+  BackgroundColor #FEEBC8
+  BorderColor #C05621
+}
+
+title Module 5 - Administration and Shared Notifications (Vihas)
+
+actor "Verification Admin" as VA
+actor "System Admin" as SA
+actor "Email Service" as MAIL <<external>>
+
+rectangle "Administration Module" {
+
+  ' ---------- Verification Admin ----------
+  usecase "Review Verification Application" as UC1
+  usecase "View Uploaded Documents" as UC2
+  usecase "Approve Application" as UC3
+  usecase "Reject Application" as UC4
+  usecase "Enter Rejection Reason" as UC5
+
+  usecase "Review Complaint" as UC6
+  usecase "Record Investigation Verdict" as UC7
+  usecase "Create Ban Request" as UC8
+  usecase "Close Complaint" as UC9
+
+  ' ---------- System Admin dashboard ----------
+  usecase "View Admin Dashboard" as UC10
+  usecase "View Monthly Revenue Metrics" as UC11
+  usecase "View 6-Month Revenue Chart" as UC12
+  usecase "View Booking Distribution Chart" as UC13
+  usecase "View Recent Actions" as UC14
+  usecase "Generate Earnings Report PDF" as UC15
+
+  ' ---------- Bookings & users ----------
+  usecase "Manage Bookings" as UC16
+  usecase "Search and Filter Bookings" as UC17
+  usecase "Manage Users" as UC18
+  usecase "Search User by Name / Token / Booking" as UC19
+  usecase "Review Ban Requests" as UC20
+  usecase "Apply Ban" as UC21
+  usecase "Remove Ban" as UC22
+  usecase "Invalidate User Sessions" as UC23
+  usecase "Create Client or Provider Account" as UC24
+
+  ' ---------- SP Tracking ----------
+  usecase "Track Service Provider" as UC25
+  usecase "Search Provider by Name / Token" as UC26
+  usecase "View Provider Completed Jobs" as UC27
+  usecase "View / Download Job Invoice" as UC28
+  usecase "View MVP Providers Leaderboard" as UC29
+
+  ' ---------- Content & announcements ----------
+  usecase "Manage Website Images" as UC30
+  usecase "Create Announcement" as UC31
+  usecase "Publish Announcement" as UC32
+  usecase "Schedule Announcement" as UC33
+  usecase "Save Announcement Draft" as UC34
+  usecase "Archive Announcement" as UC35
+
+  ' ---------- Shared services ----------
+  usecase "Create Personal Notification" as UC36 <<shared>>
+  usecase "Deliver Notification to User" as UC37 <<shared>>
+  usecase "Record Audit Log Entry" as UC38 <<shared>>
+  usecase "Send System Email" as UC39
+}
+
+' --- Actor associations -------------------------------------
+VA --> UC1
+VA --> UC6
+SA --> UC10
+SA --> UC15
+SA --> UC16
+SA --> UC18
+SA --> UC20
+SA --> UC24
+SA --> UC25
+SA --> UC30
+SA --> UC31
+UC39 --> MAIL
+
+' --- Verification -------------------------------------------
+UC1 ..> UC2 : <<include>>
+UC3 ..> UC1 : <<extend>>
+UC4 ..> UC1 : <<extend>>
+UC4 ..> UC5 : <<include>>
+UC3 ..> UC39 : <<include>>
+UC4 ..> UC39 : <<include>>
+
+' --- Complaints ---------------------------------------------
+UC6 ..> UC7 : <<include>>
+UC6 ..> UC39 : <<include>>
+UC8 ..> UC6 : <<extend>>
+UC9 ..> UC6 : <<extend>>
+UC8 ..> UC20 : <<include>>
+
+' --- Dashboard ----------------------------------------------
+UC10 ..> UC11 : <<include>>
+UC10 ..> UC12 : <<include>>
+UC10 ..> UC13 : <<include>>
+UC10 ..> UC14 : <<include>>
+UC15 ..> UC10 : <<extend>>
+
+' --- Bookings & users ---------------------------------------
+UC16 ..> UC17 : <<include>>
+UC18 ..> UC19 : <<include>>
+UC21 ..> UC20 : <<extend>>
+UC21 ..> UC23 : <<include>>
+UC21 ..> UC39 : <<include>>
+UC22 ..> UC18 : <<extend>>
+UC24 ..> UC18 : <<extend>>
+
+' --- SP Tracking --------------------------------------------
+UC25 ..> UC26 : <<include>>
+UC25 ..> UC27 : <<include>>
+UC27 ..> UC28 : <<extend>>
+UC29 ..> UC25 : <<extend>>
+
+' --- Announcements ------------------------------------------
+UC31 ..> UC32 : <<extend>>
+UC31 ..> UC33 : <<extend>>
+UC31 ..> UC34 : <<extend>>
+UC35 ..> UC31 : <<extend>>
+UC32 ..> UC37 : <<include>>
+
+' --- Shared services ----------------------------------------
+UC36 ..> UC37 : <<include>>
+UC21 ..> UC38 : <<include>>
+UC22 ..> UC38 : <<include>>
+UC30 ..> UC38 : <<include>>
+UC32 ..> UC38 : <<include>>
+
+legend bottom
+  |= Use case |= Note / integration point |
+  | View Monthly Revenue Metrics | Revenue = membership income + 5% card commissions, both supplied by Visal. Cash contributes nothing. |
+  | Create Client or Provider Account | Uses the same registration path as public sign-up (Dinuka). Providers still enter the Pending queue. |
+  | View / Download Job Invoice | Serves the stored invoice PDF generated by Dinuka's module. |
+  | Create Personal Notification | Shared service called by every module, e.g. Visal's payment-received and Maheli's reschedule notifications. |
+  | View MVP Providers Leaderboard | v3 feature. Shown when the SP Tracking search bar is empty; top 10 by completed jobs, rating as tie-break. |
+endlegend
+
+@enduml
