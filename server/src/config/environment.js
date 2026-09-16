@@ -30,6 +30,18 @@ export const env = {
     from: process.env.EMAIL_FROM || 'HomeHero <onboarding@resend.dev>',
   },
 
+  // Local-only fallback: SMTP isn't blocked outside PaaS hosts, and doesn't
+  // need a verified sending domain the way Resend does. Used only when
+  // NODE_ENV=development (see email.service.js) so production always goes
+  // through Resend.
+  smtp: {
+    host: process.env.SMTP_HOST,
+    port: Number(process.env.SMTP_PORT) || 587,
+    user: process.env.SMTP_USER,
+    password: process.env.SMTP_PASSWORD,
+    from: process.env.EMAIL_FROM || 'HomeHero <noreply@homehero.lk>',
+  },
+
   // Inbox that receives Contact Us form submissions.
   contactNotificationEmail: process.env.CONTACT_NOTIFICATION_EMAIL,
 
