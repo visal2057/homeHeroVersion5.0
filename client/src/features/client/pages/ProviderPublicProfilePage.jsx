@@ -9,6 +9,7 @@ import ProviderProfileHeader from '../components/ProviderProfileHeader.jsx';
 import PreviousWorkGallery from '../components/PreviousWorkGallery.jsx';
 import ReviewsSection from '../components/ReviewsSection.jsx';
 import EmptyState from '../../../components/common/EmptyState.jsx';
+import { SkeletonLine, SkeletonCircle } from '../../../components/common/Skeleton.jsx';
 import {
   IconToolbox, IconMapPin, IconDollarSign, IconCalendar,
   IconShield, IconUser, IconStar, IconAlertCircle, IconArrowLeft,
@@ -75,9 +76,16 @@ export default function ProviderPublicProfilePage() {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
-        <div className="ep-spinner" />
-        <style>{`.ep-spinner { border: 3px solid var(--color-neutral-200); border-top-color: var(--color-primary-500); border-radius: 50%; width: 58px; height: 58px; animation: spin 0.7s linear infinite; } @keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      <div className="container" style={{ paddingTop: 'var(--space-2xl)', paddingBottom: 'var(--space-2xl)' }}>
+        <SkeletonLine height={220} style={{ borderRadius: 'var(--radius-lg)', marginBottom: 'var(--space-lg)' }} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-md)', marginBottom: 'var(--space-lg)' }}>
+          <SkeletonCircle size={56} />
+          <div style={{ flex: 1 }}>
+            <SkeletonLine width="30%" height={16} />
+            <SkeletonLine width="20%" height={12} style={{ marginTop: 8 }} />
+          </div>
+        </div>
+        <SkeletonLine height={140} style={{ borderRadius: 'var(--radius-lg)' }} />
       </div>
     );
   }

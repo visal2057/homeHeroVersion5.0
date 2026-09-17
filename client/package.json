@@ -13,6 +13,7 @@
     "axios": "^1.7.0",
     "homehero": "file:..",
     "leaflet": "^1.9.4",
+    "motion": "^13.4.0",
     "react": "^18.3.0",
     "react-dom": "^18.3.0",
     "react-leaflet": "^4.2.1",

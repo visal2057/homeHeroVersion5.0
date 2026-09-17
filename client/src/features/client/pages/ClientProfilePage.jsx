@@ -5,8 +5,12 @@ import ClientProfileForm from '../components/ClientProfileForm.jsx';
 import ChangePasswordForm from '../components/ChangePasswordForm.jsx';
 import LocationCard from '../components/LocationCard.jsx';
 import LocationEditModal from '../components/LocationEditModal.jsx';
+import PageHero from '../../../components/common/PageHero.jsx';
+import RevealOnScroll from '../../../components/common/RevealOnScroll.jsx';
 import { getAssetUrl } from '../../../utils/storageUtils.js';
 import { IconUser, IconDocumentEdit, IconLock, IconMapPin, IconShield } from '../../../components/common/icons.jsx';
+
+const HERO_IMAGE = 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&w=2000&q=80';
 
 export default function ClientProfilePage() {
   const { user, refreshUser } = useAuth();
@@ -38,43 +42,41 @@ export default function ClientProfilePage() {
     ? profile.fullName.trim().split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toUpperCase()
     : (profile?.username?.[0]?.toUpperCase() ?? 'U');
 
+  const heroAvatar = (
+    <div className="cp-hero-avatar" onClick={() => document.getElementById('profile-img-input').click()} title="Click to change photo">
+      {profile?.profileImageUrl ? (
+        <img src={getAssetUrl(profile.profileImageUrl)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+      ) : (
+        <span>{initials}</span>
+      )}
+      <div className="cp-avatar-overlay">
+        <IconDocumentEdit size={26} style={{ color: 'white' }} />
+      </div>
+      <input id="profile-img-input" type="file" accept="image/jpeg,image/png" onChange={handleImageChange} style={{ display: 'none' }} />
+    </div>
+  );
+
+  const heroExtra = (
+    <>
+      {profile?.username && <div className="cp-hero-username">@{profile.username}</div>}
+      <div className="cp-hero-email">{profile?.email}</div>
+      {profile?.userToken && (
+        <div className="cp-hero-token">
+          <IconShield size={14} style={{ marginRight: 4 }} />
+          Token: <strong style={{ letterSpacing: '0.1em', marginLeft: 4 }}>{profile.userToken}</strong>
+        </div>
+      )}
+    </>
+  );
+
   return (
     <div className="cp-page">
-      {/* Hero */}
-      <div className="cp-hero">
-        <div className="cp-hero-overlay" />
-        <div className="container" style={{ position: 'relative', zIndex: 1 }}>
-          <div className="cp-hero-inner">
-            <div className="cp-hero-avatar" onClick={() => document.getElementById('profile-img-input').click()} title="Click to change photo">
-              {profile?.profileImageUrl ? (
-                <img src={getAssetUrl(profile.profileImageUrl)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-              ) : (
-                <span>{initials}</span>
-              )}
-              <div className="cp-avatar-overlay">
-                <IconDocumentEdit size={26} style={{ color: 'white' }} />
-              </div>
-              <input id="profile-img-input" type="file" accept="image/jpeg,image/png" onChange={handleImageChange} style={{ display: 'none' }} />
-            </div>
-            <div className="cp-hero-text">
-              <h1 className="cp-hero-name">{profile?.fullName ?? profile?.username ?? 'My Profile'}</h1>
-              {profile?.username && <div className="cp-hero-username">@{profile.username}</div>}
-              <div className="cp-hero-email">{profile?.email}</div>
-              {profile?.userToken && (
-                <div className="cp-hero-token">
-                  <IconShield size={14} style={{ marginRight: 4 }} />
-                  Token: <strong style={{ letterSpacing: '0.1em', marginLeft: 4 }}>{profile.userToken}</strong>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
+      <PageHero image={HERO_IMAGE} avatar={heroAvatar} title={profile?.fullName ?? profile?.username ?? 'My Profile'} extra={heroExtra} />
 
       <div className="container cp-body">
         <div className="cp-sections">
           {/* Edit profile */}
-          <div className="cp-card">
+          <RevealOnScroll className="cp-card" y={16}>
             <div className="cp-card-title">
               <IconDocumentEdit size={22} style={{ color: 'var(--color-primary-600)' }} />
               Edit Profile
@@ -90,19 +92,19 @@ export default function ClientProfilePage() {
                 }}
               />
             )}
-          </div>
+          </RevealOnScroll>
 
           {/* Change password */}
-          <div className="cp-card">
+          <RevealOnScroll className="cp-card" delay={0.05} y={16}>
             <div className="cp-card-title">
               <IconLock size={22} style={{ color: 'var(--color-primary-600)' }} />
               Change Password
             </div>
             <ChangePasswordForm />
-          </div>
+          </RevealOnScroll>
 
           {/* Locations */}
-          <div className="cp-card cp-card-full">
+          <RevealOnScroll className="cp-card cp-card-full" delay={0.1} y={16}>
             <div className="cp-card-title">
               <IconMapPin size={22} style={{ color: 'var(--color-primary-600)' }} />
               Locations
@@ -123,7 +125,7 @@ export default function ClientProfilePage() {
                 onEdit={() => setEditingLocationType('SECONDARY')}
               />
             </div>
-          </div>
+          </RevealOnScroll>
         </div>
       </div>
 
@@ -143,17 +145,6 @@ export default function ClientProfilePage() {
 
       <style>{`
         .cp-page { padding-bottom: var(--space-2xl); }
-        .cp-hero {
-          position: relative;
-          background-image: url('https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&w=2000&q=80');
-          background-size: cover; background-position: center; padding: 72px 0;
-        }
-        .cp-hero-overlay {
-          position: absolute; inset: 0;
-          background: linear-gradient(135deg, rgba(15,45,25,0.60) 0%, rgba(21,128,61,0.42) 100%);
-        }
-        .cp-hero-inner { display: flex; align-items: center; gap: var(--space-xl); flex-wrap: wrap; }
-        .cp-hero-text { min-width: 0; overflow-wrap: break-word; }
         .cp-hero-avatar {
           width: 148px; height: 148px; border-radius: 50%; flex-shrink: 0;
           background: linear-gradient(135deg, var(--color-primary-400), var(--color-secondary-700));
@@ -168,7 +159,6 @@ export default function ClientProfilePage() {
           opacity: 0; transition: opacity 0.2s;
         }
         .cp-hero-avatar:hover .cp-avatar-overlay { opacity: 1; }
-        .cp-hero-name { font-size: var(--font-size-2xl); font-weight: 800; color: white; margin-bottom: 4px; }
         .cp-hero-username { color: rgba(255,255,255,0.65); font-size: var(--font-size-sm); margin-bottom: 4px; }
         .cp-hero-email { color: rgba(255,255,255,0.75); margin-bottom: 8px; font-size: var(--font-size-sm); }
         .cp-hero-token {

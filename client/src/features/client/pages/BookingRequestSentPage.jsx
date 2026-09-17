@@ -1,18 +1,36 @@
 import { Link, useLocation } from 'react-router-dom';
+import { motion, useReducedMotion } from 'motion/react';
 import { ROUTES } from '../../../constants/routes.js';
 import { IconCheckCircle, IconClipboardList, IconHome } from '../../../components/common/icons.jsx';
+
+const STEPS = [
+  { label: 'Request Sent', desc: 'Your booking request is with the provider', done: true },
+  { label: 'Provider Review', desc: 'Provider accepts or declines (within 24h)', done: false },
+  { label: 'Job Completed', desc: 'Service is delivered, then pay and leave a review', done: false },
+];
 
 export default function BookingRequestSentPage() {
   const { state } = useLocation();
   const bookingId = state?.bookingId;
+  const shouldReduceMotion = useReducedMotion();
 
   return (
     <div className="brs-page">
       <div className="container">
-        <div className="brs-card">
-          <div className="brs-icon">
+        <motion.div
+          className="brs-card"
+          initial={shouldReduceMotion ? false : { opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+        >
+          <motion.div
+            className="brs-icon"
+            initial={shouldReduceMotion ? false : { opacity: 0, scale: 0.6 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5, delay: 0.1, ease: [0.34, 1.56, 0.64, 1] }}
+          >
             <IconCheckCircle size={77} style={{ color: 'var(--color-primary-600)' }} />
-          </div>
+          </motion.div>
           <h1 className="brs-title">Booking Request Sent!</h1>
           <p className="brs-sub">
             Your booking request has been submitted successfully. The provider will review and respond within <strong>24 hours</strong>.
@@ -27,29 +45,23 @@ export default function BookingRequestSentPage() {
           )}
 
           <div className="brs-steps">
-            <div className="brs-step brs-step-done">
-              <div className="brs-step-dot brs-step-dot-done">1</div>
-              <div>
-                <div className="brs-step-label">Request Sent</div>
-                <div className="brs-step-desc">Your booking request is with the provider</div>
+            {STEPS.map((step, i) => (
+              <div key={step.label}>
+                <motion.div
+                  className={`brs-step${step.done ? ' brs-step-done' : ''}`}
+                  initial={shouldReduceMotion ? false : { opacity: 0, x: -12 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.4, delay: 0.3 + i * 0.12, ease: [0.16, 1, 0.3, 1] }}
+                >
+                  <div className={`brs-step-dot${step.done ? ' brs-step-dot-done' : ''}`}>{i + 1}</div>
+                  <div>
+                    <div className="brs-step-label">{step.label}</div>
+                    <div className="brs-step-desc">{step.desc}</div>
+                  </div>
+                </motion.div>
+                {i < STEPS.length - 1 && <div className="brs-step-line" />}
               </div>
-            </div>
-            <div className="brs-step-line" />
-            <div className="brs-step">
-              <div className="brs-step-dot">2</div>
-              <div>
-                <div className="brs-step-label">Provider Review</div>
-                <div className="brs-step-desc">Provider accepts or declines (within 24h)</div>
-              </div>
-            </div>
-            <div className="brs-step-line" />
-            <div className="brs-step">
-              <div className="brs-step-dot">3</div>
-              <div>
-                <div className="brs-step-label">Job Completed</div>
-                <div className="brs-step-desc">Service is delivered, then pay and leave a review</div>
-              </div>
-            </div>
+            ))}
           </div>
 
           <div className="brs-actions">
@@ -62,7 +74,7 @@ export default function BookingRequestSentPage() {
               Back to Home
             </Link>
           </div>
-        </div>
+        </motion.div>
       </div>
 
       <style>{`

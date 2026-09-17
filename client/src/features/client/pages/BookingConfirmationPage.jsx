@@ -5,7 +5,11 @@ import { clientApi } from '../clientApi.js';
 import { extractErrorMessage } from '../../../api/apiErrorHandler.js';
 import BookingForm from '../components/BookingForm.jsx';
 import EmptyState from '../../../components/common/EmptyState.jsx';
+import PageHero from '../../../components/common/PageHero.jsx';
+import { SkeletonLine } from '../../../components/common/Skeleton.jsx';
 import { IconCalendar, IconAlertCircle } from '../../../components/common/icons.jsx';
+
+const HERO_IMAGE = 'https://images.unsplash.com/photo-1484480974693-6ca0a78fb36b?auto=format&fit=crop&w=2000&q=80';
 
 export default function BookingConfirmationPage() {
   const { providerId } = useParams();
@@ -39,9 +43,11 @@ export default function BookingConfirmationPage() {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', padding: 'var(--space-2xl)' }}>
-        <div className="ep-spinner" />
-        <style>{`.ep-spinner { width: 48px; height: 48px; border: 3px solid var(--color-neutral-200); border-top-color: var(--color-primary-500); border-radius: 50%; animation: spin 0.7s linear infinite; } @keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      <div className="container" style={{ paddingTop: 'var(--space-2xl)', paddingBottom: 'var(--space-2xl)', maxWidth: 912, margin: '0 auto' }}>
+        <SkeletonLine height={28} width="40%" style={{ marginBottom: 'var(--space-lg)' }} />
+        <SkeletonLine height={180} style={{ marginBottom: 'var(--space-md)', borderRadius: 'var(--radius-lg)' }} />
+        <SkeletonLine height={44} style={{ marginBottom: 'var(--space-sm)', borderRadius: 'var(--radius-md)' }} />
+        <SkeletonLine height={44} width="80%" style={{ borderRadius: 'var(--radius-md)' }} />
       </div>
     );
   }
@@ -63,24 +69,13 @@ export default function BookingConfirmationPage() {
 
   return (
     <div className="bcp-page">
-      {/* Hero */}
-      <div className="bcp-hero">
-        <div className="bcp-hero-overlay" />
-        <div className="container" style={{ position: 'relative', zIndex: 1 }}>
-          <div className="bcp-hero-inner">
-            <div className="bcp-hero-icon">
-              <IconCalendar size={38} style={{ color: 'white' }} />
-            </div>
-            <div className="bcp-hero-text">
-              <div className="hh-eyebrow" style={{ color: 'rgba(255,255,255,0.75)', marginBottom: 6 }}>Booking</div>
-              <h1 className="bcp-hero-title">Confirm Your Booking</h1>
-              <p className="bcp-hero-sub">
-                {provider?.name ? `Requesting ${provider.name}${provider.category ? ` · ${provider.category}` : ''}` : 'Fill in your details to send a booking request'}
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
+      <PageHero
+        image={HERO_IMAGE}
+        icon={IconCalendar}
+        eyebrow="Booking"
+        title="Confirm Your Booking"
+        subtitle={provider?.name ? `Requesting ${provider.name}${provider.category ? ` - ${provider.category}` : ''}` : 'Fill in your details to send a booking request'}
+      />
 
       <div className="container bcp-body">
         {/* Breadcrumb */}
@@ -115,25 +110,6 @@ export default function BookingConfirmationPage() {
 
       <style>{`
         .bcp-page { padding-bottom: var(--space-2xl); }
-        .bcp-hero {
-          position: relative;
-          background-image: url('https://images.unsplash.com/photo-1484480974693-6ca0a78fb36b?auto=format&fit=crop&w=2000&q=80');
-          background-size: cover; background-position: center; padding: 67px 0;
-        }
-        .bcp-hero-overlay {
-          position: absolute; inset: 0;
-          background: linear-gradient(135deg, rgba(15,45,25,0.60) 0%, rgba(21,128,61,0.42) 100%);
-        }
-        .bcp-hero-inner { display: flex; align-items: center; gap: var(--space-xl); flex-wrap: wrap; }
-        .bcp-hero-text { min-width: 0; overflow-wrap: break-word; }
-        .bcp-hero-icon {
-          width: 77px; height: 77px; border-radius: var(--radius-lg);
-          background: rgba(255,255,255,0.15); backdrop-filter: blur(8px);
-          display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-          border: 1px solid rgba(255,255,255,0.25);
-        }
-        .bcp-hero-title { font-size: var(--font-size-3xl); font-weight: 800; color: white; margin-bottom: 6px; }
-        .bcp-hero-sub { color: rgba(255,255,255,0.8); font-size: var(--font-size-lg); margin: 0; }
         .bcp-body { padding-top: var(--space-xl); }
         .bcp-breadcrumb { font-size: var(--font-size-sm); color: var(--color-neutral-500); margin-bottom: var(--space-lg); }
         .bcp-content { max-width: 912px; }

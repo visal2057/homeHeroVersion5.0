@@ -1,0 +1,168 @@
+/* =========================================================================
+   Shared app-screen foundation (client + provider logged-in pages).
+
+   Consolidates what used to be near-identical inline <style> blocks copied
+   into every app page (My Bookings, Explore, Booking Confirmation,
+   Complaints, Client Profile - each with its own slightly different
+   padding/icon-size numbers), plus adds the skeleton-loader system used to
+   replace the old one-size-fits-all spinner on those same pages.
+   ========================================================================= */
+
+/* -------------------------------------------------------------------------
+   PageHero - shared banner for logged-in app pages (see PageHero.jsx)
+   ------------------------------------------------------------------------- */
+.hh-page-hero {
+  position: relative;
+  background-size: cover;
+  background-position: center;
+  padding: 76px 0;
+}
+
+.hh-page-hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(15, 45, 25, 0.6) 0%, rgba(21, 128, 61, 0.42) 100%);
+}
+
+.hh-page-hero-container {
+  position: relative;
+  z-index: 1;
+}
+
+.hh-page-hero-inner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xl);
+  flex-wrap: wrap;
+}
+
+.hh-page-hero-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: var(--radius-lg);
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.hh-page-hero-text {
+  min-width: 0;
+  overflow-wrap: break-word;
+}
+
+.hh-page-hero-title {
+  font-size: var(--font-size-3xl);
+  font-weight: 800;
+  color: white;
+  margin-bottom: 6px;
+}
+
+.hh-page-hero-sub {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: var(--font-size-lg);
+  margin: 0;
+}
+
+@media (max-width: 640px) {
+  .hh-page-hero {
+    padding: 52px 0;
+  }
+
+  .hh-page-hero-icon {
+    width: 64px;
+    height: 64px;
+  }
+
+  .hh-page-hero-title {
+    font-size: var(--font-size-2xl);
+  }
+
+  .hh-page-hero-sub {
+    font-size: var(--font-size-base);
+  }
+}
+
+/* -------------------------------------------------------------------------
+   Skeleton loaders - shimmer placeholders shaped like the content they
+   stand in for, instead of a generic spinner unrelated to the final layout.
+   ------------------------------------------------------------------------- */
+.hh-skeleton {
+  display: inline-block;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(
+    100deg,
+    var(--color-neutral-100) 30%,
+    var(--color-neutral-200) 50%,
+    var(--color-neutral-100) 70%
+  );
+  background-size: 200% 100%;
+  animation: hh-shimmer 1.4s ease-in-out infinite;
+}
+
+.hh-skeleton-circle {
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+@keyframes hh-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.hh-skeleton-rows {
+  display: flex;
+  flex-direction: column;
+}
+
+.hh-skeleton-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-md) var(--space-lg);
+  border-bottom: 1px solid var(--color-neutral-100);
+}
+
+.hh-skeleton-row-lines {
+  flex: 1;
+  min-width: 0;
+}
+
+.hh-skeleton-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--space-lg);
+}
+
+.hh-skeleton-card {
+  border: 1px solid var(--color-neutral-200);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--color-neutral-0);
+}
+
+.hh-skeleton-card-media {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  border-radius: 0;
+}
+
+.hh-skeleton-card-body {
+  padding: var(--space-lg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hh-skeleton {
+    animation: none;
+    background: var(--color-neutral-100);
+  }
+}
