@@ -11,8 +11,9 @@ import { emitBookingsChanged } from '../../utils/bookingEvents.js';
 import { getAssetUrl } from '../../utils/storageUtils.js';
 import {
   IconHome, IconUser, IconClipboardList, IconFlag,
-  IconLogOut, IconChevronDown, IconBell,
+  IconLogOut, IconChevronDown, IconBell, IconChatBubble,
 } from '../common/icons.jsx';
+import { useUnreadChatCount } from '../../features/chat/hooks/useUnreadChatCount.js';
 
 const navLinkStyle = ({ isActive }) => ({
   color: isActive ? 'var(--color-primary-700)' : 'var(--color-secondary-700)',
@@ -33,6 +34,7 @@ export default function PublicHeader() {
   const loginState = location.state?.from ? { from: location.state.from } : undefined;
 
   const isClient = user?.role === ROLES.CLIENT;
+  const unreadChatCount = useUnreadChatCount(isClient);
   // A Service Provider only ever renders this header while PENDING or
   // REJECTED (an APPROVED provider lives under the separate provider
   // layout/sidebar) - either way they get an account bubble whose only
@@ -320,6 +322,12 @@ export default function PublicHeader() {
                     <Link to={ROUTES.CLIENT_MY_BOOKINGS} className="ph-dropdown-item" onClick={() => setIsAccountOpen(false)}>
                       <IconClipboardList size={16} /> My Bookings
                     </Link>
+                    <Link to={ROUTES.CLIENT_CHAT_BASE} className="ph-dropdown-item" onClick={() => setIsAccountOpen(false)}>
+                      <IconChatBubble size={16} /> Messages
+                      {unreadChatCount > 0 && (
+                        <span className="ph-dropdown-item-badge">{unreadChatCount > 9 ? '9+' : unreadChatCount}</span>
+                      )}
+                    </Link>
                     <Link to={ROUTES.CLIENT_COMPLAINTS} className="ph-dropdown-item" onClick={() => setIsAccountOpen(false)}>
                       <IconFlag size={16} /> Complaints
                     </Link>
@@ -402,6 +410,9 @@ export default function PublicHeader() {
                 </div>
                 <Link to={ROUTES.CLIENT_PROFILE} onClick={closeMobileMenu} className="btn btn-outline btn-block" style={{ marginBottom: 8 }}>My Profile</Link>
                 <Link to={ROUTES.CLIENT_MY_BOOKINGS} onClick={closeMobileMenu} className="btn btn-outline btn-block" style={{ marginBottom: 8 }}>My Bookings</Link>
+                <Link to={ROUTES.CLIENT_CHAT_BASE} onClick={closeMobileMenu} className="btn btn-outline btn-block" style={{ marginBottom: 8 }}>
+                  Messages{unreadChatCount > 0 ? ` (${unreadChatCount > 9 ? '9+' : unreadChatCount})` : ''}
+                </Link>
                 <Link to={ROUTES.CLIENT_COMPLAINTS} onClick={closeMobileMenu} className="btn btn-outline btn-block" style={{ marginBottom: 8 }}>Complaints</Link>
                 <button type="button" className="btn btn-outline btn-block" onClick={handleLogout}>Logout</button>
               </>
@@ -559,6 +570,12 @@ export default function PublicHeader() {
           text-align: left; font-family: inherit;
         }
         .ph-dropdown-item:hover { background: var(--color-primary-50); color: var(--color-primary-700); }
+        .ph-dropdown-item-badge {
+          background: #dc2626; color: white; font-size: 10px; font-weight: 700;
+          min-width: 18px; height: 18px; border-radius: 9px;
+          display: flex; align-items: center; justify-content: center;
+          padding: 0 5px; margin-left: auto;
+        }
         .ph-dropdown-item::after { display: none; }
         .ph-dropdown-divider { height: 1px; background: var(--color-neutral-100); margin: 4px 0; }
         .ph-dropdown-logout { color: #dc2626; }

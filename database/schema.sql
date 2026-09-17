@@ -679,6 +679,35 @@ ALTER TABLE public.bookings ALTER COLUMN booking_id ADD GENERATED ALWAYS AS IDEN
 
 
 --
+-- Name: chat_messages; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.chat_messages (
+    chat_message_id bigint NOT NULL,
+    booking_id bigint NOT NULL,
+    sender_user_id bigint NOT NULL,
+    message_text text NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    read_at timestamp with time zone,
+    CONSTRAINT chat_messages_message_text_check CHECK (((char_length(message_text) >= 1) AND (char_length(message_text) <= 2000)))
+);
+
+
+--
+-- Name: chat_messages_chat_message_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.chat_messages ALTER COLUMN chat_message_id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME public.chat_messages_chat_message_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
 -- Name: client_locations; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1767,6 +1796,14 @@ ALTER TABLE ONLY public.bookings
 
 
 --
+-- Name: chat_messages chat_messages_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.chat_messages
+    ADD CONSTRAINT chat_messages_pkey PRIMARY KEY (chat_message_id);
+
+
+--
 -- Name: client_locations client_locations_client_user_id_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2249,6 +2286,20 @@ CREATE INDEX ix_bk_provider_sched ON public.bookings USING btree (provider_user_
 --
 
 CREATE INDEX ix_bk_provider_status ON public.bookings USING btree (provider_user_id, booking_status);
+
+
+--
+-- Name: idx_chat_messages_booking_id_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_chat_messages_booking_id_created_at ON public.chat_messages USING btree (booking_id, chat_message_id);
+
+
+--
+-- Name: idx_chat_messages_unread; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_chat_messages_unread ON public.chat_messages USING btree (booking_id, sender_user_id) WHERE (read_at IS NULL);
 
 
 --
@@ -2785,6 +2836,22 @@ ALTER TABLE ONLY public.bookings
 
 ALTER TABLE ONLY public.bookings
     ADD CONSTRAINT bookings_provider_user_id_service_category_id_fkey FOREIGN KEY (provider_user_id, service_category_id) REFERENCES public.provider_service_categories(provider_user_id, service_category_id);
+
+
+--
+-- Name: chat_messages chat_messages_booking_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.chat_messages
+    ADD CONSTRAINT chat_messages_booking_id_fkey FOREIGN KEY (booking_id) REFERENCES public.bookings(booking_id) ON DELETE CASCADE;
+
+
+--
+-- Name: chat_messages chat_messages_sender_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.chat_messages
+    ADD CONSTRAINT chat_messages_sender_user_id_fkey FOREIGN KEY (sender_user_id) REFERENCES public.users(user_id);
 
 
 --

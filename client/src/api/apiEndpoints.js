@@ -34,6 +34,18 @@ export const API_ENDPOINTS = {
     MARK_READ: (type, id) => `/notifications/feed/${type}/${id}/read`,
   },
 
+  // Client<->Provider chat, scoped to a booking. Shared by both roles - the
+  // same endpoints serve a Client and a Service Provider, since access is
+  // determined per-request by whether the caller is one of the booking's two
+  // participants, not by a role-specific router.
+  CHAT: {
+    CONVERSATIONS: '/chat/conversations',
+    UNREAD_COUNT: '/chat/unread-count',
+    MESSAGES: (bookingId) => `/chat/bookings/${bookingId}/messages`,
+    MARK_READ: (bookingId) => `/chat/bookings/${bookingId}/read`,
+    JOB_DETAILS: (bookingId) => `/chat/bookings/${bookingId}/job-details`,
+  },
+
   SYSTEM_ADMIN: {
     DASHBOARD_OVERVIEW: '/system-admin/dashboard/overview',
     BOOKINGS: '/system-admin/bookings',

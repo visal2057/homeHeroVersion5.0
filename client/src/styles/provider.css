@@ -98,6 +98,21 @@
   transition: transform var(--transition-base);
 }
 
+.provider-nav-badge {
+  background: #dc2626;
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 5px;
+  margin-left: auto;
+}
+
 /* Qualified with both ancestor classes so this beats global.css's
    `a:not(.btn):not(.card):hover` rule, which otherwise wins the cascade
    (it also matches the `a` type selector) and silently overrides the
@@ -780,6 +795,13 @@
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
   overflow: hidden;
+  transition: transform var(--transition-slow), box-shadow var(--transition-slow), border-color var(--transition-slow);
+}
+
+.provider-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--color-primary-200);
 }
 
 .provider-card-header {

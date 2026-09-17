@@ -21,6 +21,8 @@ export const ROUTES = {
   CLIENT_MY_BOOKINGS: '/client/bookings',
   CLIENT_PROFILE: '/client/profile',
   CLIENT_COMPLAINTS: '/client/complaints',
+  CLIENT_CHAT: '/client/chat/:bookingId?',
+  CLIENT_CHAT_BASE: '/client/chat',
 
   // Client payment + review (Module 4 - Visal)
   CLIENT_BOOKING_PAY: '/client/bookings/:bookingId/pay',
@@ -37,6 +39,8 @@ export const ROUTES = {
   PROVIDER_PROFILE: '/provider/profile',
   PROVIDER_COMPLAINTS: '/provider/complaints',
   PROVIDER_INVOICE: '/provider/completed/:bookingId/invoice',
+  PROVIDER_CHAT: '/provider/chat/:bookingId?',
+  PROVIDER_CHAT_BASE: '/provider/chat',
 
   // System Admin
   SYSTEM_ADMIN_DASHBOARD: '/admin/system/dashboard',
