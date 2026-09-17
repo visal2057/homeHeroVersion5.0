@@ -20,23 +20,20 @@ const STEPS = [
 
 export default function HowItWorksSection() {
   return (
-    <section className="section hh-steps-section">
-      <div className="container">
-        <div className="text-center" style={{ maxWidth: 640, margin: '0 auto var(--space-xl)' }}>
-          <span className="hh-section-kicker">Simple by design</span>
-          <h2 className="section-title">How It Works</h2>
-          <p className="section-subtitle" style={{ marginBottom: 0 }}>
-            Booking a HomeHero service takes three simple, stress-free steps.
-          </p>
+    <section className="section lr-timeline-section">
+      <span className="lr-spot" style={{ top: -80, right: '10%', width: 380, height: 320, background: 'radial-gradient(ellipse, rgba(16,185,129,0.24), transparent 64%)' }} />
+      <span className="lr-spot" style={{ bottom: -100, left: '6%', width: 260, height: 240, background: 'radial-gradient(circle, rgba(6,78,59,0.20), transparent 62%)' }} />
+
+      <div className="container lr-timeline-grid">
+        <div className="lr-timeline-intro animate-fade-in-up">
+          <h2>How It Works</h2>
+          <p>Booking a HomeHero service takes three simple, stress-free steps.</p>
         </div>
 
-        <div className="hh-steps-grid">
+        <div className="lr-timeline-rail">
           {STEPS.map((step, index) => (
-            <div key={step.title} className={`hh-step-card animate-fade-in-up delay-${index + 1}`}>
-              <div className="hh-step-icon-ring">
-                <step.Icon size={30} aria-hidden="true" />
-                <span className="hh-step-number">{index + 1}</span>
-              </div>
+            <div key={step.title} className={`lr-timeline-step animate-fade-in-up delay-${index + 1}`}>
+              <span className="lr-timeline-dot" aria-hidden="true"><step.Icon size={20} /></span>
               <h3>{step.title}</h3>
               <p style={{ color: 'var(--color-text-muted)', marginBottom: 0 }}>{step.description}</p>
             </div>

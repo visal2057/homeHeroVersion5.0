@@ -1,12 +1,18 @@
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '../../../constants/routes.js';
-import { CTA_COLLAGE_PHOTOS } from '../../../constants/serviceCategories.js';
+import { HERO_VISUAL_PHOTOS } from '../../../constants/serviceCategories.js';
 import { useAuth } from '../../../hooks/useAuth.js';
-import { IconHome, IconCheckCircle, IconLock, IconStar } from '../../../components/common/icons.jsx';
+import { IconCheckCircle, IconLock, IconStar } from '../../../components/common/icons.jsx';
 
 export default function GetStartedSection() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  // Every CTA_COLLAGE_PHOTOS option was rejected in review (index 0 read
+  // poorly at this crop, 2 was a cat/flowers shot that didn't fit, 3/4 were
+  // too industrial for a warm "feel at home" close). HERO_VISUAL_PHOTOS[1]
+  // (a close-up of hands-on repair work) is not used anywhere else on this
+  // page and matches the "trusted hands" tagline.
+  const ctaPhoto = HERO_VISUAL_PHOTOS[1].url;
 
   // Logged out: send the visitor to log in. Logged in: there's nothing left
   // to "get started" with signup-wise, so bring the service category cards
@@ -20,36 +26,24 @@ export default function GetStartedSection() {
   }
 
   return (
-    <section className="collage-cta">
-      <div className="collage-cta-grid" aria-hidden="true">
-        {CTA_COLLAGE_PHOTOS.map((photoUrl) => (
-          <div key={photoUrl} style={{ backgroundImage: `url(${photoUrl})` }} />
-        ))}
-      </div>
-      <div className="collage-cta-overlay" aria-hidden="true" />
+    <section className="lr-cta">
+      <img src={ctaPhoto} alt="" className="lr-cta-photo" aria-hidden="true" />
+      <div className="lr-cta-scrim" aria-hidden="true" />
 
       <div className="container">
-        <div className="glass-panel collage-cta-panel animate-fade-in-up">
-          <div className="hh-cta-icon" aria-hidden="true">
-            <IconHome size={32} />
-          </div>
+        <div className="lr-cta-panel animate-fade-in-up">
           <h2>Ready to feel at home again?</h2>
           <p>
             Join thousands of homeowners who trust HomeHero for fast, reliable, verified home services —
             because every home deserves to feel cared for.
           </p>
-          <button
-            type="button"
-            onClick={handleGetStarted}
-            className="btn btn-primary btn-shine"
-            style={{ backgroundColor: 'var(--color-neutral-0)', color: 'var(--color-secondary-700)' }}
-          >
+          <button type="button" onClick={handleGetStarted} className="btn btn-primary btn-shine lr-cta-btn">
             Get Started
           </button>
-          <div className="hh-cta-trust-row">
-            <span><IconCheckCircle size={16} /> Verified providers</span>
-            <span><IconLock size={16} /> Secure payments</span>
-            <span><IconStar size={16} /> Real reviews</span>
+          <div className="lr-cta-trust">
+            <span><IconCheckCircle size={15} /> Verified providers</span>
+            <span><IconLock size={15} /> Secure payments</span>
+            <span><IconStar size={15} /> Real reviews</span>
           </div>
         </div>
       </div>

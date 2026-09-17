@@ -3,10 +3,10 @@ import { ROUTES } from '../../../constants/routes.js';
 import { HERO_IMAGE_URL, HERO_VISUAL_PHOTOS } from '../../../constants/serviceCategories.js';
 import { useSiteImage } from '../../../hooks/useSiteImage.js';
 import { useAuth } from '../../../hooks/useAuth.js';
-import { IconHome, IconLeaf, IconCheckCircle, IconLock } from '../../../components/common/icons.jsx';
+import { IconLeaf, IconCheckCircle, IconLock } from '../../../components/common/icons.jsx';
 
 export default function HeroSection() {
-  const [gardener, labrador, technician] = HERO_VISUAL_PHOTOS;
+  const [gardener] = HERO_VISUAL_PHOTOS;
   const heroImageUrl = useSiteImage('HOME_HERO_IMAGE', HERO_IMAGE_URL);
   const { user } = useAuth();
 
@@ -20,71 +20,58 @@ export default function HeroSection() {
   }
 
   return (
-    <section className="glass-hero hh-home-hero">
-      <div
-        className="glass-hero-bg"
-        style={{ backgroundImage: `url(${heroImageUrl})` }}
-        role="img"
-        aria-label="Cozy home exterior with a well-kept garden"
-      />
-      <div className="glass-hero-overlay" aria-hidden="true" />
+    <section className="lr-hero">
+      <span className="lr-spot" style={{ top: -100, right: -140, width: 520, height: 520, background: 'radial-gradient(circle, rgba(16,185,129,0.30), transparent 62%)' }} />
+      <span className="lr-spot" style={{ bottom: -60, left: -90, width: 300, height: 340, background: 'radial-gradient(ellipse, rgba(52,211,153,0.28), transparent 64%)' }} />
+      <span className="lr-spot" style={{ top: '40%', left: '44%', width: 180, height: 180, background: 'radial-gradient(circle, rgba(6,78,59,0.16), transparent 65%)' }} />
 
-      <div className="container glass-hero-inner">
-        <div className="hh-hero-grid">
-          <div className="glass-panel glass-hero-panel animate-fade-in-up">
-            <span className="hh-eyebrow"><IconHome size={16} /> Sri Lanka&apos;s home services, made simple</span>
-            <h1 className="hh-hero-title">Trusted hands for the home you love coming back to.</h1>
-            <p className="hh-hero-subtitle">
-              HomeHero connects Sri Lankan homeowners with verified gardening, cleaning, pet care,
-              plumbing and AC repair professionals — booked in minutes, backed by real reviews, so your
-              home always feels warm, safe and cared for.
-            </p>
-            <div style={{ display: 'flex', gap: 'var(--space-sm)', flexWrap: 'wrap' }}>
-              {user ? (
-                <button
-                  type="button"
-                  onClick={scrollToServices}
-                  className="btn btn-primary btn-shine"
-                  style={{ backgroundColor: 'var(--color-neutral-0)', color: 'var(--color-secondary-700)' }}
-                >
-                  Book a Service
-                </button>
-              ) : (
-                <Link
-                  to={ROUTES.REGISTER_CLIENT}
-                  className="btn btn-primary btn-shine"
-                  style={{ backgroundColor: 'var(--color-neutral-0)', color: 'var(--color-secondary-700)' }}
-                >
-                  Book a Service
-                </Link>
-              )}
-              {!user && (
-                <Link
-                  to={ROUTES.REGISTER_PROVIDER}
-                  className="btn btn-outline"
-                  style={{ borderColor: 'var(--color-neutral-0)', color: 'var(--color-neutral-0)' }}
-                >
-                  Become a Provider
-                </Link>
-              )}
-            </div>
+      <div className="container lr-hero-grid">
+        <div className="animate-fade-in-up">
+          <span className="lr-eyebrow">
+            <IconLeaf size={15} /> Sri Lanka&apos;s home services, made simple
+          </span>
+          <h1 className="lr-hero-title">Trusted hands for the home you love coming back to.</h1>
+          <p className="lr-hero-subtitle">
+            HomeHero connects Sri Lankan homeowners with verified gardening, cleaning, pet care,
+            plumbing and AC repair professionals — booked in minutes, backed by real reviews.
+          </p>
 
-            <div className="hh-trust-row">
-              <span className="hh-trust-chip"><IconLeaf size={16} /> <strong>5</strong> trusted services</span>
-              <span className="hh-trust-chip"><IconCheckCircle size={16} /> <strong>Verified</strong> heroes only</span>
-              <span className="hh-trust-chip"><IconLock size={16} /> <strong>Secure</strong> payments</span>
-            </div>
+          <div className="lr-hero-actions">
+            {user ? (
+              <button type="button" onClick={scrollToServices} className="btn btn-primary btn-shine">
+                Book a Service
+              </button>
+            ) : (
+              <Link to={ROUTES.REGISTER_CLIENT} className="btn btn-primary btn-shine">
+                Book a Service
+              </Link>
+            )}
+            {!user && (
+              <Link to={ROUTES.REGISTER_PROVIDER} className="btn btn-outline">
+                Become a Provider
+              </Link>
+            )}
           </div>
 
-          <div className="hh-hero-visual" aria-hidden="true">
-            <div className="hh-hero-photo hh-hero-photo-main">
-              <img src={gardener.url} alt="" loading="eager" />
-            </div>
-            <div className="hh-hero-photo hh-hero-photo-secondary">
-              <img src={labrador.url} alt="" loading="lazy" />
-            </div>
-            <div className="hh-hero-photo hh-hero-photo-accent">
-              <img src={technician.url} alt="" loading="lazy" />
+          <div className="lr-hero-trust">
+            <span><IconLeaf size={15} /> <strong>5</strong>&nbsp;trusted services</span>
+            <span><IconCheckCircle size={15} /> <strong>Verified</strong>&nbsp;heroes only</span>
+            <span><IconLock size={15} /> <strong>Secure</strong>&nbsp;payments</span>
+          </div>
+        </div>
+
+        <div className="lr-hero-visual animate-fade-in-up delay-2" aria-hidden="true">
+          <div className="lr-blob lr-hero-photo-main">
+            <img src={heroImageUrl} alt="" loading="eager" />
+          </div>
+          <div className="lr-blob2 lr-hero-photo-accent">
+            <img src={gardener.url} alt="" loading="lazy" />
+          </div>
+          <div className="lr-glass lr-hero-badge">
+            <span className="lr-hero-badge-icon"><IconCheckCircle size={18} /></span>
+            <div>
+              <div className="lr-hero-badge-title">Verified heroes</div>
+              <div className="lr-hero-badge-sub">Background-checked</div>
             </div>
           </div>
         </div>
