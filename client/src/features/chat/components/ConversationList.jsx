@@ -89,7 +89,7 @@ export default function ConversationList({ conversations, loading, selectedBooki
       </div>
 
       <style>{`
-        .chatlist { display: flex; flex-direction: column; height: 100%; border-right: 1px solid var(--color-neutral-200); background: white; }
+        .chatlist { display: flex; flex-direction: column; height: 100%; min-height: 0; border-right: 1px solid var(--color-neutral-200); background: white; }
         .chatlist-header { padding: var(--space-md) var(--space-lg); font-weight: 700; font-size: var(--font-size-md); color: var(--color-secondary-700); border-bottom: 1px solid var(--color-neutral-100); }
         .chatlist-scroll { flex: 1; overflow-y: auto; }
         .chatlist-section-label { padding: 10px var(--space-lg) 4px; margin: 0; font-size: var(--font-size-xs); font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--color-neutral-400); }

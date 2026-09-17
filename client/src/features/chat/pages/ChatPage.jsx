@@ -197,11 +197,22 @@ export default function ChatPage() {
         .chat-page { padding: var(--space-xl) 0 var(--space-2xl); }
         .chat-shell-wrap { display: flex; }
         .chat-shell {
-          width: 100%; display: grid; grid-template-columns: 320px 1fr;
+          width: 100%; display: grid; grid-template-columns: 320px 1fr; grid-template-rows: minmax(0, 1fr);
           background: white; border: 1px solid var(--color-neutral-200); border-radius: var(--radius-lg);
           overflow: hidden; box-shadow: var(--shadow-sm); height: min(72vh, 680px);
         }
-        .chat-thread { display: flex; flex-direction: column; min-width: 0; }
+        /* Without an explicit row track, a CSS Grid row with only auto
+           sizing grows to fit its tallest child's full (unclipped) content -
+           here, the conversation list once it has enough rows to exceed the
+           shell's own height cap - which then stretches both columns to that
+           oversized height instead of the container's real 680px, pushing
+           the message list/composer down past the visible, clipped area.
+           The grid-template-rows above caps the row at the container's
+           height, and min-height: 0 here (grid items default to
+           min-height: auto, i.e. never shrink below content) lets this
+           column's own flex children actually respect that cap instead of
+           growing past it. */
+        .chat-thread { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
         .chat-thread-header { display: flex; align-items: center; gap: 10px; padding: var(--space-md) var(--space-lg); border-bottom: 1px solid var(--color-neutral-100); }
         .chat-thread-avatar-initials { width: 38px; height: 38px; border-radius: 50%; background: var(--color-primary-600); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0; }
         .chat-thread-avatar-photo { width: 38px; height: 38px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
