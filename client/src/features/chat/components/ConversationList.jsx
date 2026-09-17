@@ -6,7 +6,7 @@ import { formatConversationTitle } from '../chatUtils.js';
 
 function ConversationRow({ conversation, isSelected, onSelect }) {
   const { counterpart, lastMessage, unreadCount, serviceCategory, bookingId } = conversation;
-  const preview = lastMessage ? lastMessage.text : 'No messages yet — say hello';
+  const preview = lastMessage ? lastMessage.text : 'No messages yet';
 
   return (
     <button

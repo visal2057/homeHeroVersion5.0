@@ -40,7 +40,7 @@ export default function MessageList({ messages, currentUserId }) {
   return (
     <div className="msglist">
       {messages.length === 0 ? (
-        <p className="msglist-empty">No messages yet — send the first one below.</p>
+        <p className="msglist-empty">No messages yet</p>
       ) : (
         groups.map((group) => (
           <div key={group.label}>
