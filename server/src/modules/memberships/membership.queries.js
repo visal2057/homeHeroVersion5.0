@@ -83,8 +83,8 @@ export function insertActiveMembership(executor, m) {
      ) VALUES (
        $1, $2, $3, $4, $5, $6, 'ACTIVE',
        now(),
-       now() + ($7 || ' months')::interval,
-       now() + ($7 || ' months')::interval + ($8 || ' days')::interval
+       now() + ($7::int || ' months')::interval,
+       now() + ($7::int || ' months')::interval + ($8::int || ' days')::interval
      )
      RETURNING membership_id, starts_at, expires_at, grace_ends_at`,
     [m.providerUserId, m.pricingRuleId, m.sequenceNumber, m.paymentType,
