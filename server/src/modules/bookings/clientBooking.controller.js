@@ -7,6 +7,11 @@ export const createBookingHandler = asyncHandler(async (req, res) => {
   sendSuccess(res, result, 201);
 });
 
+export const createPublicBookingHandler = asyncHandler(async (req, res) => {
+  const result = await bookingService.createPublicBooking(req.user.userId, req.body, req.files ?? []);
+  sendSuccess(res, result, 201);
+});
+
 export const listMyBookingsHandler = asyncHandler(async (req, res) => {
   const bookings = await bookingService.getClientBookings(req.user.userId);
   sendSuccess(res, bookings);

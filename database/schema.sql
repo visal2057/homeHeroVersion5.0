@@ -553,6 +553,20 @@ CREATE TABLE public.booking_locations (
 
 
 --
+-- Name: public_booking_dismissals; Type: TABLE; Schema: public; Owner: -
+--
+
+-- Lets one provider hide a public (broadcast) booking from their own Job
+-- Requests list ("Not Interested") without affecting its visibility to any
+-- other provider in the category.
+CREATE TABLE public.public_booking_dismissals (
+    booking_id bigint NOT NULL,
+    provider_user_id bigint NOT NULL,
+    dismissed_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
 -- Name: booking_payments; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -642,7 +656,7 @@ ALTER TABLE public.booking_status_history ALTER COLUMN booking_status_history_id
 CREATE TABLE public.bookings (
     booking_id bigint NOT NULL,
     client_user_id bigint NOT NULL,
-    provider_user_id bigint NOT NULL,
+    provider_user_id bigint,
     service_category_id smallint NOT NULL,
     job_description text NOT NULL,
     scheduled_at timestamp with time zone NOT NULL,
@@ -660,7 +674,8 @@ CREATE TABLE public.bookings (
     proposed_scheduled_end_at timestamp with time zone,
     rejection_reason text,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    is_public_booking boolean DEFAULT false NOT NULL
 );
 
 
@@ -1547,10 +1562,11 @@ CREATE VIEW public.vw_booking_overview AS
     bp.payment_status,
     b.requested_at,
     b.completed_at,
-    b.scheduled_end_at
+    b.scheduled_end_at,
+    b.is_public_booking
    FROM ((((public.bookings b
      JOIN public.users cu ON ((cu.user_id = b.client_user_id)))
-     JOIN public.users pu ON ((pu.user_id = b.provider_user_id)))
+     LEFT JOIN public.users pu ON ((pu.user_id = b.provider_user_id)))
      JOIN public.service_categories sc ON ((sc.service_category_id = b.service_category_id)))
      LEFT JOIN public.booking_payments bp ON ((bp.booking_id = b.booking_id)));
 
@@ -1745,6 +1761,14 @@ ALTER TABLE ONLY public.booking_images
 
 ALTER TABLE ONLY public.booking_locations
     ADD CONSTRAINT booking_locations_pkey PRIMARY KEY (booking_id);
+
+
+--
+-- Name: public_booking_dismissals public_booking_dismissals_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.public_booking_dismissals
+    ADD CONSTRAINT public_booking_dismissals_pkey PRIMARY KEY (booking_id, provider_user_id);
 
 
 --
@@ -2780,6 +2804,22 @@ ALTER TABLE ONLY public.booking_images
 
 ALTER TABLE ONLY public.booking_locations
     ADD CONSTRAINT booking_locations_booking_id_fkey FOREIGN KEY (booking_id) REFERENCES public.bookings(booking_id);
+
+
+--
+-- Name: public_booking_dismissals public_booking_dismissals_booking_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.public_booking_dismissals
+    ADD CONSTRAINT public_booking_dismissals_booking_id_fkey FOREIGN KEY (booking_id) REFERENCES public.bookings(booking_id) ON DELETE CASCADE;
+
+
+--
+-- Name: public_booking_dismissals public_booking_dismissals_provider_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.public_booking_dismissals
+    ADD CONSTRAINT public_booking_dismissals_provider_user_id_fkey FOREIGN KEY (provider_user_id) REFERENCES public.service_provider_profiles(provider_user_id) ON DELETE CASCADE;
 
 
 --

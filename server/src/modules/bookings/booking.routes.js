@@ -5,9 +5,10 @@ import { requireProvider } from '../../middleware/requireProvider.js';
 import { checkProviderVerification } from '../../middleware/checkProviderVerification.js';
 import { validateRequest } from '../../middleware/validateRequest.js';
 import { uploadBookingImages } from '../../middleware/uploadFiles.js';
-import { createBookingSchema, cancelBookingSchema, rejectBookingSchema, proposeRescheduleSchema } from './booking.validation.js';
+import { createBookingSchema, createPublicBookingSchema, cancelBookingSchema, rejectBookingSchema, proposeRescheduleSchema } from './booking.validation.js';
 import {
   createBookingHandler,
+  createPublicBookingHandler,
   listMyBookingsHandler,
   cancelBookingHandler,
   acceptRescheduleHandler,
@@ -19,6 +20,7 @@ import {
   listCompletedJobsHandler,
   acceptBookingHandler,
   rejectBookingHandler,
+  dismissPublicBookingHandler,
   proposeRescheduleHandler,
   getStatsHandler,
 } from './providerBooking.controller.js';
@@ -31,6 +33,12 @@ clientBookingRouter.post(
   uploadBookingImages,
   validateRequest(createBookingSchema),
   createBookingHandler,
+);
+clientBookingRouter.post(
+  '/public',
+  uploadBookingImages,
+  validateRequest(createPublicBookingSchema),
+  createPublicBookingHandler,
 );
 clientBookingRouter.get('/mine', listMyBookingsHandler);
 clientBookingRouter.patch('/:bookingId/cancel', validateRequest(cancelBookingSchema), cancelBookingHandler);
@@ -46,4 +54,5 @@ providerBookingRouter.get('/completed-jobs', listCompletedJobsHandler);
 providerBookingRouter.get('/stats', getStatsHandler);
 providerBookingRouter.patch('/bookings/:bookingId/accept', acceptBookingHandler);
 providerBookingRouter.patch('/bookings/:bookingId/reject', validateRequest(rejectBookingSchema), rejectBookingHandler);
+providerBookingRouter.patch('/bookings/:bookingId/dismiss', dismissPublicBookingHandler);
 providerBookingRouter.patch('/bookings/:bookingId/reschedule', validateRequest(proposeRescheduleSchema), proposeRescheduleHandler);

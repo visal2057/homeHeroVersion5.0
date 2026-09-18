@@ -1107,6 +1107,7 @@
 .provider-badge.cancelled { background: var(--color-neutral-100); color: var(--color-neutral-600); }
 .provider-badge.reschedule_pending { background: var(--color-info-bg); color: var(--color-info); }
 .provider-badge.reschedule_rejected { background: var(--color-error-bg); color: var(--color-error); }
+.provider-badge.public-booking { background: var(--color-primary-600); color: white; font-weight: 700; }
 
 .provider-proposed-time {
   margin-top: 2px;

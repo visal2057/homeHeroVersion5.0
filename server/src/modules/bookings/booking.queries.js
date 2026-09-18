@@ -31,6 +31,15 @@ export function providerHasCategory(providerUserId, serviceCategoryId) {
   );
 }
 
+// Used when creating a public (broadcast) booking, since there is no single
+// provider to check yet -- just confirms someone could plausibly accept it.
+export function countProvidersInCategory(serviceCategoryId) {
+  return query(
+    `SELECT count(*)::int AS count FROM provider_service_categories WHERE service_category_id = $1`,
+    [serviceCategoryId],
+  );
+}
+
 // A same-day online override (see availability.service.js's setTodayOverride)
 // lets a provider cancel today's block specifically, without touching the
 // unavailable_periods row itself - so this only ever excuses a match when the
@@ -65,6 +74,39 @@ export function insertBooking(client, { clientUserId, providerUserId, serviceCat
      VALUES ($1, $2, $3, $4, $5, $6)
      RETURNING *`,
     [clientUserId, providerUserId, serviceCategoryId, jobDescription, scheduledAt, scheduledEndAt],
+  );
+}
+
+// A public (broadcast) booking has no provider yet -- provider_user_id stays
+// NULL until a provider claims it (see claimPublicBooking below).
+export function insertPublicBooking(client, { clientUserId, serviceCategoryId, jobDescription, scheduledAt, scheduledEndAt }) {
+  return client.query(
+    `INSERT INTO bookings (client_user_id, provider_user_id, service_category_id, job_description, scheduled_at, scheduled_end_at, is_public_booking)
+     VALUES ($1, NULL, $2, $3, $4, $5, true)
+     RETURNING *`,
+    [clientUserId, serviceCategoryId, jobDescription, scheduledAt, scheduledEndAt],
+  );
+}
+
+// Atomic "first to accept wins" claim: only succeeds if the booking is still
+// an unclaimed public PENDING row. Zero rows back means another provider
+// already claimed it (or it's no longer eligible).
+export function claimPublicBooking(bookingId, providerUserId) {
+  return query(
+    `UPDATE bookings
+     SET provider_user_id = $2, booking_status = 'ACCEPTED', accepted_at = now()
+     WHERE booking_id = $1 AND booking_status = 'PENDING' AND provider_user_id IS NULL AND is_public_booking = true
+     RETURNING *`,
+    [bookingId, providerUserId],
+  );
+}
+
+export function insertPublicBookingDismissal(bookingId, providerUserId) {
+  return query(
+    `INSERT INTO public_booking_dismissals (booking_id, provider_user_id)
+     VALUES ($1, $2)
+     ON CONFLICT (booking_id, provider_user_id) DO NOTHING`,
+    [bookingId, providerUserId],
   );
 }
 
@@ -103,7 +145,7 @@ export function findReviewableBookingForClientAndProvider(clientUserId, provider
 export function findBookingForOwnershipCheck(bookingId) {
   return query(
     `SELECT booking_id, client_user_id, provider_user_id, booking_status, scheduled_at,
-            proposed_scheduled_at, proposed_scheduled_end_at
+            proposed_scheduled_at, proposed_scheduled_end_at, service_category_id, is_public_booking
      FROM bookings WHERE booking_id = $1`,
     [bookingId],
   );
@@ -183,23 +225,55 @@ export function listClientBookings(clientUserId) {
 
 export function listProviderBookingsByStatuses(providerUserId, statuses, limit) {
   return query(
-    `SELECT b.booking_id, b.job_description, b.scheduled_at, b.scheduled_end_at, b.requested_at, b.completed_at, b.booking_status,
-            b.proposed_scheduled_at, b.proposed_scheduled_end_at,
-            cu.full_name AS client_name, cu.phone AS client_phone, cu.email AS client_email, cu.user_token AS client_token,
-            sc.category_name AS service_category,
-            bl.address_snapshot, bl.latitude_snapshot, bl.longitude_snapshot,
-            r.rating, r.review_text,
-            bp.payment_method,
-            (inv.invoice_id IS NOT NULL) AS has_invoice
-     FROM bookings b
-     JOIN users cu ON cu.user_id = b.client_user_id
-     JOIN service_categories sc ON sc.service_category_id = b.service_category_id
-     LEFT JOIN booking_locations bl ON bl.booking_id = b.booking_id
-     LEFT JOIN reviews r ON r.booking_id = b.booking_id
-     LEFT JOIN booking_payments bp ON bp.booking_id = b.booking_id
-     LEFT JOIN invoices inv ON inv.booking_id = b.booking_id
-     WHERE b.provider_user_id = $1 AND b.booking_status = ANY($2::booking_status[])
-     ORDER BY b.requested_at DESC
+    `WITH combined AS (
+       SELECT b.booking_id, b.job_description, b.scheduled_at, b.scheduled_end_at, b.requested_at, b.completed_at, b.booking_status,
+              b.proposed_scheduled_at, b.proposed_scheduled_end_at, b.is_public_booking,
+              cu.full_name AS client_name, cu.phone AS client_phone, cu.email AS client_email, cu.user_token AS client_token,
+              sc.category_name AS service_category,
+              bl.address_snapshot, bl.latitude_snapshot, bl.longitude_snapshot,
+              r.rating, r.review_text,
+              bp.payment_method,
+              (inv.invoice_id IS NOT NULL) AS has_invoice
+       FROM bookings b
+       JOIN users cu ON cu.user_id = b.client_user_id
+       JOIN service_categories sc ON sc.service_category_id = b.service_category_id
+       LEFT JOIN booking_locations bl ON bl.booking_id = b.booking_id
+       LEFT JOIN reviews r ON r.booking_id = b.booking_id
+       LEFT JOIN booking_payments bp ON bp.booking_id = b.booking_id
+       LEFT JOIN invoices inv ON inv.booking_id = b.booking_id
+       WHERE b.provider_user_id = $1 AND b.booking_status = ANY($2::booking_status[])
+
+       UNION ALL
+
+       -- Public (broadcast) bookings still open to every provider offering
+       -- the category: only ever contributes rows when 'PENDING' is among
+       -- the requested statuses, so callers asking for ACCEPTED/COMPLETED
+       -- (jobs-to-do, completed-jobs) are unaffected by this branch.
+       SELECT b.booking_id, b.job_description, b.scheduled_at, b.scheduled_end_at, b.requested_at, b.completed_at, b.booking_status,
+              b.proposed_scheduled_at, b.proposed_scheduled_end_at, b.is_public_booking,
+              cu.full_name, cu.phone, cu.email, cu.user_token,
+              sc.category_name,
+              bl.address_snapshot, bl.latitude_snapshot, bl.longitude_snapshot,
+              NULL::smallint, NULL::text,
+              NULL::payment_method,
+              false
+       FROM bookings b
+       JOIN users cu ON cu.user_id = b.client_user_id
+       JOIN service_categories sc ON sc.service_category_id = b.service_category_id
+       LEFT JOIN booking_locations bl ON bl.booking_id = b.booking_id
+       JOIN provider_service_categories psc
+         ON psc.service_category_id = b.service_category_id AND psc.provider_user_id = $1
+       WHERE b.provider_user_id IS NULL
+         AND b.is_public_booking = true
+         AND b.booking_status = 'PENDING'
+         AND 'PENDING' = ANY($2::booking_status[])
+         AND NOT EXISTS (
+           SELECT 1 FROM public_booking_dismissals d
+           WHERE d.booking_id = b.booking_id AND d.provider_user_id = $1
+         )
+     )
+     SELECT * FROM combined
+     ORDER BY requested_at DESC
      LIMIT $3`,
     [providerUserId, statuses, limit],
   );

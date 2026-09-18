@@ -3,15 +3,19 @@ import { motion, useReducedMotion } from 'motion/react';
 import { ROUTES } from '../../../constants/routes.js';
 import { IconCheckCircle, IconClipboardList, IconHome } from '../../../components/common/icons.jsx';
 
-const STEPS = [
-  { label: 'Request Sent', desc: 'Your booking request is with the provider', done: true },
-  { label: 'Provider Review', desc: 'Provider accepts or declines (within 24h)', done: false },
-  { label: 'Job Completed', desc: 'Service is delivered, then pay and leave a review', done: false },
-];
+function buildSteps(isPublicBooking) {
+  return [
+    { label: 'Request Sent', desc: isPublicBooking ? 'Your public booking request is with every provider in the category' : 'Your booking request is with the provider', done: true },
+    { label: isPublicBooking ? 'Providers Review' : 'Provider Review', desc: isPublicBooking ? 'The first provider to accept is assigned the job' : 'Provider accepts or declines (within 24h)', done: false },
+    { label: 'Job Completed', desc: 'Service is delivered, then pay and leave a review', done: false },
+  ];
+}
 
 export default function BookingRequestSentPage() {
   const { state } = useLocation();
   const bookingId = state?.bookingId;
+  const isPublicBooking = Boolean(state?.isPublicBooking);
+  const STEPS = buildSteps(isPublicBooking);
   const shouldReduceMotion = useReducedMotion();
 
   return (
@@ -33,7 +37,9 @@ export default function BookingRequestSentPage() {
           </motion.div>
           <h1 className="brs-title">Booking Request Sent!</h1>
           <p className="brs-sub">
-            Your booking request has been submitted successfully. The provider will review and respond within <strong>24 hours</strong>.
+            {isPublicBooking
+              ? <>Your public booking request has been sent to every provider in this category. Whoever accepts first will be assigned the job.</>
+              : <>Your booking request has been submitted successfully. The provider will review and respond within <strong>24 hours</strong>.</>}
           </p>
 
           {bookingId && (
