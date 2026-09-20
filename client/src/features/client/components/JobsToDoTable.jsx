@@ -2,12 +2,14 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '../../../constants/routes.js';
 import { bookingApi } from '../bookingApi.js';
+import { useAlert } from '../../../hooks/useAlert.js';
 import { IconToolbox, IconClock, IconChatBubble } from '../../../components/common/icons.jsx';
 import { formatTimeRange } from '../../../utils/timeUtils.js';
 
 export default function JobsToDoTable({ bookings = [], onRefresh }) {
   const navigate = useNavigate();
   const [cancelling, setCancelling] = useState(null);
+  const { showError } = useAlert();
 
   const goToPayment = (bookingId) =>
     navigate(ROUTES.CLIENT_BOOKING_PAY.replace(':bookingId', bookingId));
@@ -20,7 +22,7 @@ export default function JobsToDoTable({ bookings = [], onRefresh }) {
       await bookingApi.cancelBooking(bookingId);
       onRefresh?.();
     } catch {
-      alert('Failed to cancel booking. Please try again.');
+      showError('Failed to cancel booking. Please try again.');
     } finally {
       setCancelling(null);
     }

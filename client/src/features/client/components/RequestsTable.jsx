@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { bookingApi } from '../bookingApi.js';
+import { useAlert } from '../../../hooks/useAlert.js';
 import { IconClipboardList } from '../../../components/common/icons.jsx';
 import { formatTimeRange } from '../../../utils/timeUtils.js';
 
@@ -13,6 +14,7 @@ const STATUS_STYLES = {
 
 export default function RequestsTable({ bookings = [], onRefresh }) {
   const [cancelling, setCancelling] = useState(null);
+  const { showError } = useAlert();
 
   async function handleCancel(bookingId) {
     setCancelling(bookingId);
@@ -20,7 +22,7 @@ export default function RequestsTable({ bookings = [], onRefresh }) {
       await bookingApi.cancelBooking(bookingId);
       onRefresh?.();
     } catch {
-      alert('Failed to cancel booking. Please try again.');
+      showError('Failed to cancel booking. Please try again.');
     } finally {
       setCancelling(null);
     }

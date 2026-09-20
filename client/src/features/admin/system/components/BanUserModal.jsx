@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
+import ConfirmModal from '../../../../components/common/ConfirmModal.jsx';
 import { banPopoverPosition } from '../banPopoverPosition.js';
 
 // Converts a requestedEndsAt ISO timestamp (from a Verification Admin's
@@ -19,6 +20,7 @@ export default function BanUserModal({ isOpen, onClose, onSubmit, targetName, is
   const [banType, setBanType] = useState('TEMPORARY');
   const [endsAt, setEndsAt] = useState('');
   const [reason, setReason] = useState('');
+  const [isConfirming, setIsConfirming] = useState(false);
 
   // Pre-fill from the Verification Admin's recommended ban type/duration/reason
   // (when opened from a Ban Request card) so the System Admin reviews-then-adjusts
@@ -28,6 +30,7 @@ export default function BanUserModal({ isOpen, onClose, onSubmit, targetName, is
     setBanType(recommendation?.banType ?? 'TEMPORARY');
     setEndsAt(toDatetimeLocalValue(recommendation?.requestedEndsAt));
     setReason(recommendation?.reason ?? '');
+    setIsConfirming(false);
   }, [isOpen, recommendation]);
 
   useEffect(() => {
@@ -43,18 +46,39 @@ export default function BanUserModal({ isOpen, onClose, onSubmit, targetName, is
 
   const position = banPopoverPosition(anchorRect);
 
+  // <input type="datetime-local"> yields a timezone-less value like
+  // "2026-07-25T10:30" (interpreted as the admin's own local wall-clock
+  // time by `new Date(...)`). The backend's applyBanSchema requires a
+  // full ISO-8601 datetime (z.string().datetime()), which that raw value
+  // is not -- sending it as-is always failed validation with "Invalid
+  // datetime". Converting to an absolute ISO instant here is both what
+  // the backend needs and the only way to preserve the wall-clock time
+  // the admin actually picked, regardless of server timezone.
+  const isoEndsAt = banType === 'TEMPORARY' && endsAt ? new Date(endsAt).toISOString() : null;
+
   function handleSubmit(event) {
     event.preventDefault();
-    // <input type="datetime-local"> yields a timezone-less value like
-    // "2026-07-25T10:30" (interpreted as the admin's own local wall-clock
-    // time by `new Date(...)`). The backend's applyBanSchema requires a
-    // full ISO-8601 datetime (z.string().datetime()), which that raw value
-    // is not -- sending it as-is always failed validation with "Invalid
-    // datetime". Converting to an absolute ISO instant here is both what
-    // the backend needs and the only way to preserve the wall-clock time
-    // the admin actually picked, regardless of server timezone.
-    const isoEndsAt = banType === 'TEMPORARY' && endsAt ? new Date(endsAt).toISOString() : null;
+    setIsConfirming(true);
+  }
+
+  function handleConfirmedBan() {
     onSubmit({ banType, endsAt: isoEndsAt, reason });
+  }
+
+  if (isConfirming) {
+    const durationText = banType === 'PERMANENT'
+      ? 'permanently'
+      : `until ${new Date(isoEndsAt).toLocaleString()}`;
+    return (
+      <ConfirmModal
+        isOpen={isOpen}
+        title="Confirm ban"
+        message={`Ban ${targetName ?? 'this user'} ${durationText} with reason: "${reason}"? This will immediately log them out and block further access.`}
+        confirmLabel={isSubmitting ? 'Applying…' : 'Apply Ban'}
+        onConfirm={handleConfirmedBan}
+        onCancel={() => setIsConfirming(false)}
+      />
+    );
   }
 
   return createPortal(

@@ -1,6 +1,7 @@
 import { asyncHandler } from '../../utils/asyncHandler.js';
 import { sendSuccess } from '../../utils/responseUtils.js';
 import { AppError } from '../../utils/AppError.js';
+import { sanitizeText } from '../../utils/sanitizeText.js';
 import { query } from '../../db/query.js';
 
 // A booking has exactly one client and one provider, so the booking ID alone
@@ -18,13 +19,14 @@ async function findBookingWithClient(bookingId, providerUserId) {
 }
 
 export const submitProviderComplaintHandler = asyncHandler(async (req, res) => {
-  const { token, description, bookingId } = req.body;
+  const { token, bookingId } = req.body;
+  const description = sanitizeText(req.body.description);
   const complainantUserId = req.user.userId;
 
   if (!bookingId || !description) {
     throw new AppError('Booking ID and complaint details are required', 400);
   }
-  if (description.trim().length < 20) {
+  if (description.length < 20) {
     throw new AppError('Please provide more detail (minimum 20 characters)', 422);
   }
 
@@ -44,7 +46,7 @@ export const submitProviderComplaintHandler = asyncHandler(async (req, res) => {
     `INSERT INTO complaints (complainant_user_id, target_user_id, complaint_details, related_booking_id)
      VALUES ($1, $2, $3, $4)
      RETURNING complaint_id, complaint_status, submitted_at`,
-    [complainantUserId, booking.client_user_id, description.trim(), booking.booking_id],
+    [complainantUserId, booking.client_user_id, description, booking.booking_id],
   );
 
   sendSuccess(res, { complaintId: rows[0].complaint_id, status: rows[0].complaint_status }, 201);

@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { IconCheckCircle } from '../../../components/common/icons.jsx';
 import { bookingApi } from '../bookingApi.js';
+import { useAlert } from '../../../hooks/useAlert.js';
 
 function InvoiceCell({ bookingId, hasInvoice }) {
   const [downloading, setDownloading] = useState(false);
+  const { showError } = useAlert();
 
   if (!hasInvoice) {
     return <span style={{ color: 'var(--color-neutral-400)' }}>—</span>;
@@ -14,7 +16,7 @@ function InvoiceCell({ bookingId, hasInvoice }) {
     try {
       await bookingApi.downloadInvoice(bookingId);
     } catch {
-      alert('Failed to download invoice. Please try again.');
+      showError('Failed to download invoice. Please try again.');
     } finally {
       setDownloading(false);
     }
