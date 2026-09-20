@@ -1,16 +1,19 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import BookingDetailPreview from './BookingDetailPreview.jsx';
-import { IconWrench, IconMapPin } from '../../../components/common/icons.jsx';
+import { IconWrench, IconMapPin, IconChatBubble } from '../../../components/common/icons.jsx';
 import { rowPreviewPosition } from '../rowPreviewPosition.js';
 import { buildGoogleMapsUrl } from '../../../utils/mapsUtils.js';
 import { formatTimeRange } from '../../../utils/timeUtils.js';
+import { ROUTES } from '../../../constants/routes.js';
 
 const MIN_ROWS = 6;
-const COLUMN_COUNT = 8;
+const COLUMN_COUNT = 9;
 
 export default function ProviderJobsTable({ jobs }) {
   const [hoveredId, setHoveredId] = useState(null);
   const [previewPos, setPreviewPos] = useState({ top: 0, left: 0 });
+  const navigate = useNavigate();
 
   const hoveredBooking = jobs?.find((j) => j.id === hoveredId);
 
@@ -56,6 +59,7 @@ export default function ProviderJobsTable({ jobs }) {
             <th>Booking Time</th>
             <th>Location</th>
             <th>Status</th>
+            <th>Message</th>
           </tr>
         </thead>
         <tbody>
@@ -87,6 +91,16 @@ export default function ProviderJobsTable({ jobs }) {
               </td>
               <td>
                 <span className="provider-badge active">Accepted</span>
+              </td>
+              <td>
+                <button
+                  type="button"
+                  className="btn btn-outline"
+                  style={{ padding: '5px 12px', fontSize: 'var(--font-size-xs)', display: 'inline-flex', alignItems: 'center', gap: 5 }}
+                  onClick={(e) => { e.stopPropagation(); navigate(`${ROUTES.PROVIDER_CHAT_BASE}/${j.id}`); }}
+                >
+                  <IconChatBubble size={14} /> Message
+                </button>
               </td>
             </tr>
           ))}

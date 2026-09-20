@@ -1,8 +1,19 @@
 import { env } from '../../config/environment.js';
 import { logger } from '../../utils/logger.js';
+import { mailTransport } from '../../config/email.js';
+
+// Resend needs a verified sending domain, which this project doesn't have
+// set up for local dev. SMTP has no such requirement and isn't blocked
+// outside PaaS hosts, so local development sends over SMTP directly and
+// production (Railway) keeps using Resend.
+const useSmtp = env.nodeEnv === 'development';
 
 export async function sendEmail({ to, subject, html, replyTo }) {
   try {
+    if (useSmtp) {
+      await mailTransport.sendMail({ from: env.smtp.from, to, subject, html, replyTo });
+      return;
+    }
     const response = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {

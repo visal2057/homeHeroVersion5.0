@@ -3,6 +3,8 @@ import { axiosClient } from '../../../api/axiosClient.js';
 import { API_ENDPOINTS } from '../../../api/apiEndpoints.js';
 import { useAuth } from '../../../hooks/useAuth.js';
 import AlertMessage from '../../../components/common/AlertMessage.jsx';
+import RevealOnScroll from '../../../components/common/RevealOnScroll.jsx';
+import { SkeletonLine } from '../../../components/common/Skeleton.jsx';
 
 import OnlineStatusControl   from '../components/OnlineStatusControl.jsx';
 import OfflineDateRangePicker from '../components/OfflineDateRangePicker.jsx';
@@ -182,11 +184,24 @@ export default function ProviderDashboardPage() {
       </section>
 
       {loading ? (
-        <div className="provider-spinner-wrap"><div className="provider-spinner" /></div>
+        <div className="provider-top-grid">
+          <div className="provider-card">
+            <div className="provider-card-body">
+              <SkeletonLine height={20} width="40%" style={{ marginBottom: 'var(--space-md)' }} />
+              <SkeletonLine height={44} style={{ borderRadius: 'var(--radius-md)' }} />
+            </div>
+          </div>
+          <div className="provider-card">
+            <div className="provider-card-body">
+              <SkeletonLine height={20} width="50%" style={{ marginBottom: 'var(--space-md)' }} />
+              <SkeletonLine height={80} style={{ borderRadius: 'var(--radius-md)' }} />
+            </div>
+          </div>
+        </div>
       ) : (
         <>
           {/* Availability + Summary */}
-          <div className="provider-top-grid">
+          <RevealOnScroll className="provider-top-grid" y={14}>
             <div className="provider-card">
               <div className="provider-card-header">
                 <h2 className="provider-card-title">Availability</h2>
@@ -230,12 +245,14 @@ export default function ProviderDashboardPage() {
             </div>
 
             <ProviderSummaryCard profile={profile} />
-          </div>
+          </RevealOnScroll>
 
           {/* Stats */}
-          <ProviderStatistics stats={stats} totalEarnings={totalEarnings} />
+          <RevealOnScroll delay={0.05} y={14}>
+            <ProviderStatistics stats={stats} totalEarnings={totalEarnings} />
+          </RevealOnScroll>
 
-          <div className="provider-dashboard-grid">
+          <RevealOnScroll className="provider-dashboard-grid" delay={0.1} y={14}>
             {/* Left column */}
             <div className="provider-card">
               <div className="provider-card-header">
@@ -257,7 +274,7 @@ export default function ProviderDashboardPage() {
                 />
               </div>
             </div>
-          </div>
+          </RevealOnScroll>
         </>
       )}
     </div>

@@ -59,10 +59,17 @@ export default function RequestsTable({ bookings = [], onRefresh }) {
                 <tr key={b.id}>
                   <td><span className="bt-id">#{b.bookingId ?? b.id}</span></td>
                   <td>
-                    <div className="bt-provider-cell">
-                      <div className="bt-provider-avatar">{(b.providerName ?? 'P')[0]}</div>
-                      <span>{b.providerName ?? 'Unknown'}</span>
-                    </div>
+                    {b.isPublicBooking && !b.providerName ? (
+                      <div className="bt-provider-cell">
+                        <span className="bt-public-badge">Public</span>
+                        <span style={{ color: 'var(--color-neutral-500)' }}>Awaiting a provider</span>
+                      </div>
+                    ) : (
+                      <div className="bt-provider-cell">
+                        <div className="bt-provider-avatar">{(b.providerName ?? 'P')[0]}</div>
+                        <span>{b.providerName ?? 'Unknown'}</span>
+                      </div>
+                    )}
                   </td>
                   <td>
                     {b.providerToken
@@ -116,6 +123,7 @@ function TableStyles() {
       .bt-table tr:hover td { background: var(--color-neutral-50); }
       .bt-provider-cell { display: flex; align-items: center; gap: 10px; }
       .bt-provider-avatar { width: 38px; height: 38px; border-radius: 50%; background: var(--color-primary-100); display: flex; align-items: center; justify-content: center; color: var(--color-primary-700); font-weight: 700; flex-shrink: 0; }
+      .bt-public-badge { padding: 3px 10px; border-radius: var(--radius-full); font-size: var(--font-size-xs); font-weight: 700; background: var(--color-primary-600); color: white; flex-shrink: 0; }
       .bt-status { padding: 3px 10px; border-radius: var(--radius-full); font-size: var(--font-size-xs); font-weight: 600; white-space: nowrap; }
       .bt-id { font-family: monospace; font-size: var(--font-size-xs); color: var(--color-neutral-500); }
       .bt-token { font-family: monospace; font-size: var(--font-size-xs); background: var(--color-primary-50); color: var(--color-primary-700); padding: 2px 6px; border-radius: var(--radius-sm); letter-spacing: 0.05em; }

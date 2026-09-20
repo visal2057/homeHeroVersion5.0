@@ -3,13 +3,18 @@ import { pool } from '../../db/pool.js';
 import { AppError } from '../../utils/AppError.js';
 import { logAction } from '../audit/audit.service.js';
 import { createNotification } from '../notifications/notification.service.js';
+import { findCategoryByCode } from '../providers/provider.queries.js';
 import {
   findClientLocation,
   findProviderBookability,
   providerHasCategory,
+  countProvidersInCategory,
   isDateUnavailableForProvider,
   findConflictingBooking,
   insertBooking,
+  insertPublicBooking,
+  claimPublicBooking,
+  insertPublicBookingDismissal,
   insertBookingLocationSnapshot,
   insertBookingImage,
   findBookingForOwnershipCheck,
@@ -49,6 +54,7 @@ function toClientBookingShape(row) {
     requestedAt: row.requested_at,
     completedAt: row.completed_at,
     hasInvoice: row.has_invoice ?? false,
+    isPublicBooking: row.is_public_booking === true,
   };
 }
 
@@ -149,6 +155,96 @@ export async function createBooking(clientUserId, input, files = []) {
   }
 }
 
+// A public (broadcast) booking has no provider yet, so none of the
+// provider-specific checks createBooking runs (bookability, blocked dates,
+// scheduling conflicts) apply here -- those happen per-provider at accept
+// time instead (see acceptPublicBooking below).
+export async function createPublicBooking(clientUserId, input, files = []) {
+  if (new Date(input.scheduledAt).getTime() <= Date.now()) {
+    throw new AppError('The selected date and time must be in the future', 422);
+  }
+  if (new Date(input.scheduledEndAt).getTime() <= new Date(input.scheduledAt).getTime()) {
+    throw new AppError('The end time must be after the start time', 422);
+  }
+
+  const { rows: locationRows } = await findClientLocation(clientUserId);
+  if (locationRows.length === 0 && (input.locationLatitude == null || input.locationLongitude == null)) {
+    throw new AppError('Please set your location in your profile before making a booking', 422);
+  }
+
+  const categoryCode = input.categorySlug.toUpperCase().replace(/-/g, '_');
+  const { rows: categoryRows } = await findCategoryByCode(categoryCode);
+  if (categoryRows.length === 0) {
+    throw new AppError('Unknown service category', 404);
+  }
+  const serviceCategoryId = categoryRows[0].service_category_id;
+
+  const { rows: providerCountRows } = await countProvidersInCategory(serviceCategoryId);
+  if (providerCountRows[0].count === 0) {
+    throw new AppError('No providers currently offer this service category', 422);
+  }
+
+  const profileLocation = locationRows[0];
+  const hasCustomLocation = input.locationLatitude != null && input.locationLongitude != null;
+  const location = hasCustomLocation
+    ? {
+        address_text: input.locationAddress?.trim()
+          || `${input.locationLatitude}, ${input.locationLongitude}`,
+        latitude: input.locationLatitude,
+        longitude: input.locationLongitude,
+      }
+    : profileLocation;
+
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    const { rows: bookingRows } = await insertPublicBooking(client, {
+      clientUserId,
+      serviceCategoryId,
+      jobDescription: input.jobDescription,
+      scheduledAt: input.scheduledAt,
+      scheduledEndAt: input.scheduledEndAt,
+    });
+    const booking = bookingRows[0];
+
+    await insertBookingLocationSnapshot(client, booking.booking_id, {
+      addressText: location.address_text,
+      latitude: location.latitude,
+      longitude: location.longitude,
+    });
+
+    let displayOrder = 1;
+    for (const file of files) {
+      await insertBookingImage(client, booking.booking_id, {
+        storagePath: `/public/booking-images/${path.basename(file.path)}`,
+        originalFilename: file.originalname,
+        mimeType: file.mimetype,
+        fileSizeBytes: file.size,
+        displayOrder,
+      });
+      displayOrder += 1;
+    }
+
+    await client.query('COMMIT');
+
+    await logAction({
+      actorUserId: clientUserId,
+      actionCode: 'BOOKING_CREATED',
+      entityType: 'booking',
+      entityId: booking.booking_id,
+      description: `A new public booking request (#${booking.booking_id}) was submitted to all providers in ${categoryRows[0].category_name}`,
+    });
+
+    return { bookingId: booking.booking_id, status: booking.booking_status };
+  } catch (err) {
+    await client.query('ROLLBACK');
+    throw err;
+  } finally {
+    client.release();
+  }
+}
+
 export async function getClientBookings(clientUserId) {
   const { rows } = await listClientBookings(clientUserId);
   return rows.map(toClientBookingShape);
@@ -199,6 +295,7 @@ function toProviderRowShape(row) {
     review_text: row.review_text,
     payment_method: row.payment_method,
     has_invoice: row.has_invoice,
+    isPublicBooking: row.is_public_booking === true,
   };
 }
 
@@ -246,6 +343,19 @@ async function assertOwnedPendingBooking(bookingId, providerUserId) {
 }
 
 export async function acceptBooking(bookingId, providerUserId) {
+  const { rows: lookupRows } = await findBookingForOwnershipCheck(bookingId);
+  if (lookupRows.length === 0) {
+    throw new AppError('Booking not found', 404);
+  }
+  const lookup = lookupRows[0];
+
+  // A public (broadcast) booking has no owning provider yet -- claiming it
+  // is a different, "first to accept wins" path rather than the normal
+  // single-provider ownership check below.
+  if (lookup.is_public_booking && lookup.provider_user_id == null) {
+    return acceptPublicBooking(bookingId, lookup, providerUserId);
+  }
+
   const booking = await assertOwnedPendingBooking(bookingId, providerUserId);
 
   // Multiple clients can hold PENDING requests for the same slot now, so
@@ -276,6 +386,87 @@ export async function acceptBooking(bookingId, providerUserId) {
   });
 
   return { bookingId: rows[0].booking_id, status: rows[0].booking_status.toLowerCase() };
+}
+
+async function acceptPublicBooking(bookingId, booking, providerUserId) {
+  if (booking.booking_status !== 'PENDING') {
+    throw new AppError('This public booking is no longer available', 409);
+  }
+
+  const { rows: categoryRows } = await providerHasCategory(providerUserId, booking.service_category_id);
+  if (categoryRows.length === 0) {
+    throw new AppError('You do not offer this service category', 403);
+  }
+
+  const { rows: bookabilityRows } = await findProviderBookability(providerUserId);
+  if (bookabilityRows.length === 0 || !bookabilityRows[0].is_bookable) {
+    const reason = bookabilityRows[0]?.bookability_reason ?? 'Provider unavailable';
+    throw new AppError(`You cannot accept jobs right now: ${reason}`, 422);
+  }
+
+  const bookingDateKey = new Date(booking.scheduled_at).toISOString().slice(0, 10);
+  const { rows: unavailableRows } = await isDateUnavailableForProvider(providerUserId, bookingDateKey);
+  if (unavailableRows.length > 0) {
+    throw new AppError('You have marked this date as unavailable', 422);
+  }
+
+  const { rows: conflictRows } = await findConflictingBooking(providerUserId, booking.scheduled_at);
+  if (conflictRows.length > 0) {
+    throw new AppError('You already have an accepted booking at that time', 409);
+  }
+
+  let rows;
+  try {
+    ({ rows } = await claimPublicBooking(bookingId, providerUserId));
+  } catch (err) {
+    if (err.code === '23505') {
+      throw new AppError('You already have an accepted booking at that time', 409);
+    }
+    throw err;
+  }
+  if (rows.length === 0) {
+    throw new AppError('This job has already been accepted by another provider', 409);
+  }
+  const updated = rows[0];
+
+  await logAction({
+    actorUserId: providerUserId,
+    actionCode: 'BOOKING_ACCEPTED',
+    entityType: 'booking',
+    entityId: updated.booking_id,
+    description: `Public booking #${updated.booking_id} was accepted by a Service Provider`,
+  });
+
+  try {
+    await createNotification({
+      recipientUserId: updated.client_user_id,
+      title: 'Booking Accepted',
+      message: `Your public booking request #${updated.booking_id} has been accepted by a service provider.`,
+      relatedType: 'BOOKING',
+      relatedId: updated.booking_id,
+    });
+  } catch (notifyErr) {
+    console.error('Failed to send public-booking-accepted notification:', notifyErr);
+  }
+
+  return { bookingId: updated.booking_id, status: updated.booking_status.toLowerCase() };
+}
+
+// A provider declining a public booking only hides it from their own list --
+// the booking itself is untouched and stays visible to every other provider
+// in the category, unlike rejecting a normal (single-provider) booking.
+export async function dismissPublicBooking(bookingId, providerUserId) {
+  const { rows } = await findBookingForOwnershipCheck(bookingId);
+  if (rows.length === 0) {
+    throw new AppError('Booking not found', 404);
+  }
+  const booking = rows[0];
+  if (!booking.is_public_booking || booking.provider_user_id != null) {
+    throw new AppError('This booking is not a public request', 409);
+  }
+
+  await insertPublicBookingDismissal(bookingId, providerUserId);
+  return { bookingId: Number(bookingId) };
 }
 
 export async function rejectBooking(bookingId, providerUserId, reason) {

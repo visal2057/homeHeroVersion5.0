@@ -32,7 +32,12 @@ export default function ProviderTopbar({ onMenuToggle }) {
   const markedRef = useRef(new Set());
   const bellRef = useRef(null);
 
-  const pageTitle = PAGE_TITLES[location.pathname] ?? 'Provider Portal';
+  // The chat route carries an optional :bookingId segment (/provider/chat
+  // or /provider/chat/52), so it can't be matched by the exact-pathname
+  // lookup above like the rest of the sidebar's pages.
+  const pageTitle = location.pathname.startsWith(ROUTES.PROVIDER_CHAT_BASE)
+    ? 'Communication Portal'
+    : PAGE_TITLES[location.pathname] ?? 'Provider Portal';
   const username = user?.username ?? 'Provider';
 
   useEffect(() => {

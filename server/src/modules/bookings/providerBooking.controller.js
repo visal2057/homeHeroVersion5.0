@@ -27,6 +27,11 @@ export const rejectBookingHandler = asyncHandler(async (req, res) => {
   sendSuccess(res, result);
 });
 
+export const dismissPublicBookingHandler = asyncHandler(async (req, res) => {
+  const result = await bookingService.dismissPublicBooking(req.params.bookingId, req.user.userId);
+  sendSuccess(res, result);
+});
+
 export const proposeRescheduleHandler = asyncHandler(async (req, res) => {
   const result = await bookingService.proposeReschedule(req.params.bookingId, req.user.userId, req.body);
   sendSuccess(res, result);

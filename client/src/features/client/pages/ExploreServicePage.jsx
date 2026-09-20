@@ -1,14 +1,20 @@
 import { useEffect, useState, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { ROUTES } from '../../../constants/routes.js';
+import { useAuth } from '../../../hooks/useAuth.js';
+import { ROLES } from '../../../constants/roles.js';
 import { clientApi } from '../clientApi.js';
 import { extractErrorMessage } from '../../../api/apiErrorHandler.js';
 import ProviderCard from '../components/ProviderCard.jsx';
 import TopProvidersSection from '../components/TopProvidersSection.jsx';
+import PublicBookingModal from '../components/PublicBookingModal.jsx';
 import EmptyState from '../../../components/common/EmptyState.jsx';
+import PageHero from '../../../components/common/PageHero.jsx';
+import RevealOnScroll from '../../../components/common/RevealOnScroll.jsx';
+import { SkeletonGrid } from '../../../components/common/Skeleton.jsx';
 import {
   IconLeaf, IconSparkle, IconPaw, IconWrench, IconSnowflake,
-  IconToolbox, IconSearch, IconAlertCircle, IconArrowLeft,
+  IconToolbox, IconSearch, IconAlertCircle, IconArrowLeft, IconSend,
 } from '../../../components/common/icons.jsx';
 
 const CATEGORY_META = {
@@ -61,6 +67,8 @@ const SORT_OPTIONS = [
 export default function ExploreServicePage() {
   const { category } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const { user } = useAuth();
   const meta = CATEGORY_META[category] ?? { label: category, desc: '', icon: IconToolbox, image: 'https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?auto=format&fit=crop&w=2000&q=80' };
   const HeroIcon = meta.icon;
 
@@ -69,6 +77,20 @@ export default function ExploreServicePage() {
   // handling) rather than just dropping them at the top of the homepage.
   function handleBackToCategories() {
     navigate(ROUTES.HOME, { state: { scrollTo: 'hh-services-section' } });
+  }
+
+  const [showPublicBooking, setShowPublicBooking] = useState(false);
+  // Same gating "Book Now" already uses elsewhere: hidden entirely for a
+  // pending-provider viewer browsing while their application is under
+  // review, and a logged-out visitor is sent to client signup instead of
+  // opening the popup.
+  const canBookPublic = user?.role !== ROLES.SERVICE_PROVIDER;
+  function handlePublicBookingClick() {
+    if (!user) {
+      navigate(ROUTES.REGISTER_CLIENT, { state: { from: location } });
+      return;
+    }
+    setShowPublicBooking(true);
   }
 
   const [providers, setProviders] = useState([]);
@@ -110,35 +132,34 @@ export default function ExploreServicePage() {
 
   return (
     <div className="explore-page">
-      {/* Hero banner */}
-      <div className="ep-hero" style={{ backgroundImage: `url(${meta.image})` }}>
-        <div className="ep-hero-overlay" />
-        <div className="container">
-          <div className="ep-hero-inner">
-            <div className="ep-hero-icon-wrap">
-              <HeroIcon size={43} style={{ color: 'white' }} />
-            </div>
-            <div className="ep-hero-text">
-              <div className="hh-eyebrow" style={{ color: 'rgba(255,255,255,0.75)', marginBottom: 6 }}>Explore Services</div>
-              <h1 className="ep-hero-title">{meta.label}</h1>
-              <p className="ep-hero-desc">{meta.desc}</p>
-            </div>
-          </div>
-        </div>
-      </div>
+      <PageHero image={meta.image} icon={HeroIcon} eyebrow="Explore Services" title={meta.label} subtitle={meta.desc} />
 
       <div className="container">
         <div className="ep-back-row">
+          {canBookPublic && (
+            <button type="button" className="ep-public-btn" onClick={handlePublicBookingClick}>
+              <IconSend size={16} />
+              Public Booking
+            </button>
+          )}
           <button type="button" className="ep-back-btn" onClick={handleBackToCategories}>
             <IconArrowLeft size={16} />
             Back to Categories
           </button>
         </div>
 
+        {showPublicBooking && (
+          <PublicBookingModal
+            categorySlug={category}
+            categoryLabel={meta.label}
+            onClose={() => setShowPublicBooking(false)}
+          />
+        )}
+
         {topProviders.length > 0 && (
-          <div style={{ marginTop: 'var(--space-2xl)' }}>
+          <RevealOnScroll style={{ marginTop: 'var(--space-2xl)' }}>
             <TopProvidersSection providers={topProviders} category={meta.label} originCategory={category} />
-          </div>
+          </RevealOnScroll>
         )}
 
         {/* Filters */}
@@ -171,10 +192,7 @@ export default function ExploreServicePage() {
         </div>
 
         {loading ? (
-          <div className="ep-loading">
-            <div className="ep-spinner" />
-            <p>Finding the best {meta.label.toLowerCase()} providers...</p>
-          </div>
+          <SkeletonGrid count={6} />
         ) : error ? (
           <EmptyState
             icon={IconAlertCircle}
@@ -192,32 +210,18 @@ export default function ExploreServicePage() {
           </div>
         ) : (
           <div className="ep-grid">
-            {displayed.map((p) => <ProviderCard key={p.providerId ?? p.id} provider={p} originCategory={category} />)}
+            {displayed.map((p, i) => (
+              <RevealOnScroll key={p.providerId ?? p.id} delay={Math.min(i, 6) * 0.05} y={16}>
+                <ProviderCard provider={p} originCategory={category} />
+              </RevealOnScroll>
+            ))}
           </div>
         )}
       </div>
 
       <style>{`
         .explore-page { padding-bottom: var(--space-2xl); }
-        .ep-hero {
-          position: relative; background-size: cover; background-position: center;
-          padding: 86px 0;
-        }
-        .ep-hero-overlay {
-          position: absolute; inset: 0;
-          background: linear-gradient(135deg, rgba(15,45,25,0.60) 0%, rgba(21,128,61,0.42) 100%);
-        }
-        .ep-hero-inner { display: flex; align-items: center; gap: var(--space-xl); position: relative; z-index: 1; flex-wrap: wrap; }
-        .ep-hero-text { min-width: 0; overflow-wrap: break-word; }
-        .ep-hero-icon-wrap {
-          width: 86px; height: 86px; border-radius: var(--radius-lg);
-          background: rgba(255,255,255,0.15); backdrop-filter: blur(8px);
-          display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-          border: 1px solid rgba(255,255,255,0.25);
-        }
-        .ep-hero-title { font-size: var(--font-size-3xl); font-weight: 800; color: white; margin-bottom: 8px; }
-        .ep-hero-desc { color: rgba(255,255,255,0.8); font-size: var(--font-size-lg); margin: 0; }
-        .ep-back-row { display: flex; justify-content: flex-end; margin-top: var(--space-lg); }
+        .ep-back-row { display: flex; justify-content: flex-end; gap: var(--space-sm); flex-wrap: wrap; margin-top: var(--space-lg); }
         .ep-back-btn {
           display: inline-flex; align-items: center; gap: 8px;
           padding: 9px 18px; border: none;
@@ -233,6 +237,20 @@ export default function ExploreServicePage() {
           box-shadow: 0 8px 24px rgba(5, 150, 105, 0.3);
         }
         .ep-back-btn:active { transform: translateY(0); }
+        .ep-public-btn {
+          display: inline-flex; align-items: center; gap: 8px;
+          padding: 9px 18px; border: 1.5px solid var(--color-primary-600);
+          border-radius: var(--radius-full); background: white;
+          color: var(--color-primary-700); font-family: inherit;
+          font-size: var(--font-size-sm); font-weight: 600; cursor: pointer;
+          transition: background-color var(--transition-base), color var(--transition-base), transform var(--transition-base), box-shadow var(--transition-base);
+        }
+        .ep-public-btn:hover {
+          background-color: var(--color-primary-600); color: white;
+          transform: translateY(-2px);
+          box-shadow: 0 8px 24px rgba(5, 150, 105, 0.25);
+        }
+        .ep-public-btn:active { transform: translateY(0); }
         /* Diagonal shine sweep on hover, same mechanic as the SP dashboard
            logout button (see .provider-sidebar-footer button in provider.css). */
         .ep-back-btn::after {
@@ -267,13 +285,6 @@ export default function ExploreServicePage() {
         .ep-results-title { font-size: var(--font-size-xl); color: var(--color-secondary-700); font-weight: 700; margin: 0; }
         .ep-results-count { color: var(--color-neutral-500); font-size: var(--font-size-sm); }
         .ep-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: var(--space-lg); }
-        .ep-loading { text-align: center; padding: var(--space-2xl); color: var(--color-neutral-500); }
-        .ep-spinner {
-          width: 48px; height: 48px; border: 3px solid var(--color-neutral-200);
-          border-top-color: var(--color-primary-500); border-radius: 50%;
-          animation: spin 0.7s linear infinite; margin: 0 auto var(--space-md);
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
         .ep-empty { text-align: center; padding: var(--space-2xl) var(--space-md); color: var(--color-neutral-400); display: flex; flex-direction: column; align-items: center; }
         .ep-empty h3 { color: var(--color-neutral-600); margin-bottom: 8px; }
 

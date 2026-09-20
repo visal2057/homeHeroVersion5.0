@@ -26,6 +26,7 @@ import reviewRoutes from './modules/reviews/review.routes.js';
 import paymentSettingsRoutes from './modules/payment-settings/paymentSettings.routes.js';
 import membershipRoutes from './modules/memberships/membership.routes.js';
 import notificationRoutes from './modules/notifications/notification.routes.js';
+import chatRoutes from './modules/chat/chat.routes.js';
 import invoiceRoutes from './modules/invoices/invoice.routes.js';
 import spTrackingRoutes from './modules/sp-tracking/sp-tracking.routes.js';
 import { Router } from 'express';
@@ -70,6 +71,7 @@ app.use('/api/payment-settings', paymentSettingsRoutes);
 app.use('/api/memberships', membershipRoutes);
 app.use('/api/reference', referenceRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/chat', chatRoutes);
 
 app.use('/api/system-admin/dashboard', dashboardRoutes);
 app.use('/api/system-admin/bookings', adminBookingRoutes);

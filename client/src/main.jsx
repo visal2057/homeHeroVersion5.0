@@ -9,6 +9,7 @@ import './styles/responsive.css';
 import './styles/homepage.css';
 import './styles/admin.css';
 import './styles/registration.css';
+import './styles/app-shared.css';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

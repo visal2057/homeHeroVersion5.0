@@ -11,12 +11,15 @@ import {
   IconUser,
   IconClipboardList,
   IconLogOut,
+  IconChatBubble,
 } from '../common/icons.jsx';
+import { useUnreadChatCount } from '../../features/chat/hooks/useUnreadChatCount.js';
 
 const NAV_ITEMS = [
   { to: ROUTES.PROVIDER_DASHBOARD,     Icon: IconChartBar,     label: 'Dashboard' },
   { to: ROUTES.PROVIDER_REQUESTS,      Icon: IconInbox,        label: 'Booking Requests' },
   { to: ROUTES.PROVIDER_JOBS,          Icon: IconWrench,       label: 'Jobs To Do' },
+  { to: ROUTES.PROVIDER_CHAT_BASE,     Icon: IconChatBubble,   label: 'Messages', badge: true },
   { to: ROUTES.PROVIDER_COMPLETED,     Icon: IconCheckCircle,  label: 'Completed Jobs' },
   { to: ROUTES.PROVIDER_SUBSCRIPTIONS, Icon: IconCreditCard,   label: 'Subscriptions' },
   { to: ROUTES.PROVIDER_PROFILE,       Icon: IconUser,         label: 'Profile & Settings' },
@@ -27,6 +30,7 @@ export default function ProviderSidebar({ isOpen, onClose }) {
   const { logout } = useAuth();
   const { showSuccess } = useAlert();
   const navigate = useNavigate();
+  const unreadChatCount = useUnreadChatCount();
 
   async function handleLogout() {
     // Awaited so `user` is already cleared by the time we navigate --
@@ -48,7 +52,7 @@ export default function ProviderSidebar({ isOpen, onClose }) {
       <nav className="provider-sidebar-nav" aria-label="Provider navigation">
         <p className="provider-sidebar-section-label">Navigation</p>
 
-        {NAV_ITEMS.map(({ to, Icon, label }) => (
+        {NAV_ITEMS.map(({ to, Icon, label, badge }) => (
           <NavLink
             key={to}
             to={to}
@@ -61,6 +65,9 @@ export default function ProviderSidebar({ isOpen, onClose }) {
                 <Icon size={19} />
               </span>
               {label}
+              {badge && unreadChatCount > 0 && (
+                <span className="provider-nav-badge">{unreadChatCount > 9 ? '9+' : unreadChatCount}</span>
+              )}
             </span>
           </NavLink>
         ))}

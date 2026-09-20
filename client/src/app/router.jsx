@@ -35,6 +35,7 @@ import ProviderSubscriptionsPage from '../features/provider/pages/ProviderSubscr
 import ProviderProfilePage       from '../features/provider/pages/ProviderProfilePage.jsx';
 import ProviderComplaintsPage    from '../features/provider/pages/ProviderComplaintsPage.jsx';
 import CreateInvoicePage         from '../features/provider/pages/CreateInvoicePage.jsx';
+import ChatPage                  from '../features/chat/pages/ChatPage.jsx';
 
 import SystemAdminDashboardPage from '../features/admin/system/pages/SystemAdminDashboardPage.jsx';
 import BookingManagementPage from '../features/admin/system/pages/BookingManagementPage.jsx';
@@ -105,6 +106,7 @@ export default function AppRouter() {
           <Route path={ROUTES.PROVIDER_PROFILE}       element={<ProviderProfilePage />} />
           <Route path={ROUTES.PROVIDER_COMPLAINTS}    element={<ProviderComplaintsPage />} />
           <Route path={ROUTES.PROVIDER_INVOICE}       element={<CreateInvoicePage />} />
+          <Route path={ROUTES.PROVIDER_CHAT}          element={<ChatPage />} />
         </Route>
       </Route>
 
@@ -122,6 +124,7 @@ export default function AppRouter() {
           <Route path={ROUTES.CLIENT_PAYMENT_FAILED}   element={<PaymentFailedPage />} />
           <Route path={ROUTES.CLIENT_PROFILE}          element={<ClientProfilePage />} />
           <Route path={ROUTES.CLIENT_COMPLAINTS}       element={<ClientComplaintsPage />} />
+          <Route path={ROUTES.CLIENT_CHAT}             element={<ChatPage />} />
         </Route>
       </Route>
 

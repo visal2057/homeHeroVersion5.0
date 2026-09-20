@@ -1,7 +1,12 @@
 import { useEffect, useState } from 'react';
 import { clientApi } from '../clientApi.js';
 import ClientComplaintForm from '../components/ClientComplaintForm.jsx';
+import PageHero from '../../../components/common/PageHero.jsx';
+import RevealOnScroll from '../../../components/common/RevealOnScroll.jsx';
+import { SkeletonRows } from '../../../components/common/Skeleton.jsx';
 import { IconFlag, IconCheckCircle, IconAlertCircle, IconInbox } from '../../../components/common/icons.jsx';
+
+const HERO_IMAGE = 'https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?auto=format&fit=crop&w=2000&q=80';
 
 const STATUS_STYLES = {
   SUBMITTED:     { bg: '#fffbeb', color: '#d97706', label: 'Submitted' },
@@ -35,29 +40,18 @@ export default function ClientComplaintsPage() {
 
   return (
     <div className="ccmp-page">
-      {/* Hero */}
-      <div className="ccmp-hero">
-        <div className="ccmp-hero-overlay" />
-        <div className="container" style={{ position: 'relative', zIndex: 1 }}>
-          <div className="ccmp-hero-inner">
-            <div className="ccmp-hero-icon">
-              <IconFlag size={38} style={{ color: 'white' }} />
-            </div>
-            <div className="ccmp-hero-text">
-              <div className="hh-eyebrow" style={{ color: 'rgba(255,255,255,0.75)', marginBottom: 6 }}>Support</div>
-              <h1 className="ccmp-hero-title">Submit a Complaint</h1>
-              <p className="ccmp-hero-sub">
-                Report an issue with a service provider and our team will investigate
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
+      <PageHero
+        image={HERO_IMAGE}
+        icon={IconFlag}
+        eyebrow="Support"
+        title="Submit a Complaint"
+        subtitle="Report an issue with a service provider and our team will investigate"
+      />
 
       <div className="container ccmp-body">
         <div className="ccmp-grid">
           {/* Complaint form */}
-          <div className="ccmp-card">
+          <RevealOnScroll className="ccmp-card" y={16}>
             <h2 className="ccmp-card-title">New Complaint</h2>
             {showSuccess && (
               <div className="ccmp-success">
@@ -66,13 +60,13 @@ export default function ClientComplaintsPage() {
               </div>
             )}
             <ClientComplaintForm onSuccess={handleSuccess} />
-          </div>
+          </RevealOnScroll>
 
           {/* Previous complaints */}
-          <div>
+          <RevealOnScroll delay={0.1} y={16}>
             <h2 className="ccmp-card-title" style={{ marginBottom: 'var(--space-lg)' }}>My Complaints</h2>
             {loadingComplaints ? (
-              <div style={{ color: 'var(--color-neutral-400)', textAlign: 'center', padding: 'var(--space-xl)' }}>Loading...</div>
+              <SkeletonRows count={3} />
             ) : complaints.length === 0 ? (
               <div className="ccmp-empty">
                 <IconInbox size={48} style={{ color: 'var(--color-neutral-300)', marginBottom: 'var(--space-md)' }} />
@@ -109,31 +103,12 @@ export default function ClientComplaintsPage() {
                 })}
               </div>
             )}
-          </div>
+          </RevealOnScroll>
         </div>
       </div>
 
       <style>{`
         .ccmp-page { padding-bottom: var(--space-2xl); }
-        .ccmp-hero {
-          position: relative;
-          background-image: url('https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?auto=format&fit=crop&w=2000&q=80');
-          background-size: cover; background-position: center; padding: 77px 0;
-        }
-        .ccmp-hero-overlay {
-          position: absolute; inset: 0;
-          background: linear-gradient(135deg, rgba(15,45,25,0.60) 0%, rgba(21,128,61,0.42) 100%);
-        }
-        .ccmp-hero-inner { display: flex; align-items: center; gap: var(--space-xl); flex-wrap: wrap; }
-        .ccmp-hero-text { min-width: 0; overflow-wrap: break-word; }
-        .ccmp-hero-icon {
-          width: 77px; height: 77px; border-radius: var(--radius-lg);
-          background: rgba(255,255,255,0.15); backdrop-filter: blur(8px);
-          display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-          border: 1px solid rgba(255,255,255,0.25);
-        }
-        .ccmp-hero-title { font-size: var(--font-size-3xl); font-weight: 800; color: white; margin-bottom: 6px; }
-        .ccmp-hero-sub { color: rgba(255,255,255,0.8); font-size: var(--font-size-lg); margin: 0; }
         .ccmp-body { padding-top: var(--space-2xl); }
         .ccmp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-xl); align-items: start; }
         @media (max-width: 768px) { .ccmp-grid { grid-template-columns: 1fr; } }

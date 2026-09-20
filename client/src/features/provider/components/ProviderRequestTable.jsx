@@ -18,7 +18,7 @@ function statusBadge(status) {
   return <span className={`provider-badge ${status}`}>{label}</span>;
 }
 
-export default function ProviderRequestTable({ requests, onAccept, onReject, onReschedule, loading }) {
+export default function ProviderRequestTable({ requests, onAccept, onReject, onReschedule, onDismiss, loading }) {
   const [hoveredId, setHoveredId] = useState(null);
   const [previewPos, setPreviewPos] = useState({ top: 0, left: 0 });
 
@@ -103,7 +103,12 @@ export default function ProviderRequestTable({ requests, onAccept, onReject, onR
                   </a>
                 ) : '—'}
               </td>
-              <td>{statusBadge(r.status ?? 'pending')}</td>
+              <td>
+                {statusBadge(r.status ?? 'pending')}
+                {r.status === 'pending' && r.isPublicBooking && (
+                  <span className="provider-badge public-booking" style={{ marginLeft: 6 }}>Public</span>
+                )}
+              </td>
               <td>
                 {r.status === 'pending' && (
                   <div className="provider-row-actions">
@@ -115,22 +120,35 @@ export default function ProviderRequestTable({ requests, onAccept, onReject, onR
                     >
                       Accept
                     </button>
-                    <button
-                      type="button"
-                      className="provider-action-btn reject"
-                      disabled={loading}
-                      onClick={() => onReject(r.id)}
-                    >
-                      Reject
-                    </button>
-                    <button
-                      type="button"
-                      className="provider-action-btn reschedule"
-                      disabled={loading}
-                      onClick={() => onReschedule(r.id)}
-                    >
-                      Reschedule
-                    </button>
+                    {r.isPublicBooking ? (
+                      <button
+                        type="button"
+                        className="provider-action-btn reject"
+                        disabled={loading}
+                        onClick={() => onDismiss(r.id)}
+                      >
+                        Not Interested
+                      </button>
+                    ) : (
+                      <>
+                        <button
+                          type="button"
+                          className="provider-action-btn reject"
+                          disabled={loading}
+                          onClick={() => onReject(r.id)}
+                        >
+                          Reject
+                        </button>
+                        <button
+                          type="button"
+                          className="provider-action-btn reschedule"
+                          disabled={loading}
+                          onClick={() => onReschedule(r.id)}
+                        >
+                          Reschedule
+                        </button>
+                      </>
+                    )}
                   </div>
                 )}
               </td>

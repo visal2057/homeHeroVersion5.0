@@ -553,6 +553,20 @@ CREATE TABLE public.booking_locations (
 
 
 --
+-- Name: public_booking_dismissals; Type: TABLE; Schema: public; Owner: -
+--
+
+-- Lets one provider hide a public (broadcast) booking from their own Job
+-- Requests list ("Not Interested") without affecting its visibility to any
+-- other provider in the category.
+CREATE TABLE public.public_booking_dismissals (
+    booking_id bigint NOT NULL,
+    provider_user_id bigint NOT NULL,
+    dismissed_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
 -- Name: booking_payments; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -642,7 +656,7 @@ ALTER TABLE public.booking_status_history ALTER COLUMN booking_status_history_id
 CREATE TABLE public.bookings (
     booking_id bigint NOT NULL,
     client_user_id bigint NOT NULL,
-    provider_user_id bigint NOT NULL,
+    provider_user_id bigint,
     service_category_id smallint NOT NULL,
     job_description text NOT NULL,
     scheduled_at timestamp with time zone NOT NULL,
@@ -660,7 +674,8 @@ CREATE TABLE public.bookings (
     proposed_scheduled_end_at timestamp with time zone,
     rejection_reason text,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    is_public_booking boolean DEFAULT false NOT NULL
 );
 
 
@@ -670,6 +685,35 @@ CREATE TABLE public.bookings (
 
 ALTER TABLE public.bookings ALTER COLUMN booking_id ADD GENERATED ALWAYS AS IDENTITY (
     SEQUENCE NAME public.bookings_booking_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: chat_messages; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.chat_messages (
+    chat_message_id bigint NOT NULL,
+    booking_id bigint NOT NULL,
+    sender_user_id bigint NOT NULL,
+    message_text text NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    read_at timestamp with time zone,
+    CONSTRAINT chat_messages_message_text_check CHECK (((char_length(message_text) >= 1) AND (char_length(message_text) <= 2000)))
+);
+
+
+--
+-- Name: chat_messages_chat_message_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.chat_messages ALTER COLUMN chat_message_id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME public.chat_messages_chat_message_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -1518,10 +1562,11 @@ CREATE VIEW public.vw_booking_overview AS
     bp.payment_status,
     b.requested_at,
     b.completed_at,
-    b.scheduled_end_at
+    b.scheduled_end_at,
+    b.is_public_booking
    FROM ((((public.bookings b
      JOIN public.users cu ON ((cu.user_id = b.client_user_id)))
-     JOIN public.users pu ON ((pu.user_id = b.provider_user_id)))
+     LEFT JOIN public.users pu ON ((pu.user_id = b.provider_user_id)))
      JOIN public.service_categories sc ON ((sc.service_category_id = b.service_category_id)))
      LEFT JOIN public.booking_payments bp ON ((bp.booking_id = b.booking_id)));
 
@@ -1719,6 +1764,14 @@ ALTER TABLE ONLY public.booking_locations
 
 
 --
+-- Name: public_booking_dismissals public_booking_dismissals_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.public_booking_dismissals
+    ADD CONSTRAINT public_booking_dismissals_pkey PRIMARY KEY (booking_id, provider_user_id);
+
+
+--
 -- Name: booking_payments booking_payments_booking_id_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1764,6 +1817,14 @@ ALTER TABLE ONLY public.bookings
 
 ALTER TABLE ONLY public.bookings
     ADD CONSTRAINT bookings_pkey PRIMARY KEY (booking_id);
+
+
+--
+-- Name: chat_messages chat_messages_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.chat_messages
+    ADD CONSTRAINT chat_messages_pkey PRIMARY KEY (chat_message_id);
 
 
 --
@@ -2252,6 +2313,20 @@ CREATE INDEX ix_bk_provider_status ON public.bookings USING btree (provider_user
 
 
 --
+-- Name: idx_chat_messages_booking_id_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_chat_messages_booking_id_created_at ON public.chat_messages USING btree (booking_id, chat_message_id);
+
+
+--
+-- Name: idx_chat_messages_unread; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_chat_messages_unread ON public.chat_messages USING btree (booking_id, sender_user_id) WHERE (read_at IS NULL);
+
+
+--
 -- Name: ix_bk_requested_at; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -2732,6 +2807,22 @@ ALTER TABLE ONLY public.booking_locations
 
 
 --
+-- Name: public_booking_dismissals public_booking_dismissals_booking_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.public_booking_dismissals
+    ADD CONSTRAINT public_booking_dismissals_booking_id_fkey FOREIGN KEY (booking_id) REFERENCES public.bookings(booking_id) ON DELETE CASCADE;
+
+
+--
+-- Name: public_booking_dismissals public_booking_dismissals_provider_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.public_booking_dismissals
+    ADD CONSTRAINT public_booking_dismissals_provider_user_id_fkey FOREIGN KEY (provider_user_id) REFERENCES public.service_provider_profiles(provider_user_id) ON DELETE CASCADE;
+
+
+--
 -- Name: booking_payments booking_payments_booking_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2785,6 +2876,22 @@ ALTER TABLE ONLY public.bookings
 
 ALTER TABLE ONLY public.bookings
     ADD CONSTRAINT bookings_provider_user_id_service_category_id_fkey FOREIGN KEY (provider_user_id, service_category_id) REFERENCES public.provider_service_categories(provider_user_id, service_category_id);
+
+
+--
+-- Name: chat_messages chat_messages_booking_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.chat_messages
+    ADD CONSTRAINT chat_messages_booking_id_fkey FOREIGN KEY (booking_id) REFERENCES public.bookings(booking_id) ON DELETE CASCADE;
+
+
+--
+-- Name: chat_messages chat_messages_sender_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.chat_messages
+    ADD CONSTRAINT chat_messages_sender_user_id_fkey FOREIGN KEY (sender_user_id) REFERENCES public.users(user_id);
 
 
 --

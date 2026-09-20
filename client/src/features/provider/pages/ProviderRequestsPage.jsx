@@ -71,6 +71,19 @@ export default function ProviderRequestsPage() {
     }
   }
 
+  async function performDismiss(id) {
+    setActing(true);
+    try {
+      await axiosClient.patch(API_ENDPOINTS.PROVIDER.BOOKING_DISMISS(id));
+      setRequests((prev) => prev.filter((r) => r.id !== id));
+      setAlert({ type: 'success', msg: 'Removed from your requests.' });
+    } catch {
+      setAlert({ type: 'error', msg: 'Could not update this request. Please try again.' });
+    } finally {
+      setActing(false);
+    }
+  }
+
   async function performReject(id, reason) {
     setActing(true);
     try {
@@ -109,6 +122,10 @@ export default function ProviderRequestsPage() {
     setFormModal({ id, type: 'reject' });
   }
 
+  function handleDismiss(id) {
+    setPendingAction({ id, type: 'dismiss' });
+  }
+
   function handleReschedule(id) {
     setFormModal({ id, type: 'reschedule' });
   }
@@ -120,6 +137,7 @@ export default function ProviderRequestsPage() {
     if (type === 'accept') await performAccept(id);
     else if (type === 'reject') await performReject(id, payload);
     else if (type === 'reschedule') await performReschedule(id, payload);
+    else if (type === 'dismiss') await performDismiss(id);
   }
 
   const filtered = filter === 'all'
@@ -142,6 +160,13 @@ export default function ProviderRequestsPage() {
         title: 'Propose reschedule',
         message: `Are you sure you want to propose rescheduling this booking to ${dateLabel}, ${timeLabel}? The client will be notified and must accept before this takes effect.`,
         confirmLabel: 'Confirm',
+      };
+    }
+    if (pendingAction?.type === 'dismiss') {
+      return {
+        title: 'Not interested',
+        message: 'Remove this public booking from your requests? It will stay visible to every other provider in the category.',
+        confirmLabel: 'Remove',
       };
     }
     return {
@@ -191,6 +216,7 @@ export default function ProviderRequestsPage() {
             onAccept={handleAccept}
             onReject={handleReject}
             onReschedule={handleReschedule}
+            onDismiss={handleDismiss}
             loading={acting}
           />
         )}
